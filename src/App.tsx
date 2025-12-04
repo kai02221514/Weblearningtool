@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Onboarding } from './components/Onboarding'
+import { Auth } from './components/Auth'
+import { SignupSurvey } from './components/SignupSurvey'
 import { Tutorial } from './components/Tutorial'
 import { LearningModule } from './components/LearningModule'
 import { Quiz } from './components/Quiz'
@@ -9,13 +10,18 @@ import { Completion } from './components/Completion'
 import { LearningReflections } from './components/LearningReflections'
 import { LearningReflectionForm } from './components/LearningReflectionForm'
 
-type Phase = 'onboarding' | 'tutorial' | 'dashboard' | 'learning' | 'quiz' | 'practice' | 'reflection' | 'completion' | 'reflections'
+type Phase = 'auth' | 'survey' | 'tutorial' | 'dashboard' | 'learning' | 'quiz' | 'practice' | 'reflection' | 'completion' | 'reflections'
 
 interface UserData {
   name: string
-  age: string
-  occupation: string
-  pace: string
+  email: string
+  userId: string
+  accessToken?: string
+  age?: string
+  occupation?: string
+  pace?: string
+  level?: string
+  levelScore?: number
 }
 
 interface ReflectionData {
@@ -39,7 +45,7 @@ interface Progress {
 }
 
 export default function App() {
-  const [phase, setPhase] = useState<Phase>('onboarding')
+  const [phase, setPhase] = useState<Phase>('auth')
   const [userData, setUserData] = useState<UserData | null>(null)
   const [progress, setProgress] = useState<Progress>({
     completedModules: ['html-basics'],
@@ -51,8 +57,27 @@ export default function App() {
     reflections: []
   })
 
-  const handleOnboardingComplete = (data: UserData) => {
-    setUserData(data)
+  const handleSignupSuccess = (email: string, name: string, userId: string) => {
+    setUserData({ email, name, userId })
+    setPhase('survey')
+  }
+
+  const handleSigninSuccess = (email: string, name: string, accessToken: string, userId: string) => {
+    setUserData({ email, name, userId, accessToken })
+    setPhase('dashboard')
+  }
+
+  const handleSurveyComplete = (surveyData: any) => {
+    if (userData) {
+      setUserData({
+        ...userData,
+        age: surveyData.age,
+        occupation: surveyData.occupation,
+        pace: surveyData.pace,
+        level: surveyData.level,
+        levelScore: surveyData.levelScore
+      })
+    }
     setPhase('tutorial')
   }
 
@@ -126,8 +151,18 @@ export default function App() {
 
   // レンダリング
   switch (phase) {
-    case 'onboarding':
-      return <Onboarding onComplete={handleOnboardingComplete} />
+    case 'auth':
+      return <Auth onSignupSuccess={handleSignupSuccess} onSigninSuccess={handleSigninSuccess} />
+      
+    case 'survey':
+      return (
+        <SignupSurvey 
+          onComplete={handleSurveyComplete}
+          userName={userData?.name || 'ユーザー'}
+          userEmail={userData?.email || ''}
+          userId={userData?.userId || ''}
+        />
+      )
       
     case 'tutorial':
       return (

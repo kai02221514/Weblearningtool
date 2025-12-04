@@ -3,10 +3,13 @@ import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Textarea } from './ui/textarea'
 import { Badge } from './ui/badge'
+import { Alert, AlertDescription } from './ui/alert'
 import { Separator } from './ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs'
+import { RadioGroup, RadioGroupItem } from './ui/radio-group'
+import { Label } from './ui/label'
 import { Progress } from './ui/progress'
-import { Play, CheckCircle, ArrowRight, Lightbulb, User, Square, BookOpen, Code } from 'lucide-react'
+import { Play, CheckCircle, AlertTriangle, Home, ArrowRight, RefreshCw, Lightbulb, User, Square, XCircle, BookOpen, Code } from 'lucide-react'
 
 interface PracticeChallengeProps {
   onComplete: () => void
@@ -66,6 +69,8 @@ export function PracticeChallenge({ onComplete, onDashboard }: PracticeChallenge
   const [isCompleted, setIsCompleted] = useState(false)
   const [srkTab, setSrkTab] = useState('overview')
   const [visibleHints, setVisibleHints] = useState(2)
+  const [understanding, setUnderstanding] = useState('')
+  const [difficultyNote, setDifficultyNote] = useState('')
   const [checklist, setChecklist] = useState([false, false, false, false, false])
   
   // SRKエラーのstate
@@ -84,6 +89,7 @@ export function PracticeChallenge({ onComplete, onDashboard }: PracticeChallenge
     lines.forEach((line, index) => {
       // 閉じタグの欠落チェック
       const openTags = line.match(/<([a-z][a-z0-9]*)\b[^>]*>/gi) || []
+      const closeTags = line.match(/<\/([a-z][a-z0-9]*)>/gi) || []
       
       openTags.forEach(tag => {
         const tagName = tag.match(/<([a-z][a-z0-9]*)/i)?.[1]
