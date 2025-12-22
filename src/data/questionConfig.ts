@@ -1,38 +1,121 @@
 export const questionConfig = [
   {
     weight: 2,
-    id: "age",
-    label: "年齢",
-    placeholder: "年齢を選択してください",
+    id: "background",
+    label: "現在の立場",
+    placeholder: "最も近いものを選択してください",
     options: [
-      { value: "18-24", label: "18-24歳", score: 2 },
-      { value: "25-34", label: "25-34歳", score: 3 },
-      { value: "35-44", label: "35-44歳", score: 2 },
-      { value: "45+", label: "45歳以上", score: 1 }
-    ]
+      { value: "student", label: "大学生・高専生", score: 2 },
+      { value: "it_worker", label: "社会人（IT系職種）", score: 3 },
+      { value: "non_it_worker", label: "社会人（非IT職種）", score: 1 },
+      { value: "homemaker", label: "主婦・主夫・無職", score: 1 },
+      { value: "other", label: "その他", score: 1 },
+    ],
   },
   {
     weight: 3,
-    id: "occupation",
-    label: "職業",
-    placeholder: "現在の職業を選択してください",
+    id: "learning_goal",
+    label: "学習の目的",
+    placeholder: "当てはまるものを選択してください",
     options: [
-      { value: "student", label: "学生", score: 2 },
-      { value: "office", label: "会社員（非IT）", score: 1 },
-      { value: "it", label: "IT関連", score: 3 },
-      { value: "freelance", label: "フリーランス", score: 2 },
-      { value: "other", label: "その他", score: 1 }
-    ]
+      { value: "class", label: "授業・研究・課題のため", score: 2 },
+      { value: "work", label: "業務で必要になった", score: 3 },
+      { value: "skill_up", label: "スキルアップ・教養", score: 2 },
+      { value: "career_change", label: "転職・復職を見据えて", score: 3 },
+      { value: "hobby", label: "趣味・個人制作", score: 1 },
+      { value: "unclear", label: "まだ明確ではない", score: 0 },
+    ],
+  },
+  {
+    weight: 4,
+    id: "available_time",
+    label: "学習に使える時間",
+    placeholder: "学習時間の目安を選択してください",
+    options: [
+      { value: "less_30", label: "毎日30分未満", score: 1 },
+      { value: "30_60", label: "毎日30分〜1時間", score: 2 },
+      { value: "few_times", label: "週に数回まとめて", score: 2 },
+      { value: "irregular", label: "不定期", score: 1 },
+      { value: "unknown", label: "まだ分からない", score: 0 },
+    ],
+  },
+  {
+    weight: 0,
+    id: "programming_experience",
+    label: "プログラミングを行ったことはありますか？",
+    placeholder: "該当するものを選択してください",
+    options: [
+      { value: "yes", label: "はい", score: 0 },
+      { value: "no", label: "いいえ", score: 0 },
+    ],
   },
   {
     weight: 5,
-    id: "pace",
-    label: "学習ペース",
-    placeholder: "週にどのくらい学習できますか？",
+    id: "skill_errors",
+    label: "操作・記述ミスの頻度",
+    placeholder: "最も近いものを選択してください",
     options: [
-      { value: "light", label: "週1-2時間（ゆっくり）", score: 1 },
-      { value: "moderate", label: "週3-5時間（標準）", score: 2 },
-      { value: "intensive", label: "週6時間以上（集中）", score: 3 }
-    ]
-  }
-]
+      { value: "rare", label: "ほとんど起こらない", score: 3 },
+      { value: "sometimes", label: "ときどき起こる", score: 2 },
+      { value: "often", label: "よく起こる", score: 1 },
+      { value: "very_often", label: "非常によく起こる", score: 0 },
+    ],
+  },
+  {
+    weight: 5,
+    id: "rule_confidence",
+    label: "HTML/CSSのルール理解",
+    placeholder: "自信の度合いを選択してください",
+    options: [
+      { value: "confident", label: "概ね理解している", score: 3 },
+      { value: "partial", label: "一部は理解している", score: 2 },
+      { value: "low", label: "あまり自信がない", score: 1 },
+      { value: "none", label: "ほとんど分からない", score: 0 },
+    ],
+  },
+  {
+    weight: 6,
+    id: "knowledge_concept",
+    label: "HTML/CSSの概念理解",
+    placeholder: "考え方として最も近いものを選択してください",
+    options: [
+      {
+        value: "structure_style",
+        label: "HTMLは構造、CSSは見た目だと理解している",
+        score: 3,
+      },
+      { value: "somewhat", label: "なんとなく分かる", score: 2 },
+      {
+        value: "visual_only",
+        label: "見た目が同じならタグは何でもよいと思う",
+        score: 0,
+      },
+      { value: "unknown", label: "よく分からない", score: 0 },
+    ],
+  },
+  {
+    weight: 4,
+    id: "error_handling",
+    label: "エラーが出たときの行動",
+    placeholder: "最も近いものを選択してください",
+    options: [
+      { value: "analyze", label: "原因を考えて修正する", score: 3 },
+      { value: "trial", label: "試行錯誤しながら直す", score: 2 },
+      { value: "copy", label: "調べて答えを写す", score: 1 },
+      { value: "stop", label: "手が止まる", score: 0 },
+    ],
+  },
+  {
+    weight: 3,
+    id: "learning_anxiety",
+    label: "学習時の不安",
+    placeholder: "最も近いものを選択してください",
+    options: [
+      { value: "none", label: "特に不安はない", score: 3 },
+      { value: "error_meaning", label: "エラーの意味が分からない", score: 1 },
+      { value: "fix_order", label: "どこから直せばよいか分からない", score: 1 },
+      { value: "progress", label: "成長しているか分からない", score: 1 },
+      { value: "comparison", label: "他人と比べて遅いと感じる", score: 1 },
+    ],
+  },
+];

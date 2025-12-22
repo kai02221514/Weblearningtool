@@ -9,7 +9,7 @@ import { questionConfig as questionConfigData } from '../data/questionConfig'
 import { saveProfile } from '../utils/auth'
 
 type Level = 'beginner' | 'intermediate' | 'advanced' | ''
-type QuestionKey = 'age' | 'occupation' | 'pace'
+type QuestionId = string
 
 interface QuestionOption {
   value: string
@@ -19,18 +19,16 @@ interface QuestionOption {
 
 interface Question {
   weight: number
-  id: QuestionKey
+  id: QuestionId
   label: string
   placeholder: string
   options: QuestionOption[]
 }
 
 interface SurveyData {
-  age: string
-  occupation: string
-  pace: string
   levelScore: number
   level: Level
+  [key: string]: string | number
 }
 
 interface SignupSurveyProps {
@@ -40,42 +38,57 @@ interface SignupSurveyProps {
   onComplete: (surveyData: SurveyData) => void
 }
 
-const questionConfig: Question[] = questionConfigData.map((q) => ({
-  ...q,
-  id: q.id as QuestionKey
-}))
+const questionConfig: Question[] = questionConfigData
+
+const conditionalQuestionIds = new Set([
+  'skill_errors',
+  'rule_confidence',
+  'knowledge_concept',
+  'error_handling',
+  'learning_anxiety'
+])
 
 export function SignupSurvey({ userName, userEmail, userId, onComplete }: SignupSurveyProps) {
   const [formData, setFormData] = useState<SurveyData>({
-    age: '',
-    occupation: '',
-    pace: '',
     levelScore: 0,
     level: ''
   })
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
+  const shouldShowSkillQuestions = formData.programming_experience === 'yes'
+
+  const isQuestionVisible = (question: Question) => {
+    if (!conditionalQuestionIds.has(question.id)) return true
+    return shouldShowSkillQuestions
+  }
+
   const calculateScore = () => {
     return questionConfig.reduce((total, question) => {
-      const selectedValue = formData[question.id]
+      if (!isQuestionVisible(question)) return total
+      const selectedValue = String(formData[question.id] ?? '')
       const optionScore = (question.options.find(option => option.value === selectedValue)?.score ?? 0) * question.weight
       return total + optionScore
     }, 0)
   }
 
-  const determineLevel = (score: number): SurveyData['level'] => {
-    if (score >= 7) return 'advanced'
-    if (score >= 5) return 'intermediate'
-    if (score > 0) return 'beginner'
-    return ''
-  }
+const determineLevel = (score: number): SurveyData['level'] => {
+  if (score >= 24) return 'advanced'
+  if (score >= 17) return 'intermediate'
+  if (score >= 10) return 'beginner'
+  return 'beginner'
+}
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault()
     setError('')
     
-    if (formData.age && formData.occupation && formData.pace) {
+    const isFormComplete = questionConfig.every((question) => {
+      if (!isQuestionVisible(question)) return true
+      return Boolean(formData[question.id])
+    })
+
+    if (isFormComplete) {
       setIsLoading(true)
       const totalScore = calculateScore()
       const level = determineLevel(totalScore)
@@ -117,11 +130,11 @@ export function SignupSurvey({ userName, userEmail, userId, onComplete }: Signup
           
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-5">
-              {questionConfig.map((question) => (
+              {questionConfig.filter(isQuestionVisible).map((question) => (
                 <div className="space-y-2" key={question.id}>
                   <Label htmlFor={question.id}>{question.label}</Label>
                   <Select
-                    value={formData[question.id]}
+                    value={String(formData[question.id] ?? '')}
                     onValueChange={(value) => setFormData(prev => ({ ...prev, [question.id]: value }))}
                   >
                     <SelectTrigger>
