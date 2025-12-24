@@ -25,7 +25,7 @@ const tutorialSteps = [
   },
   {
     title: '実践重視のカリキュラム',
-    description: 'コードを書いて、実際に動くものを作りましょう。',
+    description: 'コードを書いて、実際に動くものを作りま���ょう。',
     icon: Code,
     content: 'テキストを読むだけでなく、実際にコードエディタでプログラムを書きます。書いたコードがすぐにプレビューで確認できるので、学習効果が高まります。'
   },
@@ -57,8 +57,20 @@ export function Tutorial({ onComplete, userName }: TutorialProps) {
   // エンターキーでnextStepを実行
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key === 'Enter') {
+      // Enter または スペースキーで次へ
+      if (e.key === 'Enter' || e.key === ' ') {
         nextStep()
+        e.preventDefault()
+      }
+      // 左矢印キーで前へ
+      if (e.key === 'ArrowLeft' && currentStep > 0) {
+        prevStep()
+        e.preventDefault()
+      }
+      // 右矢印キーで次へ
+      if (e.key === 'ArrowRight') {
+        nextStep()
+        e.preventDefault()
       }
     }
 

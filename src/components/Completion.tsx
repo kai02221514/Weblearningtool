@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Badge } from './ui/badge'
@@ -58,6 +58,28 @@ export function Completion({ onDashboard, userData, progress }: CompletionProps)
   const averageScore = progress.quizScores.length > 0 
     ? Math.round(progress.quizScores.reduce((a, b) => a + b, 0) / progress.quizScores.length)
     : 0
+
+  // キーボードショートカット
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Enter または スペースキー または Escapeキー でダッシュボードへ戻る
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
+        onDashboard()
+        e.preventDefault()
+      }
+      
+      // 数字キー1-3でタブ切り替え
+      const tabOrder = ['certificate', 'portfolio', 'next-steps']
+      const num = parseInt(e.key)
+      if (num >= 1 && num <= 3) {
+        setActiveTab(tabOrder[num - 1])
+        e.preventDefault()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onDashboard])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">

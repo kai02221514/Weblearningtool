@@ -13,8 +13,13 @@ import {
   PlayCircle,
   Award,
   Users,
-  MessageCircle
+  MessageCircle,
+  AlertCircle,
+  ArrowRight,
+  Lightbulb
 } from 'lucide-react'
+import learningNodesData from '../data/learningNodes'
+import { useEffect } from 'react'
 
 interface DashboardProps {
   onStartLearning: (module: string) => void
@@ -28,59 +33,23 @@ interface DashboardProps {
     totalHours: number
     quizScores: number[]
     reflections: any[]
+    recommendedStartNodeIds: string[]
+    inProgressNodeId: string | null
+    completedNodeIds: string[]
   }
 }
 
-const modules = [
-  {
-    id: 'html-basics',
-    title: 'HTMLの基礎',
-    description: 'Webページの構造を作る基本的なHTMLタグを学びます',
-    status: 'completed',
-    duration: '2時間',
-    difficulty: 'beginner'
-  },
-  {
-    id: 'css-basics',
-    title: 'CSSの基礎',
-    description: 'Webページのスタイリングとレイアウトを学びます',
-    status: 'current',
-    duration: '3時間',
-    difficulty: 'beginner'
-  },
-  {
-    id: 'css-layout',
-    title: 'CSSレイアウト',
-    description: 'FlexboxやGridを使った現代的なレイアウト手法を学びます',
-    status: 'locked',
-    duration: '4時間',
-    difficulty: 'intermediate'
-  },
-  {
-    id: 'javascript-intro',
-    title: 'JavaScript入門',
-    description: '動的なWebページを作るためのJavaScriptの基礎を学びます',
-    status: 'locked',
-    duration: '5時間',
-    difficulty: 'intermediate'
-  },
-  {
-    id: 'responsive-design',
-    title: 'レスポンシブデザイン',
-    description: 'モバイルファーストな設計とメディアクエリを学びます',
-    status: 'locked',
-    duration: '3時間',
-    difficulty: 'advanced'
+// JSONファイルから配列を取得（デフォルトインポートの型に対応）
+const learningNodesArray = (() => {
+  if (Array.isArray(learningNodesData)) {
+    return learningNodesData
   }
-]
-
-const achievements = [
-  { title: '初回ログイン', description: 'プログラミング学習の第一歩', earned: true, icon: '🎯' },
-  { title: '最初のモジュール完了', description: 'HTMLの基礎をマスター', earned: true, icon: '📚' },
-  { title: '3日連続学習', description: '継続は力なり', earned: true, icon: '🔥' },
-  { title: '平均スコア85点以上', description: '理解度の高い学習', earned: false, icon: '⭐' },
-  { title: 'コードの達人', description: '10個の実践課題をクリア', earned: false, icon: '💻' }
-]
+  // 新しいスキーマ構造の場合、html_nodes と css_nodes を結合
+  const data = learningNodesData as any
+  const htmlNodes = data.html_nodes || []
+  const cssNodes = data.css_nodes || []
+  return [...htmlNodes, ...cssNodes]
+})()
 
 export function Dashboard({ onStartLearning, onViewCompletion, onViewReflections, userData, progress }: DashboardProps) {
   const overallProgress = (progress.completedModules.length / progress.totalModules) * 100
@@ -104,6 +73,33 @@ export function Dashboard({ onStartLearning, onViewCompletion, onViewReflections
       default: return 'text-gray-600'
     }
   }
+
+  // 推奨ノードの取得
+  const getRecommendedNodes = () => {
+    return learningNodesArray.filter(node => 
+      progress.recommendedStartNodeIds.includes(node.id)
+    )
+  }
+
+  // 前提条件のチェック
+  const checkPrerequisites = (nodeId: string) => {
+    const node = learningNodesArray.find(n => n.id === nodeId)
+    if (!node) return { met: true, unmetNodes: [] }
+    
+    const prerequisites = node.prerequisites || []
+    const unmetNodes = prerequisites.filter(
+      prereq => !progress.completedModules.includes(prereq)
+    )
+    
+    return {
+      met: unmetNodes.length === 0,
+      unmetNodes: unmetNodes.map(id => 
+        learningNodesArray.find(n => n.id === id)?.title || id
+      )
+    }
+  }
+
+  const recommendedNodes = getRecommendedNodes()
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -186,50 +182,164 @@ export function Dashboard({ onStartLearning, onViewCompletion, onViewReflections
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {modules.map((module) => (
-                  <div
-                    key={module.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                        {module.status === 'completed' ? (
-                          <CheckCircle className="w-5 h-5 text-green-600" />
-                        ) : module.status === 'current' ? (
-                          <PlayCircle className="w-5 h-5 text-blue-600" />
-                        ) : (
-                          <BookOpen className="w-5 h-5 text-gray-400" />
-                        )}
-                      </div>
-                      <div>
-                        <h3 className="font-medium">{module.title}</h3>
-                        <p className="text-sm text-muted-foreground">{module.description}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge variant="outline" className={getStatusColor(module.status)}>
-                            {module.status === 'completed' ? '完了' : 
-                             module.status === 'current' ? '学習中' : 'ロック中'}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {module.duration}
-                          </span>
-                          <span className={`text-xs ${getDifficultyColor(module.difficulty)}`}>
-                            {module.difficulty === 'beginner' ? '初級' :
-                             module.difficulty === 'intermediate' ? '中級' : '上級'}
-                          </span>
+                {/* 推奨ルートセクション */}
+                {recommendedNodes.length > 0 && (
+                  <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-green-50 border-2 border-blue-200 rounded-lg">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Lightbulb className="w-5 h-5 text-blue-600" />
+                      <h3 className="font-semibold text-blue-900">あなたの推奨ルート（スコア算出）</h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      あなたのレベル（{userData?.level || 'beginner'}）とスコア（{userData?.levelScore || 0}点）に基づいて、最適な学習経路を提案しています。
+                    </p>
+                    <div className="space-y-3">
+                      {recommendedNodes.map((node, index) => {
+                        const prereqCheck = checkPrerequisites(node.id)
+                        const isNext = index === 0
+                        
+                        return (
+                          <div
+                            key={node.id}
+                            className={`p-3 bg-white rounded-lg border-2 ${
+                              isNext ? 'border-blue-400 shadow-md' : 'border-gray-200'
+                            }`}
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  {isNext && (
+                                    <Badge className="bg-blue-600 text-white">次にやるべき</Badge>
+                                  )}
+                                  <h4 className="font-medium">{node.title}</h4>
+                                </div>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <Badge variant="outline" className="text-xs">
+                                    {node.category}
+                                  </Badge>
+                                  <Badge 
+                                    variant="outline" 
+                                    className={`text-xs ${
+                                      node.difficulty === 'beginner' ? 'text-green-600' :
+                                      node.difficulty === 'intermediate' ? 'text-yellow-600' :
+                                      'text-red-600'
+                                    }`}
+                                  >
+                                    {node.difficulty === 'beginner' ? '初級' :
+                                     node.difficulty === 'intermediate' ? '中級' : '上級'}
+                                  </Badge>
+                                </div>
+                                
+                                {/* 前提条件の警告 */}
+                                {!prereqCheck.met && (
+                                  <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded flex items-start gap-2">
+                                    <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                                    <div className="text-xs">
+                                      <div className="font-medium text-yellow-800 mb-1">前提未完了</div>
+                                      <div className="text-yellow-700">
+                                        先に以下を完了してください：
+                                        {prereqCheck.unmetNodes.map((prereqTitle, idx) => (
+                                          <span key={idx}>
+                                            {idx > 0 && '、'}
+                                            <button
+                                              onClick={() => {
+                                                const prereqNode = learningNodesArray.find(n => n.title === prereqTitle)
+                                                if (prereqNode) onStartLearning(prereqNode.id)
+                                              }}
+                                              className="underline hover:text-yellow-900"
+                                            >
+                                              {prereqTitle}
+                                            </button>
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              <Button
+                                onClick={() => onStartLearning(node.id)}
+                                disabled={!prereqCheck.met}
+                                size="sm"
+                                variant={isNext ? 'default' : 'outline'}
+                              >
+                                {isNext && <ArrowRight className="w-4 h-4 mr-1" />}
+                                開始
+                              </Button>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* 全学習モジュール一覧 */}
+                {(() => {
+                  // ノードをステータスで分類
+                  const availableNodes: any[] = []
+                  const lockedNodes: any[] = []
+                  
+                  learningNodesArray.forEach((node) => {
+                    const isCompleted = (progress.completedNodeIds || []).includes(node.id)
+                    const isRecommended = (progress.recommendedStartNodeIds || []).includes(node.id)
+                    const prereqCheck = checkPrerequisites(node.id)
+                    const status = isCompleted ? 'completed' : 
+                                  isRecommended ? 'current' : 
+                                  !prereqCheck.met ? 'locked' : 'available'
+                    
+                    if (status === 'available') {
+                      availableNodes.push({ node, status, prereqCheck })
+                    } else if (status === 'locked') {
+                      lockedNodes.push({ node, status, prereqCheck })
+                    }
+                  })
+                  
+                  // 利用可能な全てとロック中の3件を結合
+                  const displayNodes = [...availableNodes, ...lockedNodes.slice(0, 3)]
+                  
+                  return displayNodes.map(({ node, status, prereqCheck }) => (
+                    <div
+                      key={node.id}
+                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                          {status === 'completed' ? (
+                            <CheckCircle className="w-5 h-5 text-green-600" />
+                          ) : status === 'current' ? (
+                            <PlayCircle className="w-5 h-5 text-blue-600" />
+                          ) : (
+                            <BookOpen className="w-5 h-5 text-gray-400" />
+                          )}
+                        </div>
+                        <div>
+                          <h3 className="font-medium">{node.title}</h3>
+                          <p className="text-sm text-muted-foreground">{node.summary}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant="outline" className={getStatusColor(status)}>
+                              {status === 'completed' ? '完了' : 
+                               status === 'current' ? '学習中' : 
+                               status === 'locked' ? 'ロック中' : '利用可能'}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {node.type === 'concept' ? '概念' : 'スキル'}
+                            </Badge>
+                          </div>
                         </div>
                       </div>
+                      <Button
+                        onClick={() => onStartLearning(node.id)}
+                        disabled={status === 'locked'}
+                        variant={status === 'current' ? 'default' : 'outline'}
+                      >
+                        {status === 'completed' ? '復習する' :
+                         status === 'current' ? '続ける' : 
+                         status === 'locked' ? 'ロック中' : '開始'}
+                      </Button>
                     </div>
-                    <Button
-                      onClick={() => onStartLearning(module.id)}
-                      disabled={module.status === 'locked'}
-                      variant={module.status === 'current' ? 'default' : 'outline'}
-                    >
-                      {module.status === 'completed' ? '復習する' :
-                       module.status === 'current' ? '続ける' : 'ロック中'}
-                    </Button>
-                  </div>
-                ))}
+                  ))
+                })()}
               </CardContent>
             </Card>
           </div>

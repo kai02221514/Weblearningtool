@@ -1,24 +1,46 @@
 import { useState, useEffect } from 'react'
-import { Button } from './ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
-import { Textarea } from './ui/textarea'
-import { Badge } from './ui/badge'
-import { Alert, AlertDescription } from './ui/alert'
-import { Separator } from './ui/separator'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs'
-import { RadioGroup, RadioGroupItem } from './ui/radio-group'
-import { Label } from './ui/label'
-import { Progress } from './ui/progress'
 import { Play, CheckCircle, AlertTriangle, Home, ArrowRight, RefreshCw, Lightbulb, User, Square, XCircle, BookOpen, Code } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
+import { Button } from './ui/button'
+import { Progress } from './ui/progress'
+import { Badge } from './ui/badge'
+import { Textarea } from './ui/textarea'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs'
+import { Separator } from './ui/separator'
+import learningNodesData from '../data/learningNodes'
+import errorMappingsData from '../data/errorMappings'
+
+// JSONファイルから配列を取得(デフォルトインポートの型に対応)
+const learningNodesArray = (() => {
+  if (Array.isArray(learningNodesData)) {
+    return learningNodesData
+  }
+  // 新しいスキーマ構造の場合、html_nodes と css_nodes を結合
+  const data = learningNodesData as any
+  const htmlNodes = data.html_nodes || []
+  const cssNodes = data.css_nodes || []
+  return [...htmlNodes, ...cssNodes]
+})()
+
+const errorMappingsArray = (() => {
+  if (Array.isArray(errorMappingsData)) {
+    return errorMappingsData
+  }
+  // 新しいスキーマ構造の場合、errors プロパティを取得
+  const data = errorMappingsData as any
+  return data.errors || []
+})()
 
 interface PracticeChallengeProps {
   onComplete: () => void
   onDashboard: () => void
+  onStartLearning?: (nodeId: string) => void
 }
 
 interface ErrorItem {
   line?: number
   message: string
+  relatedNodeIds?: string[]  // 関連する学習ノードのIDリスト
 }
 
 type SkillError = ErrorItem
@@ -63,7 +85,7 @@ const challenge = {
   ]
 }
 
-export function PracticeChallenge({ onComplete, onDashboard }: PracticeChallengeProps) {
+export function PracticeChallenge({ onComplete, onDashboard, onStartLearning }: PracticeChallengeProps) {
   const [code, setCode] = useState(initialCode)
   const [feedback, setFeedback] = useState<{type: 'success' | 'warning' | 'error', message: string} | null>(null)
   const [isCompleted, setIsCompleted] = useState(false)
@@ -72,6 +94,11 @@ export function PracticeChallenge({ onComplete, onDashboard }: PracticeChallenge
   const [understanding, setUnderstanding] = useState('')
   const [difficultyNote, setDifficultyNote] = useState('')
   const [checklist, setChecklist] = useState([false, false, false, false, false])
+  const [selectedNodeForPreview, setSelectedNodeForPreview] = useState<string | null>(null)
+  
+  // 現在の課題ノード（実際のアプリではpropsで渡すべきだが、ここではデモ用にhtml-010を使用）
+  const currentChallengeNodeId = 'html-010' // 例: HTMLリスト基礎の課題
+  const currentNode = learningNodesArray.find(n => n.id === currentChallengeNodeId)
   
   // SRKエラーのstate
   const [skillErrors, setSkillErrors] = useState<SkillError[]>([])
@@ -96,9 +123,13 @@ export function PracticeChallenge({ onComplete, onDashboard }: PracticeChallenge
         if (tagName && !['br', 'hr', 'img', 'input', 'meta', 'link'].includes(tagName.toLowerCase())) {
           const closeTag = `</${tagName}>`
           if (!currentCode.includes(closeTag)) {
+            // E_HTML_MISSING_CLOSING_TAG に対応
+            const errorMapping = errorMappingsArray.find(e => e.id === 'E_HTML_MISSING_CLOSING_TAG')
+            const relatedNodeIds = errorMapping?.nodeRefs?.map(ref => ref.nodeId) || []
             skills.push({
               line: index + 1,
-              message: `\`<${tagName}>\` タグが閉じられていません。`
+              message: `\`<${tagName}>\` タグが閉じられていません。`,
+              relatedNodeIds
             })
           }
         }
@@ -108,9 +139,13 @@ export function PracticeChallenge({ onComplete, onDashboard }: PracticeChallenge
       if (line.includes(':') && !line.includes(';') && !line.includes('{') && !line.includes('}')) {
         const inStyle = currentCode.substring(0, currentCode.indexOf(line)).includes('<style>')
         if (inStyle) {
+          // E_CSS_SYNTAX_MISSING_SEMICOLON に対応
+          const errorMapping = errorMappingsArray.find(e => e.id === 'E_CSS_SYNTAX_MISSING_SEMICOLON')
+          const relatedNodeIds = errorMapping?.nodeRefs?.map(ref => ref.nodeId) || []
           skills.push({
             line: index + 1,
-            message: 'CSSの `;` が抜けています。'
+            message: 'CSSの `;` が抜けています。',
+            relatedNodeIds
           })
         }
       }
@@ -132,9 +167,13 @@ export function PracticeChallenge({ onComplete, onDashboard }: PracticeChallenge
       ulMatch.forEach(ul => {
         const content = ul.replace(/<ul[^>]*>|<\/ul>/gi, '')
         if (content.match(/<(?!li|\/li)[a-z]/i)) {
+          // E_HTML_INVALID_NESTING に対応
+          const errorMapping = errorMappingsArray.find(e => e.id === 'E_HTML_INVALID_NESTING')
+          const relatedNodeIds = errorMapping?.nodeRefs?.map(ref => ref.nodeId) || []
           rules.push({
             message: '`<ul>` の直下には `<li>` だけを入れます。現在は他の要素が入っています。',
-            example: '<ul>\n  <li>項目1</li>\n  <li>項目2</li>\n</ul>'
+            example: '<ul>\n  <li>項目1</li>\n  <li>項目2</li>\n</ul>',
+            relatedNodeIds
           })
         }
       })
@@ -166,8 +205,12 @@ export function PracticeChallenge({ onComplete, onDashboard }: PracticeChallenge
     // h1タグの複数使用チェック
     const h1Count = (currentCode.match(/<h1[^>]*>/gi) || []).length
     if (h1Count > 1) {
+      // E_HTML_HEADING_STRUCTURE に対応
+      const errorMapping = errorMappingsArray.find(e => e.id === 'E_HTML_HEADING_STRUCTURE')
+      const relatedNodeIds = errorMapping?.nodeRefs?.map(ref => ref.nodeId) || []
       knowledge.push({
-        message: `このページには \`<h1>\` が${h1Count}つあります。ページの主題となる見出しは1つにするのが望ましいです。`
+        message: `このページには \`<h1>\` が${h1Count}つあります。ページの主題となる見出しは1つにするのが望ましいです。`,
+        relatedNodeIds
       })
     }
 
@@ -175,16 +218,24 @@ export function PracticeChallenge({ onComplete, onDashboard }: PracticeChallenge
     const hasH1 = currentCode.includes('<h1')
     const hasH3 = currentCode.includes('<h3')
     if (hasH3 && !hasH1) {
+      // E_HTML_HEADING_STRUCTURE に対応
+      const errorMapping = errorMappingsArray.find(e => e.id === 'E_HTML_HEADING_STRUCTURE')
+      const relatedNodeIds = errorMapping?.nodeRefs?.map(ref => ref.nodeId) || []
       knowledge.push({
-        message: 'h3タグを使う前に、h1タグから順番に使用することが推奨されます。'
+        message: 'h3タグを使う前に、h1タグから順番に使用することが推奨されます。',
+        relatedNodeIds
       })
     }
 
     // alt属性のチェック
     const imgWithoutAlt = currentCode.match(/<img(?![^>]*alt=)[^>]*>/gi)
     if (imgWithoutAlt && imgWithoutAlt.length > 0) {
+      // E_HTML_MISSING_REQUIRED_ATTR に対応
+      const errorMapping = errorMappingsArray.find(e => e.id === 'E_HTML_MISSING_REQUIRED_ATTR')
+      const relatedNodeIds = errorMapping?.nodeRefs?.map(ref => ref.nodeId) || []
       knowledge.push({
-        message: '画像タグ（img）には、アクセシビリティのためalt属性を追加することが推奨されます。'
+        message: '画像タグ（img）には、アクセシビリティのためalt属性を追加することが推奨されます。',
+        relatedNodeIds
       })
     }
 
@@ -196,6 +247,20 @@ export function PracticeChallenge({ onComplete, onDashboard }: PracticeChallenge
   // コードが変更されたら自動的に解析
   useEffect(() => {
     analyzeCode(code)
+  }, [code])
+
+  // キーボードショートカット: Ctrl/Cmd+Enter でコード実行
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+Enter または Cmd+Enter でコード実行
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        runCode()
+        e.preventDefault()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
   }, [code])
 
   const runCode = () => {
@@ -254,6 +319,69 @@ export function PracticeChallenge({ onComplete, onDashboard }: PracticeChallenge
 
   // 簡易プレビュー生成
   const previewContent = code.replace(/<!DOCTYPE html>|<html>|<\/html>/g, '')
+
+  // エラーに基づく推奨ノードの取得
+  const getRecommendationsFromErrors = () => {
+    const detectedErrorIds: string[] = []
+    
+    // 検出されたエラーに基づいてエラーIDを特定
+    if (skillErrors.length > 0) {
+      if (skillErrors.some(e => e.message.includes('閉じられていません'))) {
+        detectedErrorIds.push('error-missing-closing-tag')
+      }
+      if (skillErrors.some(e => e.message.includes('`;`'))) {
+        detectedErrorIds.push('error-missing-semicolon')
+      }
+    }
+    
+    if (ruleErrors.length > 0) {
+      if (ruleErrors.some(e => e.message.includes('`<ul>`'))) {
+        detectedErrorIds.push('error-invalid-ul-child')
+      }
+      if (ruleErrors.some(e => e.message.includes('DOCTYPE'))) {
+        detectedErrorIds.push('error-missing-doctype')
+      }
+    }
+    
+    if (knowledgeErrors.length > 0) {
+      if (knowledgeErrors.some(e => e.message.includes('<h1>'))) {
+        detectedErrorIds.push('error-multiple-h1')
+      }
+      if (knowledgeErrors.some(e => e.message.includes('階層'))) {
+        detectedErrorIds.push('error-heading-hierarchy')
+      }
+      if (knowledgeErrors.some(e => e.message.includes('alt'))) {
+        detectedErrorIds.push('error-missing-alt')
+      }
+    }
+    
+    // エラーマッピングから推奨ノードを取得
+    const recommendations = detectedErrorIds.map(errorId => {
+      const mapping = errorMappingsArray.find(m => m.id === errorId)
+      return mapping
+    }).filter(Boolean)
+    
+    // 優先順位でソート（knowledge > rule > skill）
+    recommendations.sort((a, b) => {
+      const srkOrder = { knowledge: 3, rule: 2, skill: 1 }
+      const severityOrder = { high: 3, medium: 2, low: 1 }
+      
+      const aScore = (srkOrder[a!.srk as keyof typeof srkOrder] || 0) * 10 + 
+                     (severityOrder[a!.severity as keyof typeof severityOrder] || 0)
+      const bScore = (srkOrder[b!.srk as keyof typeof srkOrder] || 0) * 10 + 
+                     (severityOrder[b!.severity as keyof typeof severityOrder] || 0)
+      
+      return bScore - aScore
+    })
+    
+    return recommendations
+  }
+
+  const recommendations = getRecommendationsFromErrors()
+  
+  // recommendNodeIdsとrelatedNodeIdsを取得
+  const recommendNodeIds = [...new Set(recommendations.flatMap(r => r?.recommendNodeIds || []))]
+  const relatedNodeIds = [...new Set(recommendations.flatMap(r => r?.relatedNodeIds || []))]
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -356,17 +484,13 @@ export function PracticeChallenge({ onComplete, onDashboard }: PracticeChallenge
             </Card>
           </div>
 
-          {/* 中央カラム：コードエディタ + エラーサポート (45%) */}
+          {/* 中央カラム：コードエディタ + プレビュー（上下配置） (45%) */}
           <div className="lg:col-span-5 space-y-3">
             {/* コードエディタ */}
             <Card className="shadow-sm">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm">コードエディタ</CardTitle>
-                  <Button onClick={runCode} size="sm" className="h-7 text-xs">
-                    <Play className="w-3 h-3 mr-1" />
-                    実行
-                  </Button>
                 </div>
               </CardHeader>
               <CardContent className="p-0">
@@ -380,12 +504,12 @@ export function PracticeChallenge({ onComplete, onDashboard }: PracticeChallenge
                   <Textarea
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
-                    className="min-h-[280px] font-mono text-xs border-0 resize-none rounded-none bg-gray-50 pl-10"
+                    className="min-h-[220px] font-mono text-xs border-0 resize-none rounded-none bg-gray-50 pl-10"
                     placeholder="HTMLコードをここに入力..."
                     style={{ lineHeight: '1.5' }}
                   />
                   {/* 行番号 */}
-                  <div className="absolute top-0 left-0 w-10 min-h-[280px] bg-gray-100 border-r text-right pr-2 pt-2 text-xs text-muted-foreground font-mono select-none pointer-events-none" style={{ lineHeight: '1.5' }}>
+                  <div className="absolute top-0 left-0 w-10 min-h-[220px] bg-gray-100 border-r text-right pr-2 pt-2 text-xs text-muted-foreground font-mono select-none pointer-events-none" style={{ lineHeight: '1.5' }}>
                     {code.split('\n').map((_, i) => (
                       <div key={i}>{i + 1}</div>
                     ))}
@@ -394,6 +518,37 @@ export function PracticeChallenge({ onComplete, onDashboard }: PracticeChallenge
               </CardContent>
             </Card>
 
+            {/* プレビュー */}
+            <Card className="shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">プレビュー</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                {/* 簡易ブラウザ枠 */}
+                <div className="border-b bg-gray-100 px-2 py-1.5 flex items-center gap-2">
+                  <div className="flex gap-1">
+                    <div className="w-2 h-2 rounded-full bg-red-400"></div>
+                    <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
+                    <div className="w-2 h-2 rounded-full bg-green-400"></div>
+                  </div>
+                  <div className="flex-1 bg-white rounded px-2 py-0.5 text-xs text-muted-foreground">
+                    localhost:3000
+                  </div>
+                </div>
+                <div className="h-[220px] bg-white overflow-auto p-3">
+                  <iframe
+                    srcDoc={code}
+                    className="w-full h-full border-0"
+                    title="Code Preview"
+                    sandbox="allow-same-origin"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* 右カラム：エラー分析 + 関連リソース (30%) */}
+          <div className="lg:col-span-4 space-y-3">
             {/* エラー分析パネル（SRK） */}
             <Card className="shadow-sm">
               <CardHeader className="pb-2">
@@ -417,30 +572,84 @@ export function PracticeChallenge({ onComplete, onDashboard }: PracticeChallenge
                         エラーは検出されませんでした！
                       </div>
                     ) : (
-                      <div className="space-y-1.5">
-                        {skillErrors.slice(0, 1).map((error, index) => (
-                          <div key={index} className="flex items-start gap-2 p-1.5 bg-red-50 rounded text-xs">
-                            <Badge variant="destructive" className="text-xs py-0 h-4">Skill</Badge>
-                            <span className="text-xs">{error.message}</span>
+                      <div className="space-y-1.5 max-h-[180px] overflow-y-auto">
+                        {skillErrors.slice(0, 2).map((error, index) => (
+                          <div key={index} className="p-2 bg-red-50 rounded border">
+                            <div className="flex items-start gap-2 mb-1">
+                              <Badge variant="destructive" className="text-xs py-0 h-4">Skill</Badge>
+                              <span className="text-xs flex-1">{error.message}</span>
+                            </div>
+                            {error.relatedNodeIds && error.relatedNodeIds.length > 0 && onStartLearning && (
+                              (() => {
+                                const relatedNode = learningNodesArray.find(n => n.id === error.relatedNodeIds![0])
+                                return relatedNode ? (
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="text-xs h-6 mt-1"
+                                    onClick={() => onStartLearning(error.relatedNodeIds![0])}
+                                  >
+                                    <BookOpen className="w-3 h-3 mr-1" />
+                                    {relatedNode.title}
+                                  </Button>
+                                ) : null
+                              })()
+                            )}
                           </div>
                         ))}
-                        {ruleErrors.slice(0, 1).map((error, index) => (
-                          <div key={index} className="flex items-start gap-2 p-1.5 bg-orange-50 rounded text-xs">
-                            <Badge variant="outline" className="text-xs border-orange-300 text-orange-700 py-0 h-4">Rule</Badge>
-                            <span className="text-xs">{error.message}</span>
+                        {ruleErrors.slice(0, 2).map((error, index) => (
+                          <div key={index} className="p-2 bg-orange-50 rounded border">
+                            <div className="flex items-start gap-2 mb-1">
+                              <Badge variant="outline" className="text-xs border-orange-300 text-orange-700 py-0 h-4">Rule</Badge>
+                              <span className="text-xs flex-1">{error.message}</span>
+                            </div>
+                            {error.relatedNodeIds && error.relatedNodeIds.length > 0 && onStartLearning && (
+                              (() => {
+                                const relatedNode = learningNodesArray.find(n => n.id === error.relatedNodeIds![0])
+                                return relatedNode ? (
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="text-xs h-6 mt-1"
+                                    onClick={() => onStartLearning(error.relatedNodeIds![0])}
+                                  >
+                                    <BookOpen className="w-3 h-3 mr-1" />
+                                    {relatedNode.title}
+                                  </Button>
+                                ) : null
+                              })()
+                            )}
                           </div>
                         ))}
-                        {knowledgeErrors.slice(0, 1).map((error, index) => (
-                          <div key={index} className="flex items-start gap-2 p-1.5 bg-blue-50 rounded text-xs">
-                            <Badge variant="outline" className="text-xs border-blue-300 text-blue-700 py-0 h-4">Knowledge</Badge>
-                            <span className="text-xs">{error.message}</span>
+                        {knowledgeErrors.slice(0, 2).map((error, index) => (
+                          <div key={index} className="p-2 bg-blue-50 rounded border">
+                            <div className="flex items-start gap-2 mb-1">
+                              <Badge variant="outline" className="text-xs border-blue-300 text-blue-700 py-0 h-4">Knowledge</Badge>
+                              <span className="text-xs flex-1">{error.message}</span>
+                            </div>
+                            {error.relatedNodeIds && error.relatedNodeIds.length > 0 && onStartLearning && (
+                              (() => {
+                                const relatedNode = learningNodesArray.find(n => n.id === error.relatedNodeIds![0])
+                                return relatedNode ? (
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="text-xs h-6 mt-1"
+                                    onClick={() => onStartLearning(error.relatedNodeIds![0])}
+                                  >
+                                    <BookOpen className="w-3 h-3 mr-1" />
+                                    {relatedNode.title}
+                                  </Button>
+                                ) : null
+                              })()
+                            )}
                           </div>
                         ))}
                       </div>
                     )}
                   </TabsContent>
 
-                  <TabsContent value="skill" className="space-y-2 mt-2">
+                  <TabsContent value="skill" className="space-y-2 mt-2 max-h-[180px] overflow-y-auto">
                     <h5 className="text-xs">Skillエラー（タイピングや記号の抜けなど）</h5>
                     {skillErrors.length === 0 ? (
                       <div className="text-center py-4 text-xs text-muted-foreground">
@@ -455,14 +664,29 @@ export function PracticeChallenge({ onComplete, onDashboard }: PracticeChallenge
                                 <Badge variant="secondary" className="text-xs py-0 h-4">Line {error.line}</Badge>
                               </div>
                             )}
-                            <p className="text-xs">{error.message}</p>
+                            <p className="text-xs mb-2">{error.message}</p>
+                            {error.relatedNodeIds && error.relatedNodeIds.length > 0 && onStartLearning && (() => {
+                              const relatedNode = learningNodesArray.find(n => n.id === error.relatedNodeIds![0])
+                              if (!relatedNode) return null
+                              return (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="text-xs h-6"
+                                  onClick={() => onStartLearning(error.relatedNodeIds![0])}
+                                >
+                                  <BookOpen className="w-3 h-3 mr-1" />
+                                  {relatedNode.title}
+                                </Button>
+                              )
+                            })()}
                           </div>
                         ))}
                       </div>
                     )}
                   </TabsContent>
 
-                  <TabsContent value="rule" className="space-y-2 mt-2">
+                  <TabsContent value="rule" className="space-y-2 mt-2 max-h-[180px] overflow-y-auto">
                     <h5 className="text-xs">Ruleエラー（HTML/CSSの文法ルールの誤り）</h5>
                     {ruleErrors.length === 0 ? (
                       <div className="text-center py-4 text-xs text-muted-foreground">
@@ -479,19 +703,34 @@ export function PracticeChallenge({ onComplete, onDashboard }: PracticeChallenge
                             )}
                             <p className="text-xs mb-1.5">{error.message}</p>
                             {error.example && (
-                              <div className="bg-white p-1.5 rounded border text-xs font-mono mt-1.5">
+                              <div className="bg-white p-1.5 rounded border text-xs font-mono mt-1.5 mb-2">
                                 {error.example.split('\n').map((line, i) => (
                                   <div key={i} className={line.startsWith('  ') ? 'pl-4' : ''}>{line.replace(/^  /, '')}</div>
                                 ))}
                               </div>
                             )}
+                            {error.relatedNodeIds && error.relatedNodeIds.length > 0 && onStartLearning && (() => {
+                              const relatedNode = learningNodesArray.find(n => n.id === error.relatedNodeIds![0])
+                              if (!relatedNode) return null
+                              return (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="text-xs h-6"
+                                  onClick={() => onStartLearning(error.relatedNodeIds![0])}
+                                >
+                                  <BookOpen className="w-3 h-3 mr-1" />
+                                  {relatedNode.title}
+                                </Button>
+                              )
+                            })()}
                           </div>
                         ))}
                       </div>
                     )}
                   </TabsContent>
 
-                  <TabsContent value="knowledge" className="space-y-2 mt-2">
+                  <TabsContent value="knowledge" className="space-y-2 mt-2 max-h-[180px] overflow-y-auto">
                     <h5 className="text-xs">Knowledgeエラー（概念的な理解不足）</h5>
                     {knowledgeErrors.length === 0 ? (
                       <div className="text-center py-4 text-xs text-muted-foreground">
@@ -507,47 +746,27 @@ export function PracticeChallenge({ onComplete, onDashboard }: PracticeChallenge
                               </div>
                             )}
                             <p className="text-xs mb-2">{error.message}</p>
-                            <Button variant="outline" size="sm" className="text-xs h-6">
-                              <BookOpen className="w-3 h-3 mr-1" />
-                              関連単元を復習する
-                            </Button>
+                            {error.relatedNodeIds && error.relatedNodeIds.length > 0 && onStartLearning && (() => {
+                              const relatedNode = learningNodesArray.find(n => n.id === error.relatedNodeIds![0])
+                              if (!relatedNode) return null
+                              return (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="text-xs h-6"
+                                  onClick={() => onStartLearning(error.relatedNodeIds![0])}
+                                >
+                                  <BookOpen className="w-3 h-3 mr-1" />
+                                  {relatedNode.title}
+                                </Button>
+                              )
+                            })()}
                           </div>
                         ))}
                       </div>
                     )}
                   </TabsContent>
                 </Tabs>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* 右カラム：プレビュー + 追加サポート (30%) */}
-          <div className="lg:col-span-4 space-y-3">
-            {/* プレビュー */}
-            <Card className="shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">プレビュー</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                {/* 簡易ブラウザ枠 */}
-                <div className="border-b bg-gray-100 px-2 py-1.5 flex items-center gap-2">
-                  <div className="flex gap-1">
-                    <div className="w-2 h-2 rounded-full bg-red-400"></div>
-                    <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
-                    <div className="w-2 h-2 rounded-full bg-green-400"></div>
-                  </div>
-                  <div className="flex-1 bg-white rounded px-2 py-0.5 text-xs text-muted-foreground">
-                    localhost:3000
-                  </div>
-                </div>
-                <div className="h-[250px] bg-white overflow-auto p-3">
-                  <iframe
-                    srcDoc={code}
-                    className="w-full h-full border-0"
-                    title="Code Preview"
-                    sandbox="allow-same-origin"
-                  />
-                </div>
               </CardContent>
             </Card>
 
@@ -557,19 +776,169 @@ export function PracticeChallenge({ onComplete, onDashboard }: PracticeChallenge
                 <CardTitle className="text-xs">関連リソース</CardTitle>
               </CardHeader>
               <CardContent className="py-2">
-                <div className="flex flex-wrap gap-1.5">
-                  <Badge variant="outline" className="cursor-pointer hover:bg-primary hover:text-white transition-colors text-xs py-0.5 h-5">
-                    HTMLの基本構造
-                  </Badge>
-                  <Badge variant="outline" className="cursor-pointer hover:bg-primary hover:text-white transition-colors text-xs py-0.5 h-5">
-                    リストタグ（ul / li）
-                  </Badge>
-                  <Badge variant="outline" className="cursor-pointer hover:bg-primary hover:text-white transition-colors text-xs py-0.5 h-5">
-                    テキストのスタイル
-                  </Badge>
-                </div>
+                {currentNode && currentNode.prerequisites && currentNode.prerequisites.length > 0 ? (
+                  <>
+                    <div className="flex flex-wrap gap-1.5 mb-3">
+                      {currentNode.prerequisites.map((prereqId) => {
+                        const prereqNode = learningNodesArray.find(n => n.id === prereqId)
+                        if (!prereqNode) return null
+                        return (
+                          <Badge 
+                            key={prereqId}
+                            variant="outline" 
+                            className="cursor-pointer hover:bg-primary hover:text-white transition-colors text-xs py-0.5 h-5"
+                            onClick={() => setSelectedNodeForPreview(selectedNodeForPreview === prereqId ? null : prereqId)}
+                          >
+                            {prereqNode.title}
+                          </Badge>
+                        )
+                      })}
+                    </div>
+                    
+                    {/* 選択されたノードの概要表示 */}
+                    {selectedNodeForPreview && (() => {
+                      const selectedNode = learningNodesArray.find(n => n.id === selectedNodeForPreview)
+                      if (!selectedNode) return null
+                      return (
+                        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                          <div className="flex items-start justify-between mb-2">
+                            <h5 className="text-xs font-semibold">{selectedNode.title}</h5>
+                            <button
+                              onClick={() => setSelectedNodeForPreview(null)}
+                              className="text-gray-400 hover:text-gray-600"
+                            >
+                              <XCircle className="w-3 h-3" />
+                            </button>
+                          </div>
+                          <p className="text-xs text-muted-foreground mb-2">{selectedNode.summary}</p>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge variant="outline" className="text-xs h-4 py-0">
+                              {selectedNode.category}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs h-4 py-0">
+                              {selectedNode.type === 'concept' ? '概念' : 'スキル'}
+                            </Badge>
+                          </div>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full h-6 text-xs"
+                            onClick={() => onStartLearning && onStartLearning(selectedNodeForPreview)}
+                          >
+                            <BookOpen className="w-3 h-3 mr-1" />
+                            この単元を復習する
+                          </Button>
+                        </div>
+                      )
+                    })()}
+                  </>
+                ) : (
+                  <p className="text-xs text-muted-foreground">この課題には前提単元がありません</p>
+                )}
               </CardContent>
             </Card>
+
+            {/* 次のおすすめパネル（エラーベース） */}
+            {recommendations.length > 0 && (
+              <Card className="shadow-sm border-2 border-orange-200 bg-orange-50/30">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xs flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-orange-600" />
+                    次のおすすめ（エラー検出）
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {/* 発生したエラー一覧 */}
+                  <div>
+                    <h5 className="text-xs mb-2">検出されたエラー</h5>
+                    <div className="space-y-1">
+                      {recommendations.slice(0, 3).map((rec, index) => (
+                        <div key={index} className="flex items-start gap-2 p-1.5 bg-white rounded border">
+                          <Badge 
+                            variant="outline" 
+                            className={`text-xs py-0 h-4 flex-shrink-0 ${
+                              rec?.srk === 'knowledge' ? 'border-blue-300 text-blue-700' :
+                              rec?.srk === 'rule' ? 'border-orange-300 text-orange-700' :
+                              'border-red-300 text-red-700'
+                            }`}
+                          >
+                            {rec?.srk?.toUpperCase()}
+                          </Badge>
+                          <span className="text-xs">{rec?.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 次にやるべき復習（recommendNodeIds） */}
+                  {recommendNodeIds.length > 0 && (
+                    <div>
+                      <h5 className="text-xs mb-2 flex items-center gap-1">
+                        <ArrowRight className="w-3 h-3 text-red-600" />
+                        次にやるべき復習（優先）
+                      </h5>
+                      <div className="space-y-1.5">
+                        {recommendNodeIds.slice(0, 3).map((nodeId, index) => {
+                          const node = learningNodesArray.find(n => n.id === nodeId)
+                          if (!node) return null
+                          return (
+                            <div 
+                              key={index}
+                              className="p-2 bg-white border-2 border-red-300 rounded hover:bg-red-50 cursor-pointer transition-colors"
+                              onClick={() => onStartLearning && onStartLearning(nodeId)}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex-1">
+                                  <div className="text-xs">{node.title}</div>
+                                  <div className="flex items-center gap-1 mt-0.5">
+                                    <Badge variant="outline" className="text-xs h-4 py-0">
+                                      {node.category}
+                                    </Badge>
+                                    <span className="text-xs text-muted-foreground">
+                                      {node.difficulty === 'beginner' ? '初級' :
+                                       node.difficulty === 'intermediate' ? '中級' : '上級'}
+                                    </span>
+                                  </div>
+                                </div>
+                                <ArrowRight className="w-3 h-3 text-gray-400" />
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 関連単元（relatedNodeIds） */}
+                  {relatedNodeIds.length > 0 && (
+                    <div>
+                      <h5 className="text-xs mb-2 flex items-center gap-1">
+                        <BookOpen className="w-3 h-3 text-blue-600" />
+                        関連単元（任意）
+                      </h5>
+                      <div className="space-y-1.5">
+                        {relatedNodeIds.filter(id => !recommendNodeIds.includes(id)).slice(0, 2).map((nodeId, index) => {
+                          const node = learningNodesArray.find(n => n.id === nodeId)
+                          if (!node) return null
+                          return (
+                            <div 
+                              key={index}
+                              className="p-2 bg-white border rounded hover:bg-gray-50 cursor-pointer transition-colors text-xs"
+                              onClick={() => onStartLearning && onStartLearning(nodeId)}
+                            >
+                              <div className="flex items-center justify-between">
+                                <span>{node.title}</span>
+                                <ArrowRight className="w-3 h-3 text-gray-400" />
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
             
 
             {/* 完了ボタン */}

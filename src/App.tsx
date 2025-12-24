@@ -20,8 +20,14 @@ interface UserData {
   age?: string
   occupation?: string
   pace?: string
-  level?: string
+  level?: 'beginner' | 'intermediate' | 'advanced'
   levelScore?: number
+}
+
+interface ErrorHistoryItem {
+  errorId: string
+  count: number
+  lastOccurred: string
 }
 
 interface ReflectionData {
@@ -42,6 +48,11 @@ interface Progress {
   quizScores: number[]
   currentModule: string
   reflections: ReflectionData[]
+  // 新しく追加するフィールド
+  recommendedStartNodeIds: string[]
+  inProgressNodeId: string | null
+  errorHistory: ErrorHistoryItem[]
+  detectedErrors: string[] // 最後の実践課題で検出されたエラーID
 }
 
 export default function App() {
@@ -54,7 +65,11 @@ export default function App() {
     totalHours: 8,
     quizScores: [85, 92, 78],
     currentModule: 'HTMLの基礎',
-    reflections: []
+    reflections: [],
+    recommendedStartNodeIds: ['css-basics', 'html-semantics'],
+    inProgressNodeId: null,
+    errorHistory: [],
+    detectedErrors: []
   })
 
   const handleSignupSuccess = (email: string, name: string, userId: string) => {
@@ -206,6 +221,7 @@ export default function App() {
         <PracticeChallenge
           onComplete={handlePracticeComplete}
           onDashboard={handleDashboard}
+          onStartLearning={handleStartLearning}
         />
       )
       

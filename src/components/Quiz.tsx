@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Progress } from './ui/progress'
@@ -88,6 +88,98 @@ export function Quiz({ onComplete, onDashboard, onReturnToLearning }: QuizProps)
 
   const progress = ((currentQuestion + 1) / quizQuestions.length) * 100
   const question = quizQuestions[currentQuestion]
+
+  // キーボードナビゲーション
+  useEffect(() => {
+    // 結果画面では無効化
+    if (showResult) return
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement
+
+      // 選択式問題の場合
+      if (question.type === 'multiple') {
+        // Input要素以外で数字キー（1-4）を押した場合
+        if (!(target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement)) {
+          const num = parseInt(event.key)
+          if (num >= 1 && num <= 4 && question.options && num <= question.options.length) {
+            handleAnswer(num - 1)
+            event.preventDefault()
+            return
+          }
+
+          // 矢印キーで選択肢を移動
+          if (event.key === 'ArrowUp') {
+            const current = answers[currentQuestion] as number | null
+            if (current !== null && current > 0) {
+              handleAnswer(current - 1)
+            } else if (current === null && question.options) {
+              handleAnswer(question.options.length - 1)
+            }
+            event.preventDefault()
+            return
+          }
+
+          if (event.key === 'ArrowDown') {
+            const current = answers[currentQuestion] as number | null
+            if (current !== null && question.options && current < question.options.length - 1) {
+              handleAnswer(current + 1)
+            } else if (current === null) {
+              handleAnswer(0)
+            }
+            event.preventDefault()
+            return
+          }
+        }
+      }
+
+      // テキスト入力式問題の場合
+      if (question.type === 'fill') {
+        // Input内でEnterキーまたはCmd/Ctrl+Enterで次へ
+        if (event.key === 'Enter' && target instanceof HTMLInputElement) {
+          const hasAnswer = answers[currentQuestion] !== null && answers[currentQuestion] !== ''
+          if (hasAnswer) {
+            nextQuestion()
+            event.preventDefault()
+          }
+          return
+        }
+      }
+
+      // 共通: Enterキーで次へ（Input以外の場合）
+      if (event.key === 'Enter' && !(target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement)) {
+        const hasAnswer = answers[currentQuestion] !== null && answers[currentQuestion] !== ''
+        if (hasAnswer) {
+          nextQuestion()
+          event.preventDefault()
+        }
+        return
+      }
+
+      // 左右矢印キーで前後の問題へ移動（Input以外の場合）
+      if (!(target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement)) {
+        if (event.key === 'ArrowLeft') {
+          if (currentQuestion > 0) {
+            prevQuestion()
+            event.preventDefault()
+          }
+          return
+        }
+
+        if (event.key === 'ArrowRight') {
+          const hasAnswer = answers[currentQuestion] !== null && answers[currentQuestion] !== ''
+          if (hasAnswer && currentQuestion < quizQuestions.length - 1) {
+            nextQuestion()
+            event.preventDefault()
+          }
+          return
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [currentQuestion, answers, showResult, question])
 
   if (showResult) {
     const percentage = Math.round((score / quizQuestions.length) * 100)

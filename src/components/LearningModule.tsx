@@ -1,31 +1,34 @@
-import { useState } from "react";
-import { Button } from "./ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "./ui/card";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "./ui/tabs";
-import { Progress } from "./ui/progress";
-import { Badge } from "./ui/badge";
-import { Alert, AlertDescription } from "./ui/alert";
-import {
-  BookOpen,
-  Play,
-  FileText,
-  ArrowRight,
-  Home,
-  Target,
-  Lightbulb,
-  CheckCircle,
-} from "lucide-react";
+import { useState, useEffect } from 'react'
+import { Button } from './ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
+import { Progress } from './ui/progress'
+import { Badge } from './ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs'
+import { Alert, AlertDescription } from './ui/alert'
+import { 
+  Home, 
+  BookOpen, 
+  Target, 
+  CheckCircle, 
+  Lightbulb, 
+  Play, 
+  FileText, 
+  ArrowRight 
+} from 'lucide-react'
 import { ImageWithFallback } from "./figma/ImageWithFallback";
+import learningNodesData from '../data/learningNodes'
+
+// JSONファイルから配列を取得(デフォルトインポートの型に対応)
+const learningNodesArray = (() => {
+  if (Array.isArray(learningNodesData)) {
+    return learningNodesData
+  }
+  // 新しいスキーマ構造の場合、html_nodes と css_nodes を結合
+  const data = learningNodesData as any
+  const htmlNodes = data.html_nodes || []
+  const cssNodes = data.css_nodes || []
+  return [...htmlNodes, ...cssNodes]
+})()
 
 interface LearningModuleProps {
   onComplete: () => void;
@@ -137,6 +140,77 @@ export function LearningModule({
         return 0;
     }
   };
+
+  // 次の推奨ノードを取得
+  const getNextNodes = () => {
+    // 仮の現在ノードIDを設定（実際は currentModule から取得）
+    const currentNodeId = 'html-basics'
+    const completedNodeIds = ['html-basics']
+    
+    // 前提条件を満たす次のノードを探す
+    const nextCandidates = learningNodesArray.filter(node => {
+      // 既に完了済みのノードは除外
+      if (completedNodeIds.includes(node.id)) return false
+      
+      // 前提条件を満たしているかチェック
+      const prerequisitesMet = node.prerequisites.every(prereq => 
+        completedNodeIds.includes(prereq)
+      )
+      
+      return prerequisitesMet
+    })
+    
+    return nextCandidates.slice(0, 3) // 最大3件まで
+  }
+
+  const nextNodes = getNextNodes()
+
+  // キーボードナビゲーション（スライド形式のみ）
+  useEffect(() => {
+    // スライド形式でない場合はリスナーを追加しない
+    if (currentPhase !== 'input' || activeTab !== 'slides') {
+      return
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // テキスト入力中は無視
+      if (event.target instanceof HTMLTextAreaElement || 
+          event.target instanceof HTMLInputElement) {
+        return
+      }
+
+      switch (event.key) {
+        case 'ArrowLeft':
+          // 前のスライドへ
+          if (slideIndex > 0) {
+            setSlideIndex(slideIndex - 1)
+          }
+          event.preventDefault()
+          break
+        
+        case 'ArrowRight':
+          // 次のスライドへ
+          if (slideIndex < learningContent.slides.length - 1) {
+            setSlideIndex(slideIndex + 1)
+          }
+          event.preventDefault()
+          break
+        
+        case 'Enter':
+          // 最後のスライドならフェーズ完了、それ以外は次のスライドへ
+          if (slideIndex === learningContent.slides.length - 1) {
+            handlePhaseComplete()
+          } else {
+            setSlideIndex(slideIndex + 1)
+          }
+          event.preventDefault()
+          break
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [currentPhase, activeTab, slideIndex])
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -375,6 +449,9 @@ export function LearningModule({
                           </Button>
                         </div>
                       </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        ⌨️ キーボード操作: ← → で移動 / Enter で次へ
+                      </p>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="p-6 bg-blue-50 rounded-lg">
@@ -487,6 +564,13 @@ export function LearningModule({
           </Card>
         )}
       </div>
+
+      {/* この単元を終えたら次のエリア */}
+      {currentPhase === "input" && nextNodes.length > 0 && (
+        <div className="max-w-4xl mx-auto px-4 pb-8">
+          
+        </div>
+      )}
     </div>
   );
 }
