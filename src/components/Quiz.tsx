@@ -76,10 +76,10 @@ export function Quiz({ onComplete, onDashboard, onReturnToLearning }: QuizProps)
   const calculateScore = () => {
     let correctCount = 0
     quizQuestions.forEach((question, index) => {
-      if (question.type === 'multiple' && 'correct' in question) {
-        if (answers[index] === (question as any).correct) correctCount++
-      } else if (question.type === 'fill' && 'answer' in question) {
-        if (answers[index]?.toString().toLowerCase() === (question as any).answer.toLowerCase()) correctCount++
+      if (question.type === 'multiple') {
+        if (answers[index] === question.correct) correctCount++
+      } else if (question.type === 'fill') {
+        if (answers[index]?.toString().toLowerCase() === question.answer.toLowerCase()) correctCount++
       }
     })
     setScore(correctCount)
@@ -190,8 +190,9 @@ export function Quiz({ onComplete, onDashboard, onReturnToLearning }: QuizProps)
         <div className="max-w-4xl mx-auto px-4">
           <Card className="shadow-lg">
             <CardHeader className="text-center">
-              <div className={`w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center ${isPassed ? 'bg-green-100' : 'bg-red-100'
-                }`}>
+              <div className={`w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center ${
+                isPassed ? 'bg-green-100' : 'bg-red-100'
+              }`}>
                 {isPassed ? (
                   <CheckCircle className="w-10 h-10 text-green-600" />
                 ) : (
@@ -213,10 +214,10 @@ export function Quiz({ onComplete, onDashboard, onReturnToLearning }: QuizProps)
 
               <div className="space-y-4 mb-6">
                 {quizQuestions.map((q, index) => {
-                  const isCorrect = q.type === 'multiple'
+                  const isCorrect = q.type === 'multiple' 
                     ? answers[index] === q.correct
                     : answers[index]?.toString().toLowerCase() === q.answer.toLowerCase()
-
+                  
                   return (
                     <Card key={index} className={isCorrect ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}>
                       <CardContent className="p-4">
@@ -242,14 +243,14 @@ export function Quiz({ onComplete, onDashboard, onReturnToLearning }: QuizProps)
                   <Home className="w-4 h-4 mr-2" />
                   ダッシュボード
                 </Button>
-
+                
                 {!isPassed && (
                   <Button variant="outline" onClick={onReturnToLearning}>
                     <RotateCcw className="w-4 h-4 mr-2" />
                     復習する
                   </Button>
                 )}
-
+                
                 {isPassed && (
                   <Button onClick={() => onComplete(percentage)}>
                     実践課題へ
@@ -291,13 +292,13 @@ export function Quiz({ onComplete, onDashboard, onReturnToLearning }: QuizProps)
               <p className="text-lg">{question.question}</p>
 
               {question.type === 'multiple' && (
-                <RadioGroup
-                  value={answers[currentQuestion]?.toString()}
+                <RadioGroup 
+                  value={answers[currentQuestion]?.toString()} 
                   onValueChange={(value) => handleAnswer(parseInt(value))}
                 >
                   {question.options.map((option, index) => (
-                    <div
-                      key={index}
+                    <div 
+                      key={index} 
                       className="flex items-center space-x-2 p-3 rounded border hover:bg-gray-50 cursor-pointer"
                       onClick={() => document.getElementById(`option-${index}`)?.click()}
                     >
@@ -323,15 +324,15 @@ export function Quiz({ onComplete, onDashboard, onReturnToLearning }: QuizProps)
               )}
 
               <div className="flex justify-between pt-4">
-                <Button
-                  variant="outline"
-                  onClick={prevQuestion}
+                <Button 
+                  variant="outline" 
+                  onClick={prevQuestion} 
                   disabled={currentQuestion === 0}
                 >
                   前の問題
                 </Button>
-
-                <Button
+                
+                <Button 
                   onClick={nextQuestion}
                   disabled={answers[currentQuestion] === null || answers[currentQuestion] === ''}
                 >

@@ -1,105 +1,87 @@
-import { useState } from "react";
-import { Button } from "./ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Alert, AlertDescription } from "./ui/alert";
-import { Textarea } from "./ui/textarea";
-import {
+import { useState } from 'react'
+import { Button } from './ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
+import { Alert, AlertDescription } from './ui/alert'
+import { Textarea } from './ui/textarea'
+import { 
   ArrowLeft,
   MessageCircle,
   Target,
   Lightbulb,
   CheckCircle,
   Home,
-  ArrowRight,
-} from "lucide-react";
+  ArrowRight
+} from 'lucide-react'
 
 interface ReflectionData {
-  moduleId: string;
-  moduleName: string;
-  date: string;
-  struggledConcepts: string[];
-  reflection: string;
-  quickTestResult: boolean;
-  recommendations: string[];
+  moduleId: string
+  moduleName: string
+  date: string
+  struggledConcepts: string[]
+  reflection: string
+  quickTestResult: boolean
+  recommendations: string[]
 }
 
 interface LearningReflectionFormProps {
-  onComplete: (reflectionData: ReflectionData) => void;
-  onDashboard: () => void;
-  currentModule: string;
+  onComplete: (reflectionData: ReflectionData) => void
+  onDashboard: () => void
+  currentModule: string
 }
 
 const allConcepts = [
-  "HTMLタグの基本的な書き方",
-  "文書構造の概念（見出し、段落、リストなど）",
-  "HTMLドキュメントの基本構造",
-  "よく使用されるタグの用途と使い分け",
-  "CSSとHTMLの組み合わせ",
-  "実践課題でのコーディング",
-  "エラーの原因特定と修正",
-];
+  'HTMLタグの基本的な書き方',
+  '文書構造の概念（見出し、段落、リストなど）',
+  'HTMLドキュメントの基本構造',
+  'よく使用されるタグの用途と使い分け',
+  'CSSとHTMLの組み合わせ',
+  '実践課題でのコーディング',
+  'エラーの原因特定と修正'
+]
 
-export function LearningReflectionForm({
-  onComplete,
-  onDashboard,
-  currentModule,
-}: LearningReflectionFormProps) {
-  const [struggledConcepts, setStruggledConcepts] = useState<string[]>([]);
-  const [reflection, setReflection] = useState("");
+export function LearningReflectionForm({ onComplete, onDashboard, currentModule }: LearningReflectionFormProps) {
+  const [struggledConcepts, setStruggledConcepts] = useState<string[]>([])
+  const [reflection, setReflection] = useState('')
 
   const handleSubmit = () => {
-    const recommendations = generateRecommendations(struggledConcepts);
-
+    const recommendations = generateRecommendations(struggledConcepts)
+    
     const reflectionData: ReflectionData = {
-      moduleId: "html-basics",
+      moduleId: 'html-basics',
       moduleName: currentModule,
-      date: new Date().toLocaleDateString("ja-JP"),
+      date: new Date().toLocaleDateString('ja-JP'),
       struggledConcepts,
       reflection,
       quickTestResult: true, // この時点では仮の値
-      recommendations,
-    };
-
-    onComplete(reflectionData);
-  };
-
-  const generateRecommendations = (concepts: string[]): string[] => {
-    const recommendations: string[] = [];
-
-    if (concepts.length === 0) {
-      recommendations.push(
-        "素晴らしい理解度です！次のモジュールに進みましょう"
-      );
-      recommendations.push(
-        "復習として、学んだ概念を使って自分なりのWebページを作ってみましょう"
-      );
-    } else {
-      if (concepts.some((c) => c.includes("HTMLタグ"))) {
-        recommendations.push(
-          "HTMLタグの練習として、基本的なタグを繰り返し書いてみましょう"
-        );
-      }
-      if (concepts.some((c) => c.includes("文書構造"))) {
-        recommendations.push(
-          "既存のWebサイトのHTMLソースを見て、構造を分析してみましょう"
-        );
-      }
-      if (concepts.some((c) => c.includes("実践課題"))) {
-        recommendations.push(
-          "実践課題を再度チャレンジして、コーディングに慣れましょう"
-        );
-      }
-      recommendations.push(
-        `つまずいた概念「${concepts.join("、")}」の復習をおすすめします`
-      );
+      recommendations
     }
 
-    recommendations.push(
-      "次のCSSモジュールで、HTMLとスタイリングの組み合わせを学習できます"
-    );
+    onComplete(reflectionData)
+  }
 
-    return recommendations;
-  };
+  const generateRecommendations = (concepts: string[]): string[] => {
+    const recommendations: string[] = []
+    
+    if (concepts.length === 0) {
+      recommendations.push('素晴らしい理解度です！次のモジュールに進みましょう')
+      recommendations.push('復習として、学んだ概念を使って自分なりのWebページを作ってみましょう')
+    } else {
+      if (concepts.some(c => c.includes('HTMLタグ'))) {
+        recommendations.push('HTMLタグの練習として、基本的なタグを繰り返し書いてみましょう')
+      }
+      if (concepts.some(c => c.includes('文書構造'))) {
+        recommendations.push('既存のWebサイトのHTMLソースを見て、構造を分析してみましょう')
+      }
+      if (concepts.some(c => c.includes('実践課題'))) {
+        recommendations.push('実践課題を再度チャレンジして、コーディングに慣れましょう')
+      }
+      recommendations.push(`つまずいた概念「${concepts.join('、')}」の復習をおすすめします`)
+    }
+    
+    recommendations.push('次のCSSモジュールで、HTMLとスタイリングの組み合わせを学習できます')
+    
+    return recommendations
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -113,9 +95,7 @@ export function LearningReflectionForm({
             </Button>
             <div>
               <h1 className="text-2xl">学習の振り返り</h1>
-              <p className="text-muted-foreground">
-                {currentModule} - メタ認知の促進
-              </p>
+              <p className="text-muted-foreground">{currentModule} - メタ認知の促進</p>
             </div>
           </div>
         </div>
@@ -141,9 +121,7 @@ export function LearningReflectionForm({
               <div className="grid md:grid-cols-2 gap-6">
                 <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-base">
-                      つまずいた概念はありましたか？
-                    </CardTitle>
+                    <CardTitle className="text-base">つまずいた概念はありましたか？</CardTitle>
                     <p className="text-sm text-muted-foreground">
                       学習・テスト・実践を通して難しく感じた部分があれば選択してください
                     </p>
@@ -151,23 +129,15 @@ export function LearningReflectionForm({
                   <CardContent>
                     <div className="space-y-2">
                       {allConcepts.map((concept, index) => (
-                        <label
-                          key={index}
-                          className="flex items-center gap-2 cursor-pointer"
-                        >
+                        <label key={index} className="flex items-center gap-2 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={struggledConcepts.includes(concept)}
                             onChange={(e) => {
                               if (e.target.checked) {
-                                setStruggledConcepts([
-                                  ...struggledConcepts,
-                                  concept,
-                                ]);
+                                setStruggledConcepts([...struggledConcepts, concept])
                               } else {
-                                setStruggledConcepts(
-                                  struggledConcepts.filter((c) => c !== concept)
-                                );
+                                setStruggledConcepts(struggledConcepts.filter(c => c !== concept))
                               }
                             }}
                             className="w-4 h-4"
@@ -181,9 +151,7 @@ export function LearningReflectionForm({
 
                 <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-base">
-                      学習の気づきや疑問を記録
-                    </CardTitle>
+                    <CardTitle className="text-base">学習の気づきや疑問を記録</CardTitle>
                     <p className="text-sm text-muted-foreground">
                       実践課題での体験も含めて、感じたことを自由に記録してください
                     </p>
@@ -214,28 +182,15 @@ export function LearningReflectionForm({
                 <div className="space-y-2 text-sm">
                   {struggledConcepts.length > 0 ? (
                     <>
-                      <p>
-                        • つまずいた概念「
-                        {struggledConcepts.slice(0, 2).join("、")}
-                        {struggledConcepts.length > 2 ? "、他" : ""}
-                        」の復習をおすすめします
-                      </p>
-                      {struggledConcepts.some((c) =>
-                        c.includes("実践課題")
-                      ) && (
-                        <p>
-                          •
-                          実践課題を再度チャレンジして、コーディングに慣れましょう
-                        </p>
+                      <p>• つまずいた概念「{struggledConcepts.slice(0, 2).join('、')}{struggledConcepts.length > 2 ? '、他' : ''}」の復習をおすすめします</p>
+                      {struggledConcepts.some(c => c.includes('実践課題')) && (
+                        <p>• 実践課題を再度チャレンジして、コーディングに慣れましょう</p>
                       )}
                     </>
                   ) : (
                     <p>• 素晴らしい理解度です！次のモジュールに進みましょう</p>
                   )}
-                  <p>
-                    •
-                    次のCSSモジュールで、HTMLとスタイリングの組み合わせを学習できます
-                  </p>
+                  <p>• 次のCSSモジュールで、HTMLとスタイリングの組み合わせを学習できます</p>
                 </div>
               </div>
 
@@ -245,8 +200,7 @@ export function LearningReflectionForm({
                   学習サイクル完了！
                 </h4>
                 <p className="text-sm text-green-700 mb-3">
-                  学習モジュール → 確認テスト → 実践課題 →
-                  振り返りの4段階を完了しました。
+                  学習モジュール → 確認テスト → 実践課題 → 振り返りの4段階を完了しました。
                   この振り返りデータは学習履歴に保存され、いつでも確認できます。
                 </p>
                 <ul className="text-xs text-green-600 space-y-1">
@@ -271,5 +225,5 @@ export function LearningReflectionForm({
         </Card>
       </div>
     </div>
-  );
+  )
 }
