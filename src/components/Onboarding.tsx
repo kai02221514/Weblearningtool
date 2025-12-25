@@ -97,7 +97,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               あなたに最適な学習プランを作成するため、いくつか教えてください
             </CardDescription>
           </CardHeader>
-          
+
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
@@ -106,7 +106,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                   id="name"
                   placeholder="山田太郎"
                   value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
                 />
               </div>
@@ -116,7 +116,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                   <Label htmlFor={question.id}>{question.label}</Label>
                   <Select
                     value={formData[question.id]}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, [question.id]: value }))}
+                    onValueChange={(value: string) => setFormData(prev => ({ ...prev, [question.id]: value }))}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder={question.placeholder} />
@@ -131,7 +131,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                   </Select>
                 </div>
               ))}
-                <p>合計スコア: {currentScore}</p>
+              <p>合計スコア: {currentScore}</p>
               <Button type="submit" className="w-full" size="lg">
                 <BookOpen className="w-4 h-4 mr-2" />
                 学習を始める

@@ -3,12 +3,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Progress } from './ui/progress'
 import { Badge } from './ui/badge'
 import { Avatar, AvatarFallback } from './ui/avatar'
-import { 
-  BookOpen, 
-  CheckCircle, 
-  Clock, 
-  Trophy, 
-  TrendingUp, 
+import {
+  BookOpen,
+  CheckCircle,
+  Clock,
+  Trophy,
+  TrendingUp,
   Target,
   PlayCircle,
   Award,
@@ -53,7 +53,7 @@ const learningNodesArray = (() => {
 
 export function Dashboard({ onStartLearning, onViewCompletion, onViewReflections, userData, progress }: DashboardProps) {
   const overallProgress = (progress.completedModules.length / progress.totalModules) * 100
-  const averageQuizScore = progress.quizScores.length > 0 
+  const averageQuizScore = progress.quizScores.length > 0
     ? Math.round(progress.quizScores.reduce((a, b) => a + b, 0) / progress.quizScores.length)
     : 0
 
@@ -76,7 +76,7 @@ export function Dashboard({ onStartLearning, onViewCompletion, onViewReflections
 
   // 推奨ノードの取得
   const getRecommendedNodes = () => {
-    return learningNodesArray.filter(node => 
+    return learningNodesArray.filter(node =>
       progress.recommendedStartNodeIds.includes(node.id)
     )
   }
@@ -85,15 +85,15 @@ export function Dashboard({ onStartLearning, onViewCompletion, onViewReflections
   const checkPrerequisites = (nodeId: string) => {
     const node = learningNodesArray.find(n => n.id === nodeId)
     if (!node) return { met: true, unmetNodes: [] }
-    
+
     const prerequisites = node.prerequisites || []
     const unmetNodes = prerequisites.filter(
-      prereq => !progress.completedModules.includes(prereq)
+      (prereq: string) => !progress.completedModules.includes(prereq)
     )
-    
+
     return {
       met: unmetNodes.length === 0,
-      unmetNodes: unmetNodes.map(id => 
+      unmetNodes: unmetNodes.map((id: string) =>
         learningNodesArray.find(n => n.id === id)?.title || id
       )
     }
@@ -196,13 +196,12 @@ export function Dashboard({ onStartLearning, onViewCompletion, onViewReflections
                       {recommendedNodes.map((node, index) => {
                         const prereqCheck = checkPrerequisites(node.id)
                         const isNext = index === 0
-                        
+
                         return (
                           <div
                             key={node.id}
-                            className={`p-3 bg-white rounded-lg border-2 ${
-                              isNext ? 'border-blue-400 shadow-md' : 'border-gray-200'
-                            }`}
+                            className={`p-3 bg-white rounded-lg border-2 ${isNext ? 'border-blue-400 shadow-md' : 'border-gray-200'
+                              }`}
                           >
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
@@ -216,19 +215,18 @@ export function Dashboard({ onStartLearning, onViewCompletion, onViewReflections
                                   <Badge variant="outline" className="text-xs">
                                     {node.category}
                                   </Badge>
-                                  <Badge 
-                                    variant="outline" 
-                                    className={`text-xs ${
-                                      node.difficulty === 'beginner' ? 'text-green-600' :
+                                  <Badge
+                                    variant="outline"
+                                    className={`text-xs ${node.difficulty === 'beginner' ? 'text-green-600' :
                                       node.difficulty === 'intermediate' ? 'text-yellow-600' :
-                                      'text-red-600'
-                                    }`}
+                                        'text-red-600'
+                                      }`}
                                   >
                                     {node.difficulty === 'beginner' ? '初級' :
-                                     node.difficulty === 'intermediate' ? '中級' : '上級'}
+                                      node.difficulty === 'intermediate' ? '中級' : '上級'}
                                   </Badge>
                                 </div>
-                                
+
                                 {/* 前提条件の警告 */}
                                 {!prereqCheck.met && (
                                   <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded flex items-start gap-2">
@@ -237,7 +235,7 @@ export function Dashboard({ onStartLearning, onViewCompletion, onViewReflections
                                       <div className="font-medium text-yellow-800 mb-1">前提未完了</div>
                                       <div className="text-yellow-700">
                                         先に以下を完了してください：
-                                        {prereqCheck.unmetNodes.map((prereqTitle, idx) => (
+                                        {prereqCheck.unmetNodes.map((prereqTitle: string, idx: number) => (
                                           <span key={idx}>
                                             {idx > 0 && '、'}
                                             <button
@@ -256,7 +254,7 @@ export function Dashboard({ onStartLearning, onViewCompletion, onViewReflections
                                   </div>
                                 )}
                               </div>
-                              
+
                               <Button
                                 onClick={() => onStartLearning(node.id)}
                                 disabled={!prereqCheck.met}
@@ -279,25 +277,25 @@ export function Dashboard({ onStartLearning, onViewCompletion, onViewReflections
                   // ノードをステータスで分類
                   const availableNodes: any[] = []
                   const lockedNodes: any[] = []
-                  
+
                   learningNodesArray.forEach((node) => {
                     const isCompleted = (progress.completedNodeIds || []).includes(node.id)
                     const isRecommended = (progress.recommendedStartNodeIds || []).includes(node.id)
                     const prereqCheck = checkPrerequisites(node.id)
-                    const status = isCompleted ? 'completed' : 
-                                  isRecommended ? 'current' : 
-                                  !prereqCheck.met ? 'locked' : 'available'
-                    
+                    const status = isCompleted ? 'completed' :
+                      isRecommended ? 'current' :
+                        !prereqCheck.met ? 'locked' : 'available'
+
                     if (status === 'available') {
                       availableNodes.push({ node, status, prereqCheck })
                     } else if (status === 'locked') {
                       lockedNodes.push({ node, status, prereqCheck })
                     }
                   })
-                  
+
                   // 利用可能な全てとロック中の3件を結合
                   const displayNodes = [...availableNodes, ...lockedNodes.slice(0, 3)]
-                  
+
                   return displayNodes.map(({ node, status, prereqCheck }) => (
                     <div
                       key={node.id}
@@ -318,9 +316,9 @@ export function Dashboard({ onStartLearning, onViewCompletion, onViewReflections
                           <p className="text-sm text-muted-foreground">{node.summary}</p>
                           <div className="flex items-center gap-2 mt-1">
                             <Badge variant="outline" className={getStatusColor(status)}>
-                              {status === 'completed' ? '完了' : 
-                               status === 'current' ? '学習中' : 
-                               status === 'locked' ? 'ロック中' : '利用可能'}
+                              {status === 'completed' ? '完了' :
+                                status === 'current' ? '学習中' :
+                                  status === 'locked' ? 'ロック中' : '利用可能'}
                             </Badge>
                             <Badge variant="outline" className="text-xs">
                               {node.type === 'concept' ? '概念' : 'スキル'}
@@ -334,8 +332,8 @@ export function Dashboard({ onStartLearning, onViewCompletion, onViewReflections
                         variant={status === 'current' ? 'default' : 'outline'}
                       >
                         {status === 'completed' ? '復習する' :
-                         status === 'current' ? '続ける' : 
-                         status === 'locked' ? 'ロック中' : '開始'}
+                          status === 'current' ? '続ける' :
+                            status === 'locked' ? 'ロック中' : '開始'}
                       </Button>
                     </div>
                   ))

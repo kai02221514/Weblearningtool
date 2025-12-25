@@ -5,15 +5,15 @@ import { Progress } from './ui/progress'
 import { Badge } from './ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs'
 import { Alert, AlertDescription } from './ui/alert'
-import { 
-  Home, 
-  BookOpen, 
-  Target, 
-  CheckCircle, 
-  Lightbulb, 
-  Play, 
-  FileText, 
-  ArrowRight 
+import {
+  Home,
+  BookOpen,
+  Target,
+  CheckCircle,
+  Lightbulb,
+  Play,
+  FileText,
+  ArrowRight
 } from 'lucide-react'
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import learningNodesData from '../data/learningNodes'
@@ -146,20 +146,20 @@ export function LearningModule({
     // 仮の現在ノードIDを設定（実際は currentModule から取得）
     const currentNodeId = 'html-basics'
     const completedNodeIds = ['html-basics']
-    
+
     // 前提条件を満たす次のノードを探す
     const nextCandidates = learningNodesArray.filter(node => {
       // 既に完了済みのノードは除外
       if (completedNodeIds.includes(node.id)) return false
-      
+
       // 前提条件を満たしているかチェック
-      const prerequisitesMet = node.prerequisites.every(prereq => 
+      const prerequisitesMet = node.prerequisites.every((prereq: string) =>
         completedNodeIds.includes(prereq)
       )
-      
+
       return prerequisitesMet
     })
-    
+
     return nextCandidates.slice(0, 3) // 最大3件まで
   }
 
@@ -174,8 +174,8 @@ export function LearningModule({
 
     const handleKeyDown = (event: KeyboardEvent) => {
       // テキスト入力中は無視
-      if (event.target instanceof HTMLTextAreaElement || 
-          event.target instanceof HTMLInputElement) {
+      if (event.target instanceof HTMLTextAreaElement ||
+        event.target instanceof HTMLInputElement) {
         return
       }
 
@@ -187,7 +187,7 @@ export function LearningModule({
           }
           event.preventDefault()
           break
-        
+
         case 'ArrowRight':
           // 次のスライドへ
           if (slideIndex < learningContent.slides.length - 1) {
@@ -195,7 +195,7 @@ export function LearningModule({
           }
           event.preventDefault()
           break
-        
+
         case 'Enter':
           // 最後のスライドならフェーズ完了、それ以外は次のスライドへ
           if (slideIndex === learningContent.slides.length - 1) {
@@ -474,13 +474,13 @@ export function LearningModule({
 
                       {slideIndex ===
                         learningContent.slides.length - 1 && (
-                        <div className="text-center">
-                          <Button onClick={handlePhaseComplete}>
-                            学習完了 - 確認テストへ進む
-                            <ArrowRight className="w-4 h-4 ml-2" />
-                          </Button>
-                        </div>
-                      )}
+                          <div className="text-center">
+                            <Button onClick={handlePhaseComplete}>
+                              学習完了 - 確認テストへ進む
+                              <ArrowRight className="w-4 h-4 ml-2" />
+                            </Button>
+                          </div>
+                        )}
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -568,7 +568,7 @@ export function LearningModule({
       {/* この単元を終えたら次のエリア */}
       {currentPhase === "input" && nextNodes.length > 0 && (
         <div className="max-w-4xl mx-auto px-4 pb-8">
-          
+
         </div>
       )}
     </div>
