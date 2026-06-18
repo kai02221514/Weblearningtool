@@ -15,6 +15,7 @@
 - [x] 確認テストIDを `quiz-{nodeId}`、実践課題IDを `practice-profile-card` と定義する。
 - [x] 初期推奨値、学習画面、進捗管理、実践課題の旧ID参照を調査する。
 - [x] `completedModules` と `completedNodeIds` の混在を `completedNodeIds` へ統一する。
+- [x] `MVP_NODE_IDS` と `getMvpLearningNodes()` を追加し、Dashboard、LearningModule、PracticeChallenge、学習開始処理をMVP集合へ限定する。
 - [ ] 診断回答と振り返り項目から正規ノードIDへの対応表を実装する。
 - [ ] `catalogVersion` の更新規則と研究データ移行方針を確定する。
 - [ ] ID重複、参照切れ、循環を検出する自動検証をリポジトリへ追加する。
@@ -32,14 +33,13 @@
 - 全63ノードは将来拡張用として保持し、削除しない。
 - MVP外6エラーの旧ドット形式 `nodeRefs` はMVPルート生成から除外し、後続フェーズで移行する。
 - 現行 `Quiz.tsx` にはテストIDと対応ノードIDがないため、次Issueでデータ化する。
-- ダッシュボードでMVP集合だけを表示・推薦する接続は、ルート生成結果との接続時に行う。
 
 ## Phase 2: ルート生成ロジックの実装
 
 ### 作業内容
 
 - [ルート生成仕様](./route-generation-spec.md)をMVP 12ノード、8エラー、`quiz-{nodeId}`、`practice-profile-card` の確定契約へ更新する。
-- MVPノードID集合をコード上の単一定義として追加し、画面・検証・ルート生成で共有する。
+- `routeGenerator` から既存のMVPノード単一定義を参照し、画面・検証・ルート生成で共有する。
 - [ルート生成仕様](./route-generation-spec.md)に基づく入出力型を定義する。
 - 確認テストをノード単位のデータへ分離し、問題ID、テストID、対象ノードIDを保持する。
 - 診断結果から開始候補を選び、進捗済みノードを除外または復習候補として扱う。

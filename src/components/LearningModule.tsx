@@ -16,19 +16,9 @@ import {
   ArrowRight 
 } from 'lucide-react'
 import { ImageWithFallback } from "./figma/ImageWithFallback";
-import learningNodesData from '../data/learningNodes'
+import { getMvpLearningNodes } from '../domain/mvpScope'
 
-// JSONファイルから配列を取得(デフォルトインポートの型に対応)
-const learningNodesArray = (() => {
-  if (Array.isArray(learningNodesData)) {
-    return learningNodesData
-  }
-  // 新しいスキーマ構造の場合、html_nodes と css_nodes を結合
-  const data = learningNodesData as any
-  const htmlNodes = data.html_nodes || []
-  const cssNodes = data.css_nodes || []
-  return [...htmlNodes, ...cssNodes]
-})()
+const learningNodesArray = getMvpLearningNodes()
 
 interface LearningModuleProps {
   onComplete: () => void;

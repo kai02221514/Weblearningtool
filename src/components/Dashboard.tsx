@@ -18,7 +18,7 @@ import {
   ArrowRight,
   Lightbulb
 } from 'lucide-react'
-import learningNodesData from '../data/learningNodes'
+import { getMvpLearningNodes } from '../domain/mvpScope'
 import { useEffect } from 'react'
 
 interface DashboardProps {
@@ -38,17 +38,7 @@ interface DashboardProps {
   }
 }
 
-// JSONファイルから配列を取得（デフォルトインポートの型に対応）
-const learningNodesArray = (() => {
-  if (Array.isArray(learningNodesData)) {
-    return learningNodesData
-  }
-  // 新しいスキーマ構造の場合、html_nodes と css_nodes を結合
-  const data = learningNodesData as any
-  const htmlNodes = data.html_nodes || []
-  const cssNodes = data.css_nodes || []
-  return [...htmlNodes, ...cssNodes]
-})()
+const learningNodesArray = getMvpLearningNodes()
 
 export function Dashboard({ onStartLearning, onViewCompletion, onViewReflections, userData, progress }: DashboardProps) {
   const overallProgress = (progress.completedNodeIds.length / progress.totalNodes) * 100

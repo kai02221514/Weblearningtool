@@ -7,20 +7,14 @@ import { Badge } from './ui/badge'
 import { Textarea } from './ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs'
 import { Separator } from './ui/separator'
-import learningNodesData from '../data/learningNodes'
 import errorMappingsData from '../data/errorMappings'
+import {
+  getMvpLearningNodes,
+  isMvpNodeId,
+  type MvpNodeId,
+} from '../domain/mvpScope'
 
-// JSONファイルから配列を取得(デフォルトインポートの型に対応)
-const learningNodesArray = (() => {
-  if (Array.isArray(learningNodesData)) {
-    return learningNodesData
-  }
-  // 新しいスキーマ構造の場合、html_nodes と css_nodes を結合
-  const data = learningNodesData as any
-  const htmlNodes = data.html_nodes || []
-  const cssNodes = data.css_nodes || []
-  return [...htmlNodes, ...cssNodes]
-})()
+const learningNodesArray = getMvpLearningNodes()
 
 const errorMappingsArray = (() => {
   if (Array.isArray(errorMappingsData)) {
@@ -82,7 +76,7 @@ const challenge = {
     'css-011',
     'css-020',
     'css-060',
-  ],
+  ] as const satisfies readonly MvpNodeId[],
   requirements: [
     'h1タグで名前を表示',
     'pタグで自己紹介文を記述',
@@ -387,14 +381,18 @@ export function PracticeChallenge({ onComplete, onDashboard, onStartLearning }: 
   const recommendNodeIds = [
     ...new Set(
       recommendations.flatMap(r =>
-        (r?.nodeRefs || []).filter(ref => ref.priority === 1).map(ref => ref.nodeId)
+        (r?.nodeRefs || [])
+          .filter(ref => ref.priority === 1 && isMvpNodeId(ref.nodeId))
+          .map(ref => ref.nodeId)
       )
     ),
   ]
   const relatedNodeIds = [
     ...new Set(
       recommendations.flatMap(r =>
-        (r?.nodeRefs || []).filter(ref => ref.priority > 1).map(ref => ref.nodeId)
+        (r?.nodeRefs || [])
+          .filter(ref => ref.priority > 1 && isMvpNodeId(ref.nodeId))
+          .map(ref => ref.nodeId)
       )
     ),
   ]

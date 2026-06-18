@@ -9,12 +9,9 @@ import { Dashboard } from './components/Dashboard'
 import { Completion } from './components/Completion'
 import { LearningReflections } from './components/LearningReflections'
 import { LearningReflectionForm } from './components/LearningReflectionForm'
-import learningNodesData from './data/learningNodes'
+import { getMvpLearningNodes, MVP_NODE_IDS } from './domain/mvpScope'
 
-const learningNodes = [
-  ...(learningNodesData.html_nodes || []),
-  ...(learningNodesData.css_nodes || []),
-]
+const learningNodes = getMvpLearningNodes()
 
 type Phase = 'auth' | 'survey' | 'tutorial' | 'dashboard' | 'learning' | 'quiz' | 'practice' | 'reflection' | 'completion' | 'reflections'
 
@@ -67,7 +64,7 @@ export default function App() {
   const [userData, setUserData] = useState<UserData | null>(null)
   const [progress, setProgress] = useState<Progress>({
     completedNodeIds: ['html-000'],
-    totalNodes: 12,
+    totalNodes: MVP_NODE_IDS.length,
     currentStreak: 3,
     totalHours: 8,
     quizScores: [85, 92, 78],
