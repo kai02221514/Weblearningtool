@@ -22,8 +22,8 @@ interface CompletionProps {
   onDashboard: () => void
   userData: any
   progress: {
-    completedModules: string[]
-    totalModules: number
+    completedNodeIds: string[]
+    totalNodes: number
     currentStreak: number
     totalHours: number
     quizScores: number[]
@@ -323,7 +323,7 @@ export function Completion({ onDashboard, userData, progress }: CompletionProps)
                   <div className="text-center p-4 bg-blue-50 rounded-lg">
                     <Target className="w-6 h-6 mx-auto mb-2 text-blue-600" />
                     <div className="text-2xl text-blue-600">
-                      {progress.completedModules.length}
+                      {progress.completedNodeIds.length}
                     </div>
                     <div className="text-sm text-muted-foreground">単元完了</div>
                   </div>

@@ -27,15 +27,14 @@ interface DashboardProps {
   onViewReflections: () => void
   userData: any
   progress: {
-    completedModules: string[]
-    totalModules: number
+    completedNodeIds: string[]
+    totalNodes: number
     currentStreak: number
     totalHours: number
     quizScores: number[]
     reflections: any[]
     recommendedStartNodeIds: string[]
     inProgressNodeId: string | null
-    completedNodeIds: string[]
   }
 }
 
@@ -52,7 +51,7 @@ const learningNodesArray = (() => {
 })()
 
 export function Dashboard({ onStartLearning, onViewCompletion, onViewReflections, userData, progress }: DashboardProps) {
-  const overallProgress = (progress.completedModules.length / progress.totalModules) * 100
+  const overallProgress = (progress.completedNodeIds.length / progress.totalNodes) * 100
   const averageQuizScore = progress.quizScores.length > 0 
     ? Math.round(progress.quizScores.reduce((a, b) => a + b, 0) / progress.quizScores.length)
     : 0
@@ -88,7 +87,7 @@ export function Dashboard({ onStartLearning, onViewCompletion, onViewReflections
     
     const prerequisites = node.prerequisites || []
     const unmetNodes = prerequisites.filter(
-      prereq => !progress.completedModules.includes(prereq)
+      prereq => !progress.completedNodeIds.includes(prereq)
     )
     
     return {
@@ -155,8 +154,8 @@ export function Dashboard({ onStartLearning, onViewCompletion, onViewReflections
                 <Progress value={overallProgress} className="w-full" />
                 <div className="grid grid-cols-3 gap-4 pt-4">
                   <div className="text-center">
-                    <div className="text-2xl mb-1">{progress.completedModules.length}</div>
-                    <div className="text-sm text-muted-foreground">完了モジュール</div>
+                    <div className="text-2xl mb-1">{progress.completedNodeIds.length}</div>
+                    <div className="text-sm text-muted-foreground">完了ノード</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl mb-1">{progress.currentStreak}</div>

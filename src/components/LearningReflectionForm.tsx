@@ -14,8 +14,8 @@ import {
 } from 'lucide-react'
 
 interface ReflectionData {
-  moduleId: string
-  moduleName: string
+  nodeId: string
+  nodeName: string
   date: string
   struggledConcepts: string[]
   reflection: string
@@ -26,7 +26,8 @@ interface ReflectionData {
 interface LearningReflectionFormProps {
   onComplete: (reflectionData: ReflectionData) => void
   onDashboard: () => void
-  currentModule: string
+  currentNodeId: string
+  currentNodeName: string
 }
 
 const allConcepts = [
@@ -39,7 +40,12 @@ const allConcepts = [
   'エラーの原因特定と修正'
 ]
 
-export function LearningReflectionForm({ onComplete, onDashboard, currentModule }: LearningReflectionFormProps) {
+export function LearningReflectionForm({
+  onComplete,
+  onDashboard,
+  currentNodeId,
+  currentNodeName,
+}: LearningReflectionFormProps) {
   const [struggledConcepts, setStruggledConcepts] = useState<string[]>([])
   const [reflection, setReflection] = useState('')
 
@@ -47,8 +53,8 @@ export function LearningReflectionForm({ onComplete, onDashboard, currentModule 
     const recommendations = generateRecommendations(struggledConcepts)
     
     const reflectionData: ReflectionData = {
-      moduleId: 'html-basics',
-      moduleName: currentModule,
+      nodeId: currentNodeId,
+      nodeName: currentNodeName,
       date: new Date().toLocaleDateString('ja-JP'),
       struggledConcepts,
       reflection,
@@ -95,7 +101,7 @@ export function LearningReflectionForm({ onComplete, onDashboard, currentModule 
             </Button>
             <div>
               <h1 className="text-2xl">学習の振り返り</h1>
-              <p className="text-muted-foreground">{currentModule} - メタ認知の促進</p>
+              <p className="text-muted-foreground">{currentNodeName} - メタ認知の促進</p>
             </div>
           </div>
         </div>

@@ -14,8 +14,8 @@ import {
 } from 'lucide-react'
 
 interface ReflectionData {
-  moduleId: string
-  moduleName: string
+  nodeId: string
+  nodeName: string
   date: string
   struggledConcepts: string[]
   reflection: string
@@ -100,7 +100,7 @@ export function LearningReflections({ onDashboard, reflections }: LearningReflec
                           <BookOpen className="w-5 h-5 text-blue-600" />
                         </div>
                         <div>
-                          <CardTitle className="text-lg">{reflection.moduleName}</CardTitle>
+                          <CardTitle className="text-lg">{reflection.nodeName}</CardTitle>
                           <CardDescription className="flex items-center gap-2">
                             <Calendar className="w-4 h-4" />
                             {reflection.date}

@@ -33,7 +33,9 @@ const learningNodesArray = (() => {
 interface LearningModuleProps {
   onComplete: () => void;
   onDashboard: () => void;
-  currentModule: string;
+  currentNodeId: string;
+  currentNodeName: string;
+  completedNodeIds: string[];
 }
 
 type LearningPhase = "introduction" | "input";
@@ -115,7 +117,9 @@ const learningContent = {
 export function LearningModule({
   onComplete,
   onDashboard,
-  currentModule,
+  currentNodeId,
+  currentNodeName,
+  completedNodeIds,
 }: LearningModuleProps) {
   const [currentPhase, setCurrentPhase] =
     useState<LearningPhase>("introduction");
@@ -143,14 +147,10 @@ export function LearningModule({
 
   // 次の推奨ノードを取得
   const getNextNodes = () => {
-    // 仮の現在ノードIDを設定（実際は currentModule から取得）
-    const currentNodeId = 'html-basics'
-    const completedNodeIds = ['html-basics']
-    
     // 前提条件を満たす次のノードを探す
     const nextCandidates = learningNodesArray.filter(node => {
       // 既に完了済みのノードは除外
-      if (completedNodeIds.includes(node.id)) return false
+      if (node.id === currentNodeId || completedNodeIds.includes(node.id)) return false
       
       // 前提条件を満たしているかチェック
       const prerequisitesMet = node.prerequisites.every(prereq => 
@@ -228,7 +228,7 @@ export function LearningModule({
                 ダッシュボード
               </Button>
               <div>
-                <h1 className="text-xl">{currentModule}</h1>
+                <h1 className="text-xl">{currentNodeName}</h1>
                 <p className="text-sm text-muted-foreground">
                   {currentPhase === "introduction" &&
                     "導入フェーズ：学習目的の明確化"}

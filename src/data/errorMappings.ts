@@ -32,8 +32,8 @@ export default {
         "signals": ["HTMLパーサ警告", "DOMツリーの自動補完が発生", "構造崩れ"]
       },
       "nodeRefs": [
-        { "nodeId": "html.syntax.tags.pairedTags", "priority": 1, "reason": "ペアタグと閉じ方の基本" },
-        { "nodeId": "html.structure.nesting.rules", "priority": 2, "reason": "入れ子と対応関係の理解" }
+        { "nodeId": "html-020", "priority": 1, "reason": "ペアタグと閉じ方の基本" },
+        { "nodeId": "html-021", "priority": 2, "reason": "入れ子と対応関係の理解" }
       ]
     },
     {
@@ -47,8 +47,8 @@ export default {
         "signals": ["validatorのエラー", "ul直下にli以外", "pの中にブロック要素"]
       },
       "nodeRefs": [
-        { "nodeId": "html.structure.nesting.contentModel", "priority": 1, "reason": "HTMLのコンテンツモデル" },
-        { "nodeId": "html.text.lists.ul_ol_li", "priority": 2, "reason": "リスト構造の規則" }
+        { "nodeId": "html-021", "priority": 1, "reason": "HTMLの入れ子規則" },
+        { "nodeId": "html-040", "priority": 2, "reason": "リスト構造の規則" }
       ]
     },
     {
@@ -62,9 +62,7 @@ export default {
         "signals": ["a11y lint警告", "画像にaltがない", "label for未設定"]
       },
       "nodeRefs": [
-        { "nodeId": "html.media.images.altText", "priority": 1, "reason": "altの役割と付け方" },
-        { "nodeId": "html.accessibility.basics", "priority": 2, "reason": "アクセシビリティ基礎" },
-        { "nodeId": "html.forms.labels", "priority": 3, "reason": "フォームのラベリング" }
+        { "nodeId": "html-022", "priority": 1, "reason": "属性の書式と必須属性の考え方" }
       ]
     },
     {
@@ -78,8 +76,7 @@ export default {
         "signals": ["見出しレベルの飛び", "h1の複数出現"]
       },
       "nodeRefs": [
-        { "nodeId": "html.text.headings.h1_h6_outline", "priority": 1, "reason": "見出しの意味と階層" },
-        { "nodeId": "html.structure.semantic.layout", "priority": 2, "reason": "セマンティック構造" }
+        { "nodeId": "html-031", "priority": 1, "reason": "見出しの意味と階層" }
       ]
     },
     {
@@ -108,8 +105,7 @@ export default {
         "signals": ["CSSパーサエラー", "以降の宣言が反映されない"]
       },
       "nodeRefs": [
-        { "nodeId": "css.syntax.declarations", "priority": 1, "reason": "宣言ブロックの書き方" },
-        { "nodeId": "css.syntax.braces_semicolons", "priority": 2, "reason": "波括弧と区切り" }
+        { "nodeId": "css-011", "priority": 1, "reason": "宣言ブロックと区切りの書き方" }
       ]
     },
     {
@@ -138,9 +134,8 @@ export default {
         "signals": ["DevToolsでマッチ0", "スタイルが当たらない"]
       },
       "nodeRefs": [
-        { "nodeId": "css.selectors.basic", "priority": 1, "reason": "基本セレクタ" },
-        { "nodeId": "css.selectors.combinators", "priority": 2, "reason": "子孫/子/隣接など" },
-        { "nodeId": "html.attributes.class_id", "priority": 3, "reason": "class/idの付け方" }
+        { "nodeId": "css-020", "priority": 1, "reason": "基本セレクタ" },
+        { "nodeId": "html-022", "priority": 2, "reason": "class/idの付け方" }
       ]
     },
     {
@@ -170,9 +165,7 @@ export default {
         "signals": ["意図せず横スクロール", "要素がはみ出す"]
       },
       "nodeRefs": [
-        { "nodeId": "css.layout.boxModel", "priority": 1, "reason": "ボックスモデル基礎" },
-        { "nodeId": "css.layout.boxSizing", "priority": 2, "reason": "box-sizing" },
-        { "nodeId": "css.debug.devtools.boxModel", "priority": 3, "reason": "DevToolsでの確認" }
+        { "nodeId": "css-060", "priority": 1, "reason": "ボックスモデル基礎" }
       ]
     },
     {
@@ -201,9 +194,8 @@ export default {
         "signals": ["ネットワーク404", "コンソールのリソースエラー"]
       },
       "nodeRefs": [
-        { "nodeId": "html.media.images.src_paths", "priority": 1, "reason": "画像パス指定" },
-        { "nodeId": "css.assets.url_backgroundImage", "priority": 2, "reason": "CSSのurl参照" },
-        { "nodeId": "html.webBasics.urls.paths", "priority": 3, "reason": "パス概念" }
+        { "nodeId": "css-010", "priority": 1, "reason": "CSSの読み込みと適用方法" },
+        { "nodeId": "html-010", "priority": 2, "reason": "HTML文書内の読み込み位置" }
       ]
     },
     {

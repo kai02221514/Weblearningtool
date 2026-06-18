@@ -9,6 +9,12 @@ import { Dashboard } from './components/Dashboard'
 import { Completion } from './components/Completion'
 import { LearningReflections } from './components/LearningReflections'
 import { LearningReflectionForm } from './components/LearningReflectionForm'
+import learningNodesData from './data/learningNodes'
+
+const learningNodes = [
+  ...(learningNodesData.html_nodes || []),
+  ...(learningNodesData.css_nodes || []),
+]
 
 type Phase = 'auth' | 'survey' | 'tutorial' | 'dashboard' | 'learning' | 'quiz' | 'practice' | 'reflection' | 'completion' | 'reflections'
 
@@ -31,8 +37,8 @@ interface ErrorHistoryItem {
 }
 
 interface ReflectionData {
-  moduleId: string
-  moduleName: string
+  nodeId: string
+  nodeName: string
   date: string
   struggledConcepts: string[]
   reflection: string
@@ -41,12 +47,13 @@ interface ReflectionData {
 }
 
 interface Progress {
-  completedModules: string[]
-  totalModules: number
+  completedNodeIds: string[]
+  totalNodes: number
   currentStreak: number
   totalHours: number
   quizScores: number[]
-  currentModule: string
+  currentNodeId: string
+  currentNodeName: string
   reflections: ReflectionData[]
   // 新しく追加するフィールド
   recommendedStartNodeIds: string[]
@@ -59,15 +66,16 @@ export default function App() {
   const [phase, setPhase] = useState<Phase>('auth')
   const [userData, setUserData] = useState<UserData | null>(null)
   const [progress, setProgress] = useState<Progress>({
-    completedModules: ['html-basics'],
-    totalModules: 5,
+    completedNodeIds: ['html-000'],
+    totalNodes: 12,
     currentStreak: 3,
     totalHours: 8,
     quizScores: [85, 92, 78],
-    currentModule: 'HTMLの基礎',
+    currentNodeId: 'html-010',
+    currentNodeName: 'HTML基本骨格(doctype / html / head / body)',
     reflections: [],
-    recommendedStartNodeIds: ['css-basics', 'html-semantics'],
-    inProgressNodeId: null,
+    recommendedStartNodeIds: ['html-010'],
+    inProgressNodeId: 'html-010',
     errorHistory: [],
     detectedErrors: []
   })
@@ -100,19 +108,15 @@ export default function App() {
     setPhase('dashboard')
   }
 
-  const handleStartLearning = (moduleId: string) => {
-    // モジュールIDに基づいて現在のモジュールを設定
-    const moduleNames: { [key: string]: string } = {
-      'html-basics': 'HTMLの基礎',
-      'css-basics': 'CSSの基礎',
-      'css-layout': 'CSSレイアウト',
-      'javascript-intro': 'JavaScript入門',
-      'responsive-design': 'レスポンシブデザイン'
-    }
-    
+  const handleStartLearning = (nodeId: string) => {
+    const node = learningNodes.find(item => item.id === nodeId)
+    if (!node) return
+
     setProgress(prev => ({
       ...prev,
-      currentModule: moduleNames[moduleId] || 'HTMLの基礎'
+      currentNodeId: node.id,
+      currentNodeName: node.title,
+      inProgressNodeId: node.id,
     }))
     setPhase('learning')
   }
@@ -130,10 +134,12 @@ export default function App() {
   }
 
   const handlePracticeComplete = () => {
-    // 実践課題完了時に統計を更新
     setProgress(prev => ({
       ...prev,
-      completedModules: [...prev.completedModules, 'current-module'],
+      completedNodeIds: prev.completedNodeIds.includes(prev.currentNodeId)
+        ? prev.completedNodeIds
+        : [...prev.completedNodeIds, prev.currentNodeId],
+      inProgressNodeId: null,
       totalHours: prev.totalHours + 2,
       currentStreak: prev.currentStreak + 1
     }))
@@ -203,7 +209,9 @@ export default function App() {
         <LearningModule
           onComplete={handleLearningComplete}
           onDashboard={handleDashboard}
-          currentModule={progress.currentModule}
+          currentNodeId={progress.currentNodeId}
+          currentNodeName={progress.currentNodeName}
+          completedNodeIds={progress.completedNodeIds}
         />
       )
       
@@ -239,7 +247,8 @@ export default function App() {
         <LearningReflectionForm
           onComplete={handleReflectionComplete}
           onDashboard={handleDashboard}
-          currentModule={progress.currentModule}
+          currentNodeId={progress.currentNodeId}
+          currentNodeName={progress.currentNodeName}
         />
       )
       

@@ -118,7 +118,7 @@ export default {
       "id": "html-040",
       "title": "リスト基礎:ul / ol / li",
       "summary": "箇条書き・順序付きリストを正しく作れる。",
-      "prerequisites": ["html-020"],
+      "prerequisites": ["html-021"],
       "type": "skill",
       "tags": ["list", "ul", "ol", "li"]
     },
@@ -264,7 +264,7 @@ export default {
       "id": "css-000",
       "title": "オリエンテーション:CSSとは何か",
       "summary": "見た目(スタイル)を定義する役割と適用の考え方を理解する。",
-      "prerequisites": [],
+      "prerequisites": ["html-020"],
       "type": "concept",
       "tags": ["intro", "concept"]
     },
@@ -272,7 +272,7 @@ export default {
       "id": "css-010",
       "title": "CSSの適用方法:外部CSS / 内部CSS / インライン",
       "summary": "3つの方法と推奨される使い分けを説明できる。",
-      "prerequisites": ["css-000", "html-013"],
+      "prerequisites": ["css-000", "html-010"],
       "type": "concept",
       "tags": ["include", "link", "style"]
     },

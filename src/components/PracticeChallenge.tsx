@@ -68,8 +68,21 @@ const initialCode = `<!DOCTYPE html>
 </html>`
 
 const challenge = {
+  id: 'practice-profile-card',
   title: '自己紹介ページを作成しよう',
   description: 'HTMLとCSSを使って、あなた自身の自己紹介ページを作成してください。',
+  targetNodeIds: [
+    'html-010',
+    'html-020',
+    'html-021',
+    'html-022',
+    'html-031',
+    'html-040',
+    'css-010',
+    'css-011',
+    'css-020',
+    'css-060',
+  ],
   requirements: [
     'h1タグで名前を表示',
     'pタグで自己紹介文を記述',
@@ -96,8 +109,7 @@ export function PracticeChallenge({ onComplete, onDashboard, onStartLearning }: 
   const [checklist, setChecklist] = useState([false, false, false, false, false])
   const [selectedNodeForPreview, setSelectedNodeForPreview] = useState<string | null>(null)
   
-  // 現在の課題ノード（実際のアプリではpropsで渡すべきだが、ここではデモ用にhtml-010を使用）
-  const currentChallengeNodeId = 'html-010' // 例: HTMLリスト基礎の課題
+  const currentChallengeNodeId = challenge.targetNodeIds[0]
   const currentNode = learningNodesArray.find(n => n.id === currentChallengeNodeId)
   
   // SRKエラーのstate
@@ -327,36 +339,33 @@ export function PracticeChallenge({ onComplete, onDashboard, onStartLearning }: 
     // 検出されたエラーに基づいてエラーIDを特定
     if (skillErrors.length > 0) {
       if (skillErrors.some(e => e.message.includes('閉じられていません'))) {
-        detectedErrorIds.push('error-missing-closing-tag')
+        detectedErrorIds.push('E_HTML_MISSING_CLOSING_TAG')
       }
       if (skillErrors.some(e => e.message.includes('`;`'))) {
-        detectedErrorIds.push('error-missing-semicolon')
+        detectedErrorIds.push('E_CSS_SYNTAX_MISSING_SEMICOLON')
       }
     }
     
     if (ruleErrors.length > 0) {
       if (ruleErrors.some(e => e.message.includes('`<ul>`'))) {
-        detectedErrorIds.push('error-invalid-ul-child')
-      }
-      if (ruleErrors.some(e => e.message.includes('DOCTYPE'))) {
-        detectedErrorIds.push('error-missing-doctype')
+        detectedErrorIds.push('E_HTML_INVALID_NESTING')
       }
     }
     
     if (knowledgeErrors.length > 0) {
       if (knowledgeErrors.some(e => e.message.includes('<h1>'))) {
-        detectedErrorIds.push('error-multiple-h1')
+        detectedErrorIds.push('E_HTML_HEADING_STRUCTURE')
       }
       if (knowledgeErrors.some(e => e.message.includes('階層'))) {
-        detectedErrorIds.push('error-heading-hierarchy')
+        detectedErrorIds.push('E_HTML_HEADING_STRUCTURE')
       }
       if (knowledgeErrors.some(e => e.message.includes('alt'))) {
-        detectedErrorIds.push('error-missing-alt')
+        detectedErrorIds.push('E_HTML_MISSING_REQUIRED_ATTR')
       }
     }
     
     // エラーマッピングから推奨ノードを取得
-    const recommendations = detectedErrorIds.map(errorId => {
+    const recommendations = [...new Set(detectedErrorIds)].map(errorId => {
       const mapping = errorMappingsArray.find(m => m.id === errorId)
       return mapping
     }).filter(Boolean)
@@ -364,12 +373,8 @@ export function PracticeChallenge({ onComplete, onDashboard, onStartLearning }: 
     // 優先順位でソート（knowledge > rule > skill）
     recommendations.sort((a, b) => {
       const srkOrder = { knowledge: 3, rule: 2, skill: 1 }
-      const severityOrder = { high: 3, medium: 2, low: 1 }
-      
-      const aScore = (srkOrder[a!.srk as keyof typeof srkOrder] || 0) * 10 + 
-                     (severityOrder[a!.severity as keyof typeof severityOrder] || 0)
-      const bScore = (srkOrder[b!.srk as keyof typeof srkOrder] || 0) * 10 + 
-                     (severityOrder[b!.severity as keyof typeof severityOrder] || 0)
+      const aScore = srkOrder[a!.srk as keyof typeof srkOrder] || 0
+      const bScore = srkOrder[b!.srk as keyof typeof srkOrder] || 0
       
       return bScore - aScore
     })
@@ -379,9 +384,20 @@ export function PracticeChallenge({ onComplete, onDashboard, onStartLearning }: 
 
   const recommendations = getRecommendationsFromErrors()
   
-  // recommendNodeIdsとrelatedNodeIdsを取得
-  const recommendNodeIds = [...new Set(recommendations.flatMap(r => r?.recommendNodeIds || []))]
-  const relatedNodeIds = [...new Set(recommendations.flatMap(r => r?.relatedNodeIds || []))]
+  const recommendNodeIds = [
+    ...new Set(
+      recommendations.flatMap(r =>
+        (r?.nodeRefs || []).filter(ref => ref.priority === 1).map(ref => ref.nodeId)
+      )
+    ),
+  ]
+  const relatedNodeIds = [
+    ...new Set(
+      recommendations.flatMap(r =>
+        (r?.nodeRefs || []).filter(ref => ref.priority > 1).map(ref => ref.nodeId)
+      )
+    ),
+  ]
 
   return (
     <div className="min-h-screen bg-gray-50">
