@@ -1,0 +1,19 @@
+{
+  "version": "1.0.0",
+  "errors": [
+    { "id": "E_HTML_MISSING_CLOSING_TAG", "srk": "skill", "nodeRefs": [ { "nodeId": "html-020", "priority": 1 }, { "nodeId": "html-021", "priority": 2 } ] },
+    { "id": "E_HTML_INVALID_NESTING", "srk": "rule", "nodeRefs": [ { "nodeId": "html-021", "priority": 1 }, { "nodeId": "html-040", "priority": 2 } ] },
+    { "id": "E_HTML_MISSING_REQUIRED_ATTR", "srk": "knowledge", "nodeRefs": [ { "nodeId": "html-022", "priority": 1 } ] },
+    { "id": "E_HTML_HEADING_STRUCTURE", "srk": "knowledge", "nodeRefs": [ { "nodeId": "html-031", "priority": 1 } ] },
+    { "id": "E_HTML_LINK_HREF_INVALID", "srk": "rule", "nodeRefs": [ { "nodeId": "html.navigation.links.a_href", "priority": 1 }, { "nodeId": "html.webBasics.urls.paths", "priority": 2 } ] },
+    { "id": "E_CSS_SYNTAX_MISSING_SEMICOLON", "srk": "skill", "nodeRefs": [ { "nodeId": "css-011", "priority": 1 } ] },
+    { "id": "E_CSS_PROPERTY_UNKNOWN", "srk": "skill", "nodeRefs": [ { "nodeId": "css.basics.commonProperties", "priority": 1 }, { "nodeId": "css.debug.devtools.styles", "priority": 2 } ] },
+    { "id": "E_CSS_SELECTOR_NO_MATCH", "srk": "rule", "nodeRefs": [ { "nodeId": "css-020", "priority": 1 }, { "nodeId": "html-022", "priority": 2 } ] },
+    { "id": "E_CSS_SPECIFICITY_OVERRIDE", "srk": "knowledge", "nodeRefs": [ { "nodeId": "css.cascade.specificity", "priority": 1 }, { "nodeId": "css.cascade.order_inheritance", "priority": 2 }, { "nodeId": "css.debug.devtools.styles", "priority": 3 } ] },
+    { "id": "E_LAYOUT_BOX_MODEL_MISUNDERSTANDING", "srk": "knowledge", "nodeRefs": [ { "nodeId": "css-060", "priority": 1 } ] },
+    { "id": "E_LAYOUT_FLEX_AXIS_CONFUSION", "srk": "knowledge", "nodeRefs": [ { "nodeId": "css.layout.flex.basics", "priority": 1 }, { "nodeId": "css.layout.flex.alignment", "priority": 2 } ] },
+    { "id": "E_RUNTIME_RESOURCE_PATH", "srk": "rule", "nodeRefs": [ { "nodeId": "css-010", "priority": 1 }, { "nodeId": "html-010", "priority": 2 } ] },
+    { "id": "E_DEBUG_TOOL_NOT_USED", "srk": "knowledge", "nodeRefs": [ { "nodeId": "css.debug.devtools.styles", "priority": 1 }, { "nodeId": "css.debug.devtools.console_network", "priority": 2 }, { "nodeId": "html.debug.dom_inspector", "priority": 3 } ] },
+    { "id": "E_FORM_LABEL_ASSOCIATION", "srk": "knowledge", "nodeRefs": [ { "nodeId": "html.forms.labels", "priority": 1 }, { "nodeId": "html.forms.inputs.basics", "priority": 2 }, { "nodeId": "html.accessibility.forms", "priority": 3 } ] }
+  ]
+}
