@@ -6,6 +6,33 @@
 - 反映先の詳細根拠は各成果物(context-consistency-audit / implementation-gap-analysis / risk-register / recommended-work-order)を参照。
 - Phase 2.5の必須表(指摘ID/採否/理由/承認者/反映先/Linear Issue/コミット)は、本表を基に研究者本人が記入する。
 
+> 現在状態: 以下の「判断一覧」は監査時点の入力資料である。研究者による最終判断は「研究者最終採否表」を正とする。
+
+## 研究者最終採否表
+
+| 指摘ID | 採否 | 理由 | 承認者 | 反映先 | Linear Issue | コミット |
+|---|---|---|---|---|---|---|
+| P-01 | 採用 | Supabase実環境で`public.kv_store_f3d88633`のRLS有効、ポリシー0件、default denyを確認済み。今後の永続化時は所有者単位ポリシー設計が必要。 | 北代櫂 | `docs/audit/phase2.5-handover.md`、`docs/research/06-implementation-status.md` | 不要。確認済み事項として記録済み | `b082b2c8622d5ca54a35fdcd52d553e4db5157ae` |
+| P-02 | 採用 | Dashboard上で固定ルート表示と個別ルート生成未実装表示を確認済み。個別ルート生成機能自体は未実装。 | 北代櫂 | `src/components/Dashboard.tsx`、`docs/research/06-implementation-status.md`、`docs/research/02-open-questions.md` | 後続仕様化はIssue A、Issue B | `b082b2c8622d5ca54a35fdcd52d553e4db5157ae`、`7d1ee464c6f3a30f7f14ea44f46b3cc3ca24024d` |
+| P-03 | 採用 | `docs/research/`を正本とし、文書優先順位と旧文書の扱いを反映済み。 | 北代櫂 | `docs/research/09-decision-log.md`、`docs/research/10-handover.md`、旧`docs/`直下文書 | 不要。正本反映済み | `741910e0fb9bdd3c9b0c5dd06f8613f5a578bdac` |
+| P-04 | 採用 | 評価計画の正本を`docs/research/05-evaluation-plan.md`へ一本化し、旧評価計画は参考資料化済み。 | 北代櫂 | `docs/research/05-evaluation-plan.md`、`docs/evaluation-plan.md`、`docs/research/09-decision-log.md` | OQ-009関連はIssue D | `741910e0fb9bdd3c9b0c5dd06f8613f5a578bdac` |
+| P-05 | 採用 | 旧`docs/route-generation-spec.md`をOQ-005の未確定たたき台として明示済み。 | 北代櫂 | `docs/route-generation-spec.md`、`docs/research/09-decision-log.md` | Issue B | `741910e0fb9bdd3c9b0c5dd06f8613f5a578bdac` |
+| P-06 | 条件付き採用 | 監査文書11〜14の原本確認待ち。原本が存在する場合は追加し、存在しない場合は実行不能参照を削除する。 | 北代櫂 | 確認後に`docs/research/00-research-overview.md`等を更新 | 保留。原本確認後に必要なら作成 | 未着手 |
+| P-07 | 保留 | OQ-010のNext.js構想の出典確認待ち。研究者または指導教員確認が必要。 | 北代櫂 | 確認後に`docs/research/02-open-questions.md` | 不要。判断待ち | 未着手 |
+| P-08 | 採用 | 診断項目差分とアンケート未経由問題をOQ-004へ記録済み。現行質問セットの正式採否はPhase 3へ保留。 | 北代櫂 | `docs/research/02-open-questions.md`、`docs/audit/phase2.5-handover.md` | Issue A | `741910e0fb9bdd3c9b0c5dd06f8613f5a578bdac` |
+| P-09 | 保留 | インプット形式選択をMVP要件へ含めるかは未判断。指導教員確認候補として残す。 | 北代櫂 | 判断後に`docs/research/03-mvp-scope.md`またはDecision Log | 不要。判断待ち | 未着手 |
+| P-10 | 採用 | Phase 3の中心作業としてOQ-004・OQ-005仕様化へ接続する。 | 北代櫂 | `docs/research/02-open-questions.md`、`docs/architecture/route-generation.md`、Decision Log | 未登録: `docs/operations/linear-issue-backlog.md` Issue A、Issue B | 後続Issue案化コミット: 後続追記 |
+| P-11 | 採用 | Phase 4のテスト・型検査・CI基盤Issueへ接続する。 | 北代櫂 | `docs/operations/testing.md`、`docs/research/06-implementation-status.md` | 未登録: `docs/operations/linear-issue-backlog.md` Issue E | 後続Issue案化コミット: 後続追記 |
+| P-12 | 採用 | `errorMappings`参照切れ修正Issueへ接続する。 | 北代櫂 | `docs/research/03-mvp-scope.md`、`docs/research/06-implementation-status.md` | 未登録: `docs/operations/linear-issue-backlog.md` Issue F | 後続Issue案化コミット: 後続追記 |
+| P-13 | 採用 | OQ-006仕様化およびノード別クイズ・教材整備Issueへ接続する。 | 北代櫂 | `docs/research/02-open-questions.md`、`docs/research/03-mvp-scope.md` | 未登録: `docs/operations/linear-issue-backlog.md` Issue C、Issue G | 後続Issue案化コミット: 後続追記 |
+| P-14 | 採用 | OQ-009、同意、永続化、研究データ管理Issueへ接続する。指導教員確認必須。 | 北代櫂 | `docs/research/02-open-questions.md`、`docs/research/05-evaluation-plan.md`、`docs/operations/research-data-management.md` | 未登録: `docs/operations/linear-issue-backlog.md` Issue D、Issue H | 後続Issue案化コミット: 後続追記 |
+| P-15 | 採用 | ダミー初期値・再現性・実装状態整理Issueへ接続する。 | 北代櫂 | `docs/research/06-implementation-status.md` | 未登録: `docs/operations/linear-issue-backlog.md` Issue I | 後続Issue案化コミット: 後続追記 |
+| P-16 | 条件付き採用 | 低優先度のデッドコード・表示不具合修正を条件付き採用とする。 | 北代櫂 | `docs/research/06-implementation-status.md` | 未登録: `docs/operations/linear-issue-backlog.md` Issue J | 後続Issue案化コミット: 後続追記 |
+| P-17 | 採用 | 実装状態ラベルの統一作業へ接続する。 | 北代櫂 | `docs/research/06-implementation-status.md` | 未登録: `docs/operations/linear-issue-backlog.md` Issue I | 後続Issue案化コミット: 後続追記 |
+| P-18 | 条件付き採用 | CI方針はP-11に包含し、マイルストン日付はLinearで管理する。 | 北代櫂 | `docs/research/10-handover.md`、`docs/operations/testing.md` | 未登録: `docs/operations/linear-issue-backlog.md` Issue E。日付管理はLinear登録後に設定 | 後続Issue案化コミット: 後続追記 |
+| P-19 | 却下 | MVP評価終了までR-xx体系を維持する。新分類体系への全面移行は現時点では行わない。 | 北代櫂 | `docs/research/09-decision-log.md` D-013、`docs/audit/requirements-traceability-matrix.md` | 不要 | D-013追加コミット: 後続追記 |
+| P-20 | 採用 | MVP対象外事項を正本文書へ明文化する。 | 北代櫂 | `docs/research/03-mvp-scope.md`または`docs/research/09-decision-log.md` | 未登録: `docs/operations/linear-issue-backlog.md` Issue K | 後続Issue案化コミット: 後続追記 |
+
 ## 判断一覧
 
 | # | 指摘ID | 推奨採否 | 推奨理由 | 正本への推奨反映先 | Linear化 | 研究者本人の判断が必要な内容 | 指導教員 | Phase 3前必須 | Phase 4以降まで保留可 |

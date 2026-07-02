@@ -147,3 +147,23 @@
 - 根拠: Phase 2.5のP-05に対する研究者本人の承認、`docs/research/02-open-questions.md`、`docs/audit/phase2.5-handover.md`
 - 影響範囲: ルート生成仕様、`routeGenerator`実装、Dashboard推薦理由、評価ログ、Phase 3の仕様化作業
 - 再検討条件: OQ-005が解消され、正式なルート生成仕様が`docs/research/`配下または合意済みの正本へ反映された場合
+
+## D-013
+
+- 日付または時期: 2026-07-03
+- 状態: 有効
+- 判断内容: MVP評価終了までは既存のR-xx体系を維持する。RQ-xxx、LM-xxx、MVP-xxx、ERR-xxx、EVAL-xxx、DATA-xxx、OPS-xxx体系への全面移行は現時点では行わない。
+- 判断理由:
+  - 現行のトレーサビリティ行列で追跡可能である。
+  - 全文書への波及コストが大きい。
+  - ID移行自体は研究目的へ直接寄与しない。
+  - Phase 3ではOQ-004・OQ-005の仕様確定を優先する必要がある。
+- 根拠: Phase 2.5のP-19に対する研究者本人の判断、`docs/audit/phase2.5-handover.md`
+- 影響範囲:
+  - Phase 3の仕様文書でも既存R-xxを使用する。
+  - 新分類体系は導入しない。
+  - `docs/audit/requirements-traceability-matrix.md`はR-xx体系を維持する。
+- 再検討条件:
+  - MVP評価終了後。
+  - R-xxのみでは分類困難になった場合。
+  - 論文・発表上の分類要件が生じた場合。
