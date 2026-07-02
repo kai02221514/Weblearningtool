@@ -1,19 +1,21 @@
 # 実装状態
 
-- 確認日: 2026-07-02
+- 確認日: 2026-07-03
 - 対象: `kai02221514/Weblearningtool`
 - GitHub取得時点（2026-07-02）の`main`: `1a8efb5aa28a9ef08042a9e275cc171dccf8b6a2`
-- 実装状態の基準コミット: `0f09e5b9f7ba500eaa2a2a8e33252c03d59410d4`
+- 最新確認時点（2026-07-03）の`main`: `42c298ca2f1ed084121de0decb3df18be590a9eb`
+- 実装状態の基準コミット: `42c298ca2f1ed084121de0decb3df18be590a9eb`
+- 検証対象コミット: `42c298ca2f1ed084121de0decb3df18be590a9eb`
 
-[注意] 以下は2026-07-02時点のコード・文書スナップショットである。将来の作業では最新`main`を再確認し、本書を更新する。
+[注意] `1a8efb5aa28a9ef08042a9e275cc171dccf8b6a2`および`0f09e5b9f7ba500eaa2a2a8e33252c03d59410d4`は2026-07-02監査時点の旧スナップショットである。以下は2026-07-03に最新`main`を再確認した結果を含む。
 
 ## 技術構成の区分
 
 |区分|構成|状態|
 |---|---|---|
 |現在のフロントエンド|Vite 6 + React 18 + TypeScript/TSX|[確認済み事実]|
-|現在の認証・データ関連|Supabaseを利用する認証処理コード・保存用エンドポイント|[コード存在確認済み／部分実装] 接続先はVite環境変数へ移行済み。実環境接続と一連の保存成功は未確認|
-|現在のAPI関連|Hono依存関係およびSupabase Functions配下のサーバーコードあり|[コード存在確認済み] Edge FunctionはSupabase CLI標準配置へ移行済み。デプロイ状態は未確認|
+|現在の認証・データ関連|Supabaseを利用する認証処理コード・保存用エンドポイント|[部分実装／手動確認済み] 接続先はVite環境変数へ移行済み。サインイン成功とDashboard到達は確認済み。一連の保存成功は未確認|
+|現在のAPI関連|Hono依存関係およびSupabase Functions配下のサーバーコードあり|[部分実装／手動確認済み] Edge FunctionはSupabase CLI標準配置へ移行済み。`make-server-f3d88633`のデプロイと`/health` HTTP 200を確認済み|
 |履修計画書上の構想|Next.js + Deno/Hono + Supabase|[確認済み事実] 旧計画または将来構想|
 |全面移行|Next.jsへの移行|[確定事項] 現行MVP対象外|
 
@@ -43,9 +45,52 @@
 - 進捗: `completedNodeIds` に統一したが、デモ初期値・メモリ保持である。
 - 診断: レベル判定はあるが、開始ノード規則へ接続されていない。
 - プロファイル保存: 保存用エンドポイントは存在するが、サインアップ後の初期アンケートフローから実保存されることを確認できていない。
-- Supabase接続: 旧Project Reference IDがフロントエンド設定に残っていたため、現在の接続先は `VITE_SUPABASE_URL` と `VITE_SUPABASE_PUBLISHABLE_KEY` で指定する構成へ変更した。Publishable keyは `apikey` ヘッダーで送信し、ユーザーJWTのみ `Authorization: Bearer` で送信する。
-- Edge Function: 旧 `src/supabase/functions/server` 配置から `supabase/functions/make-server-f3d88633` へ移行した。内部Honoルートは `/health`、`/signup`、`/signin`、`/profile` とし、Function名の二重化を避ける。
+- Supabase接続: 旧Project Reference IDがフロントエンド設定に残っていたため、現在の接続先は `VITE_SUPABASE_URL` と `VITE_SUPABASE_PUBLISHABLE_KEY` で指定する構成へ変更した。Publishable keyは `apikey` ヘッダーで送信し、ユーザーJWTのみ `Authorization: Bearer` で送信する。Supabaseプロジェクトへの接続先修正は完了し、サインインの実環境成功を確認済みである。
+- Edge Function: 旧 `src/supabase/functions/server` 配置から `supabase/functions/make-server-f3d88633` へ移行した。内部Honoルートは `/health`、`/signup`、`/signin`、`/profile` とし、Function名の二重化を避ける。対象プロジェクトへデプロイ済みで、認証APIへ到達できる状態を確認済みである。
 - サインアップ後セッション: `admin.createUser` はセッションを返さないため、サインアップ成功後は未認証のままアンケートへ進めず、ログイン画面へ戻してログインを促す。
+
+## 2026-07-03手動確認
+
+### 認証状態
+
+- [確認済み事実] Supabaseプロジェクトへの接続先修正が完了した。
+- [確認済み事実] Edge Functionがデプロイされ、`/health`と認証APIへ到達できる状態になった。
+- [確認済み事実] サインインが実環境で成功した。
+- [確認済み事実] 認証後にDashboardへ到達できた。
+- [未確認] 認証状態のリロード後復元は確認していない。現行コード上もReact state中心であり、完成済みとは扱わない。
+- [未確認] プロフィール保存は、実際の保存成功を確認していない。`saveProfile`と`/profile`は存在するが、初期アンケート完了フローからの確実な接続は確認できていない。
+
+### Dashboard手動確認
+
+- [確認済み事実] Dashboard上で「開発中の固定ルート」が表示された。
+- [確認済み事実] 「診断結果に基づく個別ルート生成は未実装」と表示された。
+- [確認済み事実] 固定ルートの開始ノードへ遷移できた。
+- [確認済み事実] `recommendedStartNodeIds`は固定値であり、現状は`html-010`を使用している。
+- [確認済み事実] P-02は表示是正の手動確認まで完了した。
+- [注意] 個別ルート生成機能が完成したわけではない。
+
+### アンケート未経由問題
+
+#### 確認済み事実
+
+- サインイン成功後は、初期アンケート完了状態を確認せずDashboardへ直接遷移する。
+- 診断回答が未保存または未確認でも固定ルートを開始できる。
+- 現在のDashboard推薦は固定値であり、診断結果には依存していない。
+
+#### 未実装
+
+- 初期アンケート完了状態の保存。
+- アンケート完了状態の復元。
+- 未回答ユーザーをアンケートへ誘導する制御。
+- 診断未回答時の開始ルート規則。
+- 診断回答とユーザープロファイル保存の確実な接続。
+- 診断結果とルート生成の接続。
+
+#### 影響
+
+- OQ-004の開始ノード規則を実装する前提が不足している。
+- 将来の個別ルート生成では、診断未回答ユーザーの扱いを定義する必要がある。
+- 現行動作を研究仕様として確定してはならない。
 
 ## 未実装
 
@@ -70,14 +115,19 @@
 
 ## 検証状態
 
-- コード状態の対象コミット: `0f09e5b9f7ba500eaa2a2a8e33252c03d59410d4`
-- 文書追加後の`main`: `1a8efb5aa28a9ef08042a9e275cc171dccf8b6a2`
+- コード状態の対象コミット: `42c298ca2f1ed084121de0decb3df18be590a9eb`
+- 文書追加後の`main`: `42c298ca2f1ed084121de0decb3df18be590a9eb`
 - `npm run build`: [確認済み] 2026-07-02、Supabase接続復旧後に成功（Vite CJS deprecation warningあり）
-- Supabase Edge Function deploy: [未実施] 本作業ではSupabase CLIログイン・プロジェクト権限を使用していない
-- Health endpoint: [確認済み／未デプロイ] `https://znfwkrhquegvlcmugkoe.supabase.co/functions/v1/make-server-f3d88633/health` はHTTP 404 `NOT_FOUND`。対象プロジェクトでFunction未デプロイの状態と判断する
-- サインアップ・サインイン: [未確認] Publishable key未設定かつEdge Function未デプロイのため、本作業では実環境認証を確認していない
+- Supabase Edge Function deploy: [確認済み] `make-server-f3d88633`が対象プロジェクトでACTIVEとして確認済み
+- Health endpoint: [確認済み] `https://znfwkrhquegvlcmugkoe.supabase.co/functions/v1/make-server-f3d88633/health` がHTTP 200を返すことを確認済み
+- OPTIONS: [確認済み] `make-server-f3d88633`へのOPTIONSがHTTP 204を返すことを確認済み
+- サインアップ・サインイン: [部分確認済み] サインイン成功を実環境で確認済み。サインアップ成功は今回の手動確認対象としては明記しない
+- Dashboardの手動確認: [確認済み] 認証後にDashboardへ到達し、固定ルート表示と個別ルート生成未実装表示を確認済み
+- 固定ルート遷移: [確認済み] 固定ルートの開始ノードへ遷移できることを確認済み
+- アンケート未経由: [確認済み] サインイン成功後、初期アンケート完了状態を確認せずDashboardへ直接遷移することを確認済み
 - 自動テスト: [未確認] 十分なテスト整備を確認できていない
-- 主要画面の手動確認: [未確認] 本監査では実行していない
+- セッション復元: [未確認] リロード後の認証状態復元は確認していない
+- プロフィール保存: [未確認] 実際の保存成功は確認していない
 
 [注意] 本書で「コード存在確認済み」とした項目は、コードまたは定義の存在確認に基づく。動作・受入条件の検証完了後にのみ「実装済み」へ変更する。
 
