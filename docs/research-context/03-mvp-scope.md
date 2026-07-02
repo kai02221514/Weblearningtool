@@ -23,40 +23,51 @@
 
 ## ID体系
 
-- ノード: `^(html|css)-[0-9]{3}$`
-- 確認テスト: `quiz-{nodeId}`
-- 実践課題: `practice-profile-card`
-- エラー: `E_<領域>_<内容>`
+- [確定事項] ノード: `^(html|css)-[0-9]{3}$`
+- [確定事項] 確認テスト: `quiz-{nodeId}`
+- [確定事項] 実践課題: `practice-profile-card`
+- [確定事項] エラー: `E_<領域>_<内容>`
+
+## CSS色指定
+
+[確定事項] 色指定を独立ノードとして扱わず、`css-011`「CSS基本構文」の教材内で扱う。
 
 ## MVPエラー
 
-|エラーID|主推薦|補助|
-|---|---|---|
-|`E_HTML_MISSING_CLOSING_TAG`|`html-020`|`html-021`|
-|`E_HTML_INVALID_NESTING`|`html-021`|`html-040`|
-|`E_HTML_MISSING_REQUIRED_ATTR`|`html-022`|なし|
-|`E_HTML_HEADING_STRUCTURE`|`html-031`|なし|
-|`E_CSS_SYNTAX_MISSING_SEMICOLON`|`css-011`|なし|
-|`E_CSS_SELECTOR_NO_MATCH`|`css-020`|`html-022`|
-|`E_LAYOUT_BOX_MODEL_MISUNDERSTANDING`|`css-060`|なし|
-|`E_RUNTIME_RESOURCE_PATH`|`css-010`|`html-010`|
+|エラーID|SRK|主推薦|補助|
+|---|---|---|---|
+|`E_HTML_MISSING_CLOSING_TAG`|Skill|`html-020`|`html-021`|
+|`E_HTML_INVALID_NESTING`|Rule|`html-021`|`html-040`|
+|`E_HTML_MISSING_REQUIRED_ATTR`|Knowledge|`html-022`|なし|
+|`E_HTML_HEADING_STRUCTURE`|Knowledge|`html-031`|なし|
+|`E_CSS_SYNTAX_MISSING_SEMICOLON`|Skill|`css-011`|なし|
+|`E_CSS_SELECTOR_NO_MATCH`|Rule|`css-020`|`html-022`|
+|`E_LAYOUT_BOX_MODEL_MISUNDERSTANDING`|Knowledge|`css-060`|なし|
+|`E_RUNTIME_RESOURCE_PATH`|Rule|`css-010`|`html-010`|
 
-## MVPに含む機能
+[注意] 上表のSRK区分は現行エラーマッピングの分類であり、教育的妥当性を実証済みという意味ではない。
 
-- 初期診断と診断結果の保存
-- 到達可能ノードの抽出
-- 初期開始ノード・順序付きルート生成
-- ノード単位の教材、確認テスト、実践課題、振り返り
-- テスト・エラー・振り返りによる再推薦
-- 推薦理由表示
-- ルート履歴・学習履歴の保存
-- 評価用アンケートとデータ出力
+## MVPで必要な研究能力
+
+- [確定事項] 診断結果をルート生成へ渡せること
+- [確定事項] 到達可能ノードを抽出できること
+- [確定事項] 開始ノードまたは順序付きルートを生成できること
+- [確定事項] テスト、エラー、振り返りに応じて推薦を更新できること
+- [確定事項] 推薦根拠を確認できること
+- [確定事項] 評価に必要な最低限の履歴を取得できること
+- [確定事項] 利用者の主観評価を収集できること
+
+## 実装方法が未確定の項目
+
+- [暫定仕様] 履歴の保存先はSupabase、JSON、その他の方法から選択する。
+- [暫定仕様] アンケートはアプリ内実装または外部フォームを使用する。
+- [暫定仕様] データ出力はCSV機能を必須とせず、研究者が分析可能な形式で取得できればよい。
 
 ## 対象外
 
-- 全63ノードの教材完成
-- AIによる自由記述の高度解析
-- 高機能IDE、厳密なHTML/CSS静的解析
-- 商用運用向け管理画面
-- 大規模比較実験
-- Next.js等への全面移行
+- [確定事項] 全63ノードの教材完成
+- [確定事項] AIによる自由記述の高度解析
+- [確定事項] 高機能IDE、厳密なHTML/CSS静的解析
+- [確定事項] 商用運用向け管理画面
+- [確定事項] 大規模比較実験
+- [確定事項] Next.js等への全面移行
