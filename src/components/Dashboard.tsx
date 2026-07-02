@@ -174,12 +174,15 @@ export function Dashboard({ onStartLearning, onViewCompletion, onViewReflections
                 {/* 推奨ルートセクション */}
                 {recommendedNodes.length > 0 && (
                   <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-green-50 border-2 border-blue-200 rounded-lg">
-                    <div className="flex items-center gap-2 mb-3">
+                    <div className="flex flex-wrap items-center gap-2 mb-3">
                       <Lightbulb className="w-5 h-5 text-blue-600" />
-                      <h3 className="font-semibold text-blue-900">あなたの推奨ルート（スコア算出）</h3>
+                      <h3 className="font-semibold text-blue-900">現在のおすすめルート</h3>
+                      <Badge variant="outline" className="bg-white text-blue-700 border-blue-300">
+                        開発中の固定ルート
+                      </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground mb-4">
-                      あなたのレベル（{userData?.level || 'beginner'}）とスコア（{userData?.levelScore || 0}点）に基づいて、最適な学習経路を提案しています。
+                      現在は開発中の固定ルートを表示しています。診断結果に基づく個別ルート生成は未実装です。
                     </p>
                     <div className="space-y-3">
                       {recommendedNodes.map((node, index) => {
@@ -197,7 +200,7 @@ export function Dashboard({ onStartLearning, onViewCompletion, onViewReflections
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
                                   {isNext && (
-                                    <Badge className="bg-blue-600 text-white">次にやるべき</Badge>
+                                    <Badge className="bg-blue-600 text-white">固定ルートの開始単元</Badge>
                                   )}
                                   <h4 className="font-medium">{node.title}</h4>
                                 </div>

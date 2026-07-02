@@ -10,8 +10,8 @@
 
 | # | 指摘ID | 推奨採否 | 推奨理由 | 正本への推奨反映先 | Linear化 | 研究者本人の判断が必要な内容 | 指導教員 | Phase 3前必須 | Phase 4以降まで保留可 |
 |---|---|---|---|---|---|---|---|---|---|
-| P-01 | RSK-03(RLS未確認) | 採用 | PII漏洩の可能性。確認自体は数分でコード変更不要 | 確認結果を `08-constraints.md`・`06-implementation-status.md` | 要(W1-1) | Supabaseダッシュボードでの確認実施 | 漏洩確認時のみ報告 | **必須(全作業に優先)** | 不可 |
-| P-02 | RSK-02短期(虚偽文言修正) | 採用 | 数行の修正で倫理・誤認リスクを除去。研究仕様に影響しない | `06-implementation-status.md` | 要(W1-2) | 表示文言の表現(「開発中の固定推奨」等) | 不要 | 推奨(Phase 3と並行可) | 可(ただし人前デモ前に必須) |
+| P-01 | RSK-03(RLS未確認) | 採用・確認完了 | `public.kv_store_f3d88633`でRLS有効を確認。ポリシーは0件でdefault deny状態。現時点のPII漏洩リスクは確認されなかった。今後の永続化実装時にはユーザー単位のSELECT/INSERT/UPDATEポリシーを設計する。 | `08-constraints.md`・`06-implementation-status.md` | 要(W1-1) | Supabase実環境でRLS有効を確認済み。今後の永続化時にポリシー設計が必要 | 不要 | 完了 | 不可 |
+| P-02 | RSK-02短期(虚偽文言修正) | 採用 | 対応状態: コード修正完了。対応内容: Dashboard上で固定推薦であることを明示し、診断結果から算出済みと誤認させる文言を除去。P-02は機能実装完了ではなく表示是正完了。 | `src/components/Dashboard.tsx`、`docs/research/06-implementation-status.md`、`docs/audit/phase2.5-handover.md`。コミット: 未コミット | 要(W1-2) | 個別ルート生成仕様はOQ-004/OQ-005で未決定 | 不要 | 完了(表示是正) | 不可 |
 | P-03 | C-1(文書二系統の正の宣言) | 採用 | 引き継ぎAIの誤実装を防ぐ最小コストの対策 | `09-decision-log.md` 追記、旧5文書冒頭に状態注記、`10-handover.md` 修正 | 任意(W1-3) | research系を正とする案の承認 | 不要 | 必須(Phase 3の参照基盤) | 不可 |
 | P-04 | C-2(評価計画の一本化) | 採用 | research/05・08[確定]と旧evaluation-planの主張水準が両立しない | `05-evaluation-plan.md` を正と宣言、旧文書に参考注記、`09-decision-log.md` | 不要 | 旧「保存すべきデータ」節をOQ-009検討材料として引き継ぐ案の承認 | 評価計画自体の確認時に併せて | 必須 | 不可 |
 | P-05 | C-4(旧route-generation-specの位置づけ) | 採用 | OQ-005決定時の「案の無審査滑り込み」防止(roadmap禁止事項に対応) | 旧spec冒頭に「OQ-005のたたき台」注記、`09-decision-log.md` | 不要 | 注記文面の承認 | 不要 | 必須(Phase 3の入力) | 不可 |
