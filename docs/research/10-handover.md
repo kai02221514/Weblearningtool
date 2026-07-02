@@ -5,19 +5,34 @@
 - Repository: `kai02221514/Weblearningtool`
 - Default branch: `main`
 - GitHub取得時点（2026-07-02）の`main`: `1a8efb5aa28a9ef08042a9e275cc171dccf8b6a2`
-- 実装状態の基準コミット: `0f09e5b9f7ba500eaa2a2a8e33252c03d59410d4`
-- 参照日: 2026-07-02
+- 最新確認時点（2026-07-03）の`main`: `42c298ca2f1ed084121de0decb3df18be590a9eb`
+- 実装状態の基準コミット: `42c298ca2f1ed084121de0decb3df18be590a9eb`
+- 参照日: 2026-07-03
 
-[注意] これらは2026-07-02時点の監査スナップショットである。`1a8efb5...`は修正前研究コンテキスト文書が追加された時点、`0f09e5...`はその直前のMVP実装変更時点である。新規担当者は最新`main`を取得し、両者以降のコード変更と文書変更を確認する。
+[注意] `1a8efb5...`と`0f09e5...`は2026-07-02監査時点の旧スナップショットである。`42c298c...`は2026-07-03に再確認した最新`main`である。新規担当者は作業開始時にさらに最新`main`との差分を確認する。
+
+## 文書優先順位
+
+AI、Codex、研究者は、研究仕様を参照する際に次の順序を優先する。
+
+1. 最新の有効な`docs/research/09-decision-log.md`
+2. `docs/research/01-confirmed-decisions.md`
+3. `docs/research/02-open-questions.md`
+4. `docs/research/`配下の各研究文書
+5. `docs/operations/`配下の承認済み運用文書
+6. 旧`docs/`直下文書（参考資料・履歴資料・検討案）
+7. コード（実装事実の確認材料）
+
+旧`docs/`直下文書と`docs/research/`配下が矛盾する場合は、`docs/research/`配下と最新の有効なDecisionを優先する。コードは現在動いている事実を示すが、研究仕様の正解とはみなさない。
 
 ## 最初に読む順序
 
-1. `00-research-overview.md`
+1. `09-decision-log.md`
 2. `01-confirmed-decisions.md`
 3. `02-open-questions.md`
-4. `docs/operations/ai-research-development-roadmap.md`
-5. 作業内容に応じて `03`〜`08`
-6. 判断変更時は `09-decision-log.md`
+4. `00-research-overview.md`
+5. `docs/operations/ai-research-development-roadmap.md`
+6. 作業内容に応じて `03`〜`08`
 7. 実装開始時はLinear Issueと対象仕様文書
 
 ## 起動確認
@@ -47,13 +62,14 @@ pnpm、Yarn、Bun等のロックファイルがある場合は、対応するコ
 - `src/components/Dashboard.tsx`: 推薦表示
 - `src/components/Quiz.tsx`: 固定確認問題
 - `src/components/PracticeChallenge.tsx`: 実践課題・簡易エラー検出
-- `docs/mvp-scope.md`: 現在有効なMVP仕様
-- `docs/research-status.md`: 実装状態
+- `docs/research/03-mvp-scope.md`: 現在有効なMVP仕様
+- `docs/research/06-implementation-status.md`: 実装状態
+- `docs/mvp-scope.md`、`docs/research-status.md`: 参考資料・旧文書
 
 ## 作業開始前チェック
 
 1. `main`の最新コミットを確認する。
-2. `docs/mvp-scope.md`とコードの`MVP_NODE_IDS`を比較する。
+2. `docs/research/03-mvp-scope.md`とコードの`MVP_NODE_IDS`を比較する。
 3. 依存関係を導入し、`npm run build`が成功することを確認する。
 4. 自動テスト用スクリプトの有無を`package.json`で確認し、存在しない場合はIssueの検証方法を手動確認だけにせず、必要最小限のテスト基盤を変更対象へ含める。
 5. 最新判断と矛盾していないか確認する。
