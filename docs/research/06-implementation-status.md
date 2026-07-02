@@ -12,8 +12,8 @@
 |区分|構成|状態|
 |---|---|---|
 |現在のフロントエンド|Vite 6 + React 18 + TypeScript/TSX|[確認済み事実]|
-|現在の認証・データ関連|Supabaseを利用する認証処理コード・保存用エンドポイント|[コード存在確認済み／部分実装] 実環境接続と一連の保存成功は未確認|
-|現在のAPI関連|Hono依存関係およびSupabase Functions配下のサーバーコードあり|[コード存在確認済み] 実際の利用範囲・接続・デプロイ状態は未確認|
+|現在の認証・データ関連|Supabaseを利用する認証処理コード・保存用エンドポイント|[コード存在確認済み／部分実装] 接続先はVite環境変数へ移行済み。実環境接続と一連の保存成功は未確認|
+|現在のAPI関連|Hono依存関係およびSupabase Functions配下のサーバーコードあり|[コード存在確認済み] Edge FunctionはSupabase CLI標準配置へ移行済み。デプロイ状態は未確認|
 |履修計画書上の構想|Next.js + Deno/Hono + Supabase|[確認済み事実] 旧計画または将来構想|
 |全面移行|Next.jsへの移行|[確定事項] 現行MVP対象外|
 
@@ -33,6 +33,7 @@
 - `practice-profile-card` のメタデータ
 - 振り返り入力と簡易推薦文
 - Supabaseを利用するサインアップ・サインイン処理のコード
+- Supabase Edge Function `make-server-f3d88633` の標準配置（`supabase/functions/make-server-f3d88633`）
 
 ## 部分実装
 
@@ -42,6 +43,9 @@
 - 進捗: `completedNodeIds` に統一したが、デモ初期値・メモリ保持である。
 - 診断: レベル判定はあるが、開始ノード規則へ接続されていない。
 - プロファイル保存: 保存用エンドポイントは存在するが、サインアップ後の初期アンケートフローから実保存されることを確認できていない。
+- Supabase接続: 旧Project Reference IDがフロントエンド設定に残っていたため、現在の接続先は `VITE_SUPABASE_URL` と `VITE_SUPABASE_PUBLISHABLE_KEY` で指定する構成へ変更した。Publishable keyは `apikey` ヘッダーで送信し、ユーザーJWTのみ `Authorization: Bearer` で送信する。
+- Edge Function: 旧 `src/supabase/functions/server` 配置から `supabase/functions/make-server-f3d88633` へ移行した。内部Honoルートは `/health`、`/signup`、`/signin`、`/profile` とし、Function名の二重化を避ける。
+- サインアップ後セッション: `admin.createUser` はセッションを返さないため、サインアップ成功後は未認証のままアンケートへ進めず、ログイン画面へ戻してログインを促す。
 
 ## 未実装
 
@@ -49,6 +53,9 @@
 - 診断・進捗・テスト・エラー・振り返りを統合する `routeGenerator`
 - 推薦理由の構造化形式、根拠参照、ルート版・データ版
 - 学習進捗、テスト、実践、エラー、振り返り、ルート履歴の永続化・復元
+- サインアップ後の自動セッション作成
+- 初期アンケート完了時の `saveProfile` 接続
+- ページ更新時の認証セッション復元
 - 評価用事前・事後アンケートまたは外部フォームとの運用接続
 - 評価に必要なログ取得・分析可能形式での出力
 - 比較条件を含む評価フロー
@@ -65,7 +72,10 @@
 
 - コード状態の対象コミット: `0f09e5b9f7ba500eaa2a2a8e33252c03d59410d4`
 - 文書追加後の`main`: `1a8efb5aa28a9ef08042a9e275cc171dccf8b6a2`
-- `npm run build`: [未確認] 本監査では実行していない
+- `npm run build`: [確認済み] 2026-07-02、Supabase接続復旧後に成功（Vite CJS deprecation warningあり）
+- Supabase Edge Function deploy: [未実施] 本作業ではSupabase CLIログイン・プロジェクト権限を使用していない
+- Health endpoint: [確認済み／未デプロイ] `https://znfwkrhquegvlcmugkoe.supabase.co/functions/v1/make-server-f3d88633/health` はHTTP 404 `NOT_FOUND`。対象プロジェクトでFunction未デプロイの状態と判断する
+- サインアップ・サインイン: [未確認] Publishable key未設定かつEdge Function未デプロイのため、本作業では実環境認証を確認していない
 - 自動テスト: [未確認] 十分なテスト整備を確認できていない
 - 主要画面の手動確認: [未確認] 本監査では実行していない
 
