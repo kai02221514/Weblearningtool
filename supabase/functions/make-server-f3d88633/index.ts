@@ -5,6 +5,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import * as kv from "./kv_store.ts";
 
 const app = new Hono();
+const FUNCTION_NAME = "make-server-f3d88633"
 
 interface ServerConfig {
   supabaseUrl: string
@@ -206,4 +207,33 @@ app.post("/profile", async (c) => {
   }
 });
 
-Deno.serve(app.fetch);
+function normalizeFunctionRequest(request: Request): Request {
+  const url = new URL(request.url)
+  const prefixes = [
+    `/functions/v1/${FUNCTION_NAME}`,
+    `/${FUNCTION_NAME}`,
+  ]
+
+  for (const prefix of prefixes) {
+    if (url.pathname === prefix) {
+      url.pathname = "/"
+      break
+    }
+
+    if (url.pathname.startsWith(`${prefix}/`)) {
+      url.pathname = url.pathname.slice(prefix.length)
+      break
+    }
+  }
+
+  if (url.toString() === request.url) return request
+
+  return new Request(url.toString(), {
+    method: request.method,
+    headers: request.headers,
+    body: request.method === "GET" || request.method === "HEAD" ? null : request.body,
+    redirect: request.redirect,
+  })
+}
+
+Deno.serve((request) => app.fetch(normalizeFunctionRequest(request)));
