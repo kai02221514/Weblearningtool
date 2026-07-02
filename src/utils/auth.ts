@@ -1,6 +1,8 @@
-import { projectId, publicAnonKey } from './supabase/info'
-
-const API_URL = `https://${projectId}.supabase.co/functions/v1/make-server-f3d88633`
+import {
+  SUPABASE_FUNCTION_URL,
+  SUPABASE_PUBLISHABLE_KEY,
+  validateSupabaseConfig,
+} from '../config/supabase'
 
 export interface SignupData {
   email: string
@@ -21,59 +23,116 @@ export interface ProfileData {
   levelScore: number
 }
 
+interface SignupResponse {
+  success: boolean
+  userId: string
+  email?: string
+  name?: string
+}
+
+interface SigninResponse {
+  success: boolean
+  accessToken: string
+  userId: string
+  email?: string
+  name: string
+}
+
+interface ApiPayload {
+  error?: unknown
+  [key: string]: unknown
+}
+
+async function parseResponse(response: Response): Promise<ApiPayload> {
+  const contentType = response.headers.get('content-type') ?? ''
+
+  if (contentType.includes('application/json')) {
+    try {
+      const payload: unknown = await response.json()
+      return isApiPayload(payload)
+        ? payload
+        : { error: `Supabase Edge Function returned HTTP ${response.status}` }
+    } catch {
+      return { error: `Supabase Edge Function returned invalid JSON with HTTP ${response.status}` }
+    }
+  }
+
+  const text = await response.text()
+  const isHtml = contentType.includes('text/html') || text.trim().startsWith('<')
+
+  return {
+    error: isHtml || !text
+      ? `Supabase Edge Function returned HTTP ${response.status}`
+      : text,
+  }
+}
+
+function isApiPayload(payload: unknown): payload is ApiPayload {
+  return typeof payload === 'object' && payload !== null && !Array.isArray(payload)
+}
+
+function getErrorMessage(payload: ApiPayload, fallback: string): string {
+  return typeof payload.error === 'string' && payload.error
+    ? payload.error
+    : fallback
+}
+
+async function requestEdgeFunction<T>(
+  path: string,
+  init: RequestInit,
+  fallbackError: string,
+): Promise<T> {
+  validateSupabaseConfig()
+
+  let response: Response
+
+  try {
+    response = await fetch(`${SUPABASE_FUNCTION_URL}${path}`, init)
+  } catch {
+    throw new Error(
+      'Supabaseへ接続できません。接続先URL、ネットワーク、Edge Functionのデプロイ状態を確認してください。',
+    )
+  }
+
+  const result = await parseResponse(response)
+
+  if (!response.ok) {
+    throw new Error(`${getErrorMessage(result, fallbackError)} (HTTP ${response.status})`)
+  }
+
+  return result as T
+}
+
 export async function signup(data: SignupData) {
-  const response = await fetch(`${API_URL}/signup`, {
+  return requestEdgeFunction<SignupResponse>('/signup', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${publicAnonKey}`
+      apikey: SUPABASE_PUBLISHABLE_KEY,
     },
-    body: JSON.stringify(data)
-  })
-
-  const result = await response.json()
-
-  if (!response.ok) {
-    throw new Error(result.error || 'サインアップに失敗しました')
-  }
-
-  return result
+    body: JSON.stringify(data),
+  }, 'サインアップに失敗しました')
 }
 
 export async function signin(data: SigninData) {
-  const response = await fetch(`${API_URL}/signin`, {
+  return requestEdgeFunction<SigninResponse>('/signin', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${publicAnonKey}`
+      apikey: SUPABASE_PUBLISHABLE_KEY,
     },
-    body: JSON.stringify(data)
-  })
-
-  const result = await response.json()
-
-  if (!response.ok) {
-    throw new Error(result.error || 'サインインに失敗しました')
-  }
-
-  return result
+    body: JSON.stringify(data),
+  }, 'サインインに失敗しました')
 }
 
 export async function saveProfile(data: ProfileData, accessToken: string) {
-  const response = await fetch(`${API_URL}/profile`, {
+  return requestEdgeFunction<{ success: boolean }>('/profile', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${accessToken}`
+      apikey: SUPABASE_PUBLISHABLE_KEY,
+      Authorization: `Bearer ${accessToken}`,
     },
-    body: JSON.stringify(data)
-  })
-
-  const result = await response.json()
-
-  if (!response.ok) {
-    throw new Error(result.error || 'プロファイルの保存に失敗しました')
-  }
-
-  return result
+    body: JSON.stringify(data),
+  }, 'プロファイルの保存に失敗しました')
 }

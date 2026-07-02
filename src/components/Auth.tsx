@@ -8,21 +8,22 @@ import { Lock, Mail, User, AlertCircle } from 'lucide-react'
 import { signup, signin } from '../utils/auth'
 
 interface AuthProps {
-  onSignupSuccess: (email: string, name: string, userId: string) => void
   onSigninSuccess: (email: string, name: string, accessToken: string, userId: string) => void
 }
 
-export function Auth({ onSignupSuccess, onSigninSuccess }: AuthProps) {
+export function Auth({ onSigninSuccess }: AuthProps) {
   const [isSignup, setIsSignup] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
   const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setNotice('')
     setIsLoading(true)
 
     try {
@@ -40,8 +41,10 @@ export function Auth({ onSignupSuccess, onSigninSuccess }: AuthProps) {
         }
 
         // サインアップ処理
-        const result = await signup({ email, password, name })
-        onSignupSuccess(email, name, result.userId)
+        await signup({ email, password, name })
+        setIsSignup(false)
+        setPassword('')
+        setNotice('アカウントを作成しました。ログインしてください。')
       } else {
         // サインイン処理
         if (!email || !password) {
@@ -53,8 +56,9 @@ export function Auth({ onSignupSuccess, onSigninSuccess }: AuthProps) {
         const result = await signin({ email, password })
         onSigninSuccess(email, result.name, result.accessToken, result.userId)
       }
-    } catch (err: any) {
-      setError(err.message || 'エラーが発生しました。もう一度お試しください。')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'エラーが発生しました。もう一度お試しください。')
+    } finally {
       setIsLoading(false)
     }
   }
@@ -83,6 +87,12 @@ export function Auth({ onSignupSuccess, onSigninSuccess }: AuthProps) {
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
+              {notice && (
+                <Alert>
+                  <AlertDescription>{notice}</AlertDescription>
                 </Alert>
               )}
 
@@ -152,6 +162,7 @@ export function Auth({ onSignupSuccess, onSigninSuccess }: AuthProps) {
                 onClick={() => {
                   setIsSignup(!isSignup)
                   setError('')
+                  setNotice('')
                 }}
                 className="text-sm text-primary hover:underline"
               >

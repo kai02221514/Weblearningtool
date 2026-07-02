@@ -77,11 +77,6 @@ export default function App() {
     detectedErrors: []
   })
 
-  const handleSignupSuccess = (email: string, name: string, userId: string) => {
-    setUserData({ email, name, userId })
-    setPhase('survey')
-  }
-
   const handleSigninSuccess = (email: string, name: string, accessToken: string, userId: string) => {
     setUserData({ email, name, userId, accessToken })
     setPhase('dashboard')
@@ -170,7 +165,7 @@ export default function App() {
   // レンダリング
   switch (phase) {
     case 'auth':
-      return <Auth onSignupSuccess={handleSignupSuccess} onSigninSuccess={handleSigninSuccess} />
+      return <Auth onSigninSuccess={handleSigninSuccess} />
       
     case 'survey':
       return (
