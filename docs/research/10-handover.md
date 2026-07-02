@@ -15,9 +15,10 @@
 1. `00-research-overview.md`
 2. `01-confirmed-decisions.md`
 3. `02-open-questions.md`
-4. 作業に応じて `03`〜`08`
-5. 判断変更時は `09-decision-log.md`
-6. GitHub既存文書 `docs/mvp-scope.md` と `docs/research-status.md`
+4. `docs/operations/ai-research-development-roadmap.md`
+5. 作業内容に応じて `03`〜`08`
+6. 判断変更時は `09-decision-log.md`
+7. 実装開始時はLinear Issueと対象仕様文書
 
 ## 起動確認
 
@@ -140,7 +141,6 @@ Codexは診断重み、ルート生成優先順位、理由情報の必須項目
 - 小規模主観評価から長期学習効果を断定する。
 - 研究目的に寄与しない技術移行や機能追加を優先する。
 - 未確定の`reasonCode`、`routeVersion`、診断重み、合格閾値をCodexが独自に確定する。
-
 
 ## 引継ぎ資料だけで開始できる作業範囲
 
