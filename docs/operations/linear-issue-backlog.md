@@ -1,9 +1,31 @@
 # Linear Issueバックログ
 
 - 作成日: 2026-07-03
-- 状態: Linear未登録のIssue案
-- 理由: 本セッションではLinear MCPツールが利用できないため、存在しないIssue IDを記録せず、登録可能な完成形のIssue案として管理する。
-- 登録時の注意: 登録後は`docs/audit/phase2.5-handover.md`のLinear Issue欄を実際のIssue IDまたはURLへ更新する。
+- 状態: Linear登録済みの元Issue案履歴
+- Linear移管日: 2026-07-03
+- 保存先Workspace / Team: `Kai02221514`
+- 保存先Project: `WebLearningTool`
+- Linear Status: `Backlog`
+- 登録前確認: Linear `WebLearningTool`プロジェクト内に既存Issueが0件であることを確認し、重複なしとして新規登録した。
+- 注意: 本文のIssue A〜Kは履歴として残す。実作業の正本はLinear Issue IDを参照する。
+
+## Linear移管対応表
+
+| 旧Issue案 | Linear Issue | 状態 | 備考 |
+|---|---|---|---|
+| Issue A | `KAI-9` | 登録済み | OQ-004 / Phase 3 / High |
+| Issue B | `KAI-10` | 登録済み | OQ-005 / Phase 3 / High |
+| Issue C | `KAI-11` | 登録済み | OQ-006 / Phase 3 / High |
+| Issue D | `KAI-12` | 登録済み | OQ-009 / Phase 3 / High / 指導教員確認必須 |
+| Issue E | `KAI-13` | 登録済み | テスト・型検査基盤 / Phase 4 / Medium |
+| Issue F | `KAI-14` | 登録済み | errorMappings参照切れ / Phase 4 / Medium |
+| Issue G | `KAI-15` | 登録済み | ノード別クイズ・教材 / Phase 5-6 / Medium |
+| Issue H | `KAI-16` | 登録済み | 同意・永続化・評価ログ / Phase 6 / High / 指導教員確認必須 |
+| Issue I | `KAI-17` | 登録済み | ダミー初期値・実装状態整理 / Phase 4 / Medium |
+| Issue J | `KAI-18` | 登録済み | 低優先度コード不具合 / Phase 4以降 / Low |
+| Issue K | `KAI-19` | 登録済み | MVP対象外事項 / Phase 4以降 / Low |
+
+未登録Issueは残っていない。
 
 ## Issue A: OQ-004 診断規則と開始ノード規則を確定する
 

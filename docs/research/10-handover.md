@@ -13,15 +13,19 @@
 
 ## 現在地
 
-- 状態: Phase 2.5完了
+- 状態: Phase 2およびPhase 2.5正式完了
 - 次Phase: Phase 3 中核仕様確定支援
+- Phase 2独立再監査: 完了。記録は`docs/audit/phase2-independent-review.md`。
+- Linear移管: 完了。保存先はLinear `Kai02221514` / `WebLearningTool`。
 - Phase 3の性質: 実装開始ではなく仕様確定作業である。
 - Phase 3の優先順位:
-  1. OQ-004 診断規則・開始ノード規則
-  2. OQ-005 ルート生成規則・出力契約
-  3. OQ-006 確認テスト規則
-  4. OQ-009 研究データ管理仕様
+  1. `KAI-9` OQ-004 診断規則・開始ノード規則
+  2. `KAI-10` OQ-005 ルート生成規則・出力契約
+  3. `KAI-11` OQ-006 確認テスト規則
+  4. `KAI-12` OQ-009 研究データ管理仕様
 - Phase 3の成果物候補: `docs/architecture/route-generation.md`、`docs/research/01-confirmed-decisions.md`更新、`docs/research/02-open-questions.md`更新、`docs/research/09-decision-log.md`更新、Linear Issue更新。
+- 未完了事項: OQ-004/OQ-005/OQ-006/OQ-009の仕様判断、`routeGenerator`、ノード別確認テスト・教材、同意・永続化・評価ログ、テスト・型検査・CI基盤、P-06/P-07/P-09の保留判断。
+- 指導教員確認が必要なIssue: `KAI-12`、`KAI-16`は必須。`KAI-9`、`KAI-11`、`KAI-15`は評価設計への影響により推奨。`KAI-10`は研究質問や評価主張に影響する場合に確認する。
 
 [禁止] OQ-004、OQ-005、OQ-006、OQ-009の未確定事項を、Codexまたは他AIが実装上の既定値で補完してはならない。
 
@@ -118,16 +122,16 @@ Codexは診断重み、ルート生成優先順位、理由情報の必須項目
 
 ## 次の推奨Issue
 
-Linearへ直接登録できない場合のIssue案は`docs/operations/linear-issue-backlog.md`を参照する。存在しないLinear Issue IDを記録してはならない。
+Linear `WebLearningTool`プロジェクトへIssue A〜Kを登録済みである。旧Issue案と実Issue IDの対応は`docs/operations/linear-issue-backlog.md`を参照する。
 
-Phase 3では、以下の仕様確定Issueを優先する。
+Phase 3では、以下の仕様確定Issueを優先する。最初に着手するIssueは`KAI-9`と`KAI-10`である。
 
-- Issue A: OQ-004 診断規則と開始ノード規則を確定する。
-- Issue B: OQ-005 ルート生成規則と出力契約を確定する。
-- Issue C: OQ-006 確認テスト規則を確定する。
-- Issue D: OQ-009 研究データ管理仕様を確定する。
+- `KAI-9`: OQ-004 診断規則と開始ノード規則を確定する。
+- `KAI-10`: OQ-005 ルート生成規則と出力契約を確定する。
+- `KAI-11`: OQ-006 確認テスト規則を確定する。
+- `KAI-12`: OQ-009 研究データ管理仕様を確定する。
 
-### Issue 1A: ルート生成判断規則の確定
+### `KAI-9` / `KAI-10`: ルート生成判断規則の確定
 
 - 状態: [未確定事項の解消]
 - 目的:
@@ -140,9 +144,9 @@ Phase 3では、以下の仕様確定Issueを優先する。
   - 入力、出力、優先順位、同点処理、理由情報の必須項目が文書化されている。
   - 判断内容が`09-decision-log.md`へ記録されている。
 
-### Issue 1B: 確定済み契約に基づくrouteGenerator実装
+### 後続実装Issue: 確定済み契約に基づくrouteGenerator実装
 
-- 前提: Issue 1A完了
+- 前提: `KAI-9`と`KAI-10`完了
 - 目的: 確定仕様をMVP 12ノード限定の純粋関数として実装する。
 - 変更対象: domain型、`routeGenerator`、テスト、仕様文書
 - 対象外: UI全面改修、全63ノード対応、AI解析
@@ -154,13 +158,13 @@ Phase 3では、以下の仕様確定Issueを優先する。
   - 循環・参照切れ・同点処理のテストが通る。
 - 検証: 単体テストと代表シナリオ
 
-### Issue 2: 確認テストのノード対応
+### `KAI-11` / `KAI-15`: 確認テストのノード対応
 
 - 目的: `quiz-{nodeId}` と問題・結果を正規ノードへ接続する。
 - 前提: 問題数、合格閾値、再受験規則が確定していること。
 - 受入条件: 得点、合否、誤答、対象ノードを取得できる。
 
-### Issue 3: 評価に必要な最小履歴の取得
+### `KAI-12` / `KAI-16`: 評価に必要な最小履歴の取得
 
 - 目的: 診断、進捗、テスト、エラー、振り返り、提示ルートのうち評価に必要な項目を分析可能な形式で取得する。
 - 前提: 保存項目、保存先、保持期間、匿名研究IDの扱いが確定していること。

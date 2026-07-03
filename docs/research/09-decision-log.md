@@ -192,3 +192,40 @@
   - OQ-009は指導教員確認が必要。
   - テスト・型検査・CIは後続Phase。
 - 再検討条件: Phase 2.5の最終採否または反映内容に重大な誤りが見つかった場合。
+
+## D-015
+
+- 日付または時期: 2026-07-03
+- 決定者: 北代櫂
+- 状態: 有効
+- タイトル: Phase 2およびPhase 2.5の正式完了
+- 判断内容: Phase 2の独立再監査を完了し、Phase 2.5の残作業だったLinear移管とGitHub文書反映を完了したため、Phase 2およびPhase 2.5を正式完了とする。次作業はPhase 3「中核仕様確定支援」とする。
+- 完了根拠:
+  - Phase 2独立再監査を実施し、`docs/audit/phase2-independent-review.md`に記録した。
+  - 原監査のCritical/High指摘を現行`main`で再確認し、解消済み事項と未確定/未実装事項を分離した。
+  - `docs/operations/linear-issue-backlog.md`のIssue A〜KをLinear `Kai02221514` / `WebLearningTool`へ移管した。
+  - 対応するLinear Issueは`KAI-9`〜`KAI-19`である。
+  - `docs/audit/phase2.5-handover.md`の研究者最終採否表を実Linear Issue IDへ更新した。
+  - `docs/audit/requirements-traceability-matrix.md`を実Linear Issue IDへ更新した。
+  - `docs/research/10-handover.md`へPhase 2独立再監査、Linear移管状況、Phase 3の最初のIssue、未完了事項、指導教員確認が必要なIssueを追記した。
+- 対応するLinear Issue一覧:
+  - `KAI-9`: OQ-004 診断規則と開始ノード規則を確定する。
+  - `KAI-10`: OQ-005 ルート生成規則と出力契約を確定する。
+  - `KAI-11`: OQ-006 確認テスト規則を確定する。
+  - `KAI-12`: OQ-009 研究データ管理仕様を確定する。
+  - `KAI-13`: テスト・型検査基盤を整備する。
+  - `KAI-14`: errorMappings参照切れを解消する。
+  - `KAI-15`: ノード別クイズ・教材を整備する。
+  - `KAI-16`: 同意・永続化・評価ログを実装する。
+  - `KAI-17`: ダミー初期値・実装状態の不整合を整理する。
+  - `KAI-18`: 低優先度コード不具合を整理する。
+  - `KAI-19`: MVP対象外事項を正本文書へ反映する。
+- Phase 3へ移行可能である理由:
+  - Phase 3で扱う未確定事項はOQ-004、OQ-005、OQ-006、OQ-009として限定されている。
+  - 未確定事項は未確定のまま保持され、実装上の既定値として確定していない。
+  - 実行タスクはLinearへ移管済みで、存在しないIssue IDを記録していない。
+- 反映コミットSHA: 初回反映コミット後に追記する。
+- 再検討条件:
+  - Linear Issueが誤ったプロジェクトへ登録されていた場合。
+  - Phase 2独立再監査で見落とした重大な矛盾が見つかった場合。
+  - OQ-004/OQ-005/OQ-006/OQ-009の判断により、Phase 2.5の採否表へ修正が必要になった場合。
