@@ -4,6 +4,7 @@
 - 深刻度は「この研究(前期: モデル具体化、後期: 小規模評価)のMVP完成と評価可能性」への影響で判定。一般的ベストプラクティス上の重要度ではない。
 - Critical/High は ai-research-development-roadmap.md の様式(根拠・事実/推測区別・具体的失敗・判断者・Phase 3停止条件)で記載する。
 - 反映先の候補は roadmap Phase 2.5 の選択肢に従う。**本書の推奨は監査担当の案であり、採否はPhase 2.5で研究者本人が決定する。**
+- 2026-07-03現在の補足: 本書は監査時点のリスク記録を保持する。Phase 2.5でP-01のRLS確認、P-02のDashboard表示是正、P-03〜P-05の正本整理、P-08のOQ-004追記は完了済みである。現在状態は`docs/research/06-implementation-status.md`、`docs/audit/phase2.5-handover.md`、`docs/audit/requirements-traceability-matrix.md`を優先する。
 
 ## Critical
 
