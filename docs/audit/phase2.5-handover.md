@@ -16,6 +16,7 @@
 - 最終採否表: 本文参照
 - 次Phase: Phase 3 中核仕様確定支援
 - 完了Decision: D-014（コミット: `cfb0958360b889a9993b47b49baf06c99b618e3a`）
+- 正式完了Decision: D-015（初回反映コミット: `500da141d740b62953a2e522e236d53f23b462b2`）
 - Phase 2独立再監査: `docs/audit/phase2-independent-review.md`
 - Linear移管日: 2026-07-03
 - Linear保存先: `Kai02221514` / `WebLearningTool`
