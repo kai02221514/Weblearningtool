@@ -24,6 +24,7 @@
   3. `KAI-11` OQ-006 確認テスト規則
   4. `KAI-12` OQ-009 研究データ管理仕様
 - Phase 3の成果物候補: `docs/architecture/route-generation.md`、`docs/research/01-confirmed-decisions.md`更新、`docs/research/02-open-questions.md`更新、`docs/research/09-decision-log.md`更新、Linear Issue更新。
+- Phase 3進行状況（2026-07-03）: KAI-9/KAI-10の仕様案を`docs/architecture/route-generation.md`（版0.1、状態: 提案）として作成済み。OQ-004/OQ-005は未解消のままであり、研究者の採否判断待ち。Decision Log追記案は同文書§17に下書きとして保持している。
 - 未完了事項: OQ-004/OQ-005/OQ-006/OQ-009の仕様判断、`routeGenerator`、ノード別確認テスト・教材、同意・永続化・評価ログ、テスト・型検査・CI基盤、P-06/P-07/P-09の保留判断。
 - 指導教員確認が必要なIssue: `KAI-12`、`KAI-16`は必須。`KAI-9`、`KAI-11`、`KAI-15`は評価設計への影響により推奨。`KAI-10`は研究質問や評価主張に影響する場合に確認する。
 
