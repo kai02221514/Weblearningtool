@@ -38,7 +38,7 @@ LearnerState
 - currentRoute
 ```
 
-ルート生成出力契約はD-017および`docs/architecture/route-generation.md` `route-spec/1.0`に従う。`specVersion`、`catalogVersion`、`dataVersion`、`generatedAt`は必須であり、`routeId`はOQ-009確定まで導入しない。
+ルート生成出力契約はD-017および`docs/architecture/route-generation.md` `route-spec/1.0`に従う。ルート生成結果では`specVersion`、`catalogVersion`、`dataVersion`を必須とし、`generatedAt`は保存・評価ログ記録層のメタ情報としてOQ-009で扱う。`routeId`はOQ-009確定まで導入しない。
 
 ## ルート生成の規則
 
@@ -63,9 +63,8 @@ LearnerState
 - `specVersion`
 - `catalogVersion`
 - `dataVersion`
-- `generatedAt`
 
-`generatedAt`のみ決定性比較の対象外とする。`routeId`はOQ-009確定まで導入しない。
+`generatedAt`は純粋なルート生成結果には含めず、保存・評価ログ記録層が記録時刻として付与する。`routeId`はOQ-009確定まで導入しない。
 
 ## 説明可能性
 
