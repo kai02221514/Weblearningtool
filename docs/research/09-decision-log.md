@@ -4,7 +4,8 @@
 
 - GitHub仕様基準日: 2026-06-19
 - GitHub取得時点（2026-07-02）の`main`: `1a8efb5aa28a9ef08042a9e275cc171dccf8b6a2`
-- 最新確認時点（2026-07-03）の`main`: `42c298ca2f1ed084121de0decb3df18be590a9eb`
+- KAI-9/KAI-10反映確認時点（2026-07-03）の`main`: `1a6216b01e9d49315f9bee84e67c93b449b44432`
+- 反映PR: `#1`（`docs/phase3-route-spec-proposal` -> `main`、2026-07-03T08:11:37Z merged）
 - 旧監査時点の実装状態基準コミット: `0f09e5b9f7ba500eaa2a2a8e33252c03d59410d4`
 - 最新実装確認コミット: `42c298ca2f1ed084121de0decb3df18be590a9eb`
 - 注意: 作業時には最新`main`との差分を確認し、判断が更新されている場合は新しいdecisionを追加する。
