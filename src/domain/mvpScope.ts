@@ -20,9 +20,18 @@ export type MvpNodeId = (typeof MVP_NODE_IDS)[number]
 const allLearningNodes = [
   ...learningNodesData.html_nodes,
   ...learningNodesData.css_nodes,
-]
+] as LearningNode[]
 
-export type LearningNode = (typeof allLearningNodes)[number]
+export interface LearningNode {
+  id: string
+  title: string
+  summary: string
+  prerequisites: string[]
+  type: string
+  tags: string[]
+  category?: string
+  difficulty?: string
+}
 
 const learningNodeById = new Map(
   allLearningNodes.map(node => [node.id, node])

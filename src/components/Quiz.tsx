@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Progress } from './ui/progress'
@@ -53,27 +53,15 @@ export function Quiz({ onComplete, onDashboard, onReturnToLearning }: QuizProps)
   const [showResult, setShowResult] = useState(false)
   const [score, setScore] = useState(0)
 
-  const handleAnswer = (answer: number | string) => {
-    const newAnswers = [...answers]
-    newAnswers[currentQuestion] = answer
-    setAnswers(newAnswers)
-  }
+  const handleAnswer = useCallback((answer: number | string) => {
+    setAnswers(prevAnswers => {
+      const newAnswers = [...prevAnswers]
+      newAnswers[currentQuestion] = answer
+      return newAnswers
+    })
+  }, [currentQuestion])
 
-  const nextQuestion = () => {
-    if (currentQuestion < quizQuestions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1)
-    } else {
-      calculateScore()
-    }
-  }
-
-  const prevQuestion = () => {
-    if (currentQuestion > 0) {
-      setCurrentQuestion(currentQuestion - 1)
-    }
-  }
-
-  const calculateScore = () => {
+  const calculateScore = useCallback(() => {
     let correctCount = 0
     quizQuestions.forEach((question, index) => {
       if (question.type === 'multiple') {
@@ -84,7 +72,21 @@ export function Quiz({ onComplete, onDashboard, onReturnToLearning }: QuizProps)
     })
     setScore(correctCount)
     setShowResult(true)
-  }
+  }, [answers])
+
+  const nextQuestion = useCallback(() => {
+    if (currentQuestion < quizQuestions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1)
+    } else {
+      calculateScore()
+    }
+  }, [calculateScore, currentQuestion])
+
+  const prevQuestion = useCallback(() => {
+    if (currentQuestion > 0) {
+      setCurrentQuestion(currentQuestion - 1)
+    }
+  }, [currentQuestion])
 
   const progress = ((currentQuestion + 1) / quizQuestions.length) * 100
   const question = quizQuestions[currentQuestion]
@@ -179,7 +181,7 @@ export function Quiz({ onComplete, onDashboard, onReturnToLearning }: QuizProps)
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [currentQuestion, answers, showResult, question])
+  }, [answers, currentQuestion, handleAnswer, nextQuestion, prevQuestion, question, showResult])
 
   if (showResult) {
     const percentage = Math.round((score / quizQuestions.length) * 100)

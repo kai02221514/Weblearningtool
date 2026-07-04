@@ -25,11 +25,13 @@ npm run dev
 現在の検証入口は次の通りです。
 
 ```bash
-npm run build
+npm run typecheck
+npm run lint
+npm run test
 npm run verify
 ```
 
-`verify` は現時点で `build` を実行します。専用の `test`、`typecheck`、`lint` script はまだ定義されていません。
+`verify` は `check` を実行します。`check` は `typecheck`、`lint`、`test`、`build` をまとめて実行します。
 
 ## Codex Workflow
 

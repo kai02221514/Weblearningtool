@@ -16,7 +16,6 @@
 
 ## 実行した検証
 
-- [ ] `npm run build`
 - [ ] `npm run verify`
 
 ## 未検証事項

@@ -41,11 +41,10 @@
 現時点で `package.json` に存在する検証入口は次である。
 
 ```bash
-npm run build
 npm run verify
 ```
 
-`verify` は `build` を実行する。専用の `test`、`typecheck`、`lint` はまだ存在しないため、必要なIssueが作成されるまで成功扱いしない。
+`verify` は `check` を実行する。`check` は `typecheck`、`lint`、`test`、`build` をまとめて実行する。
 
 検証を実行できない場合は、理由、失敗したコマンド、未確認の影響範囲をPRへ記録する。
 

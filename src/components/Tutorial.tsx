@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from './ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
 import { Progress } from './ui/progress'
@@ -40,19 +40,19 @@ const tutorialSteps = [
 export function Tutorial({ onComplete, userName }: TutorialProps) {
   const [currentStep, setCurrentStep] = useState(0)
 
-  const nextStep = () => {
+  const nextStep = useCallback(() => {
     if (currentStep < tutorialSteps.length - 1) {
       setCurrentStep(currentStep + 1)
     } else {
       onComplete()
     }
-  }
+  }, [currentStep, onComplete])
 
-  const prevStep = () => {
+  const prevStep = useCallback(() => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1)
     }
-  }
+  }, [currentStep])
 
   // エンターキーでnextStepを実行
   useEffect(() => {
@@ -76,7 +76,7 @@ export function Tutorial({ onComplete, userName }: TutorialProps) {
 
     window.addEventListener('keydown', handleKeyPress)
     return () => window.removeEventListener('keydown', handleKeyPress)
-  }, [currentStep])
+  }, [currentStep, nextStep, prevStep])
 
   const progress = ((currentStep + 1) / tutorialSteps.length) * 100
   const currentTutorial = tutorialSteps[currentStep]
