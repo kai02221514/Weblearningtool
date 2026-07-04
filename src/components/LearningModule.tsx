@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Progress } from './ui/progress'
@@ -116,13 +116,13 @@ export function LearningModule({
   const [activeTab, setActiveTab] = useState("slides");
   const [slideIndex, setSlideIndex] = useState(0);
 
-  const handlePhaseComplete = () => {
+  const handlePhaseComplete = useCallback(() => {
     if (currentPhase === "introduction") {
       setCurrentPhase("input");
     } else if (currentPhase === "input") {
       onComplete();
     }
-  };
+  }, [currentPhase, onComplete]);
 
   const getPhaseProgress = () => {
     switch (currentPhase) {
@@ -200,7 +200,7 @@ export function LearningModule({
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [currentPhase, activeTab, slideIndex])
+  }, [currentPhase, activeTab, slideIndex, handlePhaseComplete])
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Play, CheckCircle, AlertTriangle, Home, ArrowRight, RefreshCw, Lightbulb, User, Square, XCircle, BookOpen, Code } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Button } from './ui/button'
@@ -112,7 +112,7 @@ export function PracticeChallenge({ onComplete, onDashboard, onStartLearning }: 
   const [knowledgeErrors, setKnowledgeErrors] = useState<KnowledgeError[]>([])
 
   // コード解析関数
-  const analyzeCode = (currentCode: string) => {
+  const analyzeCode = useCallback((currentCode: string) => {
     const lines = currentCode.split('\n')
     const skills: SkillError[] = []
     const rules: RuleError[] = []
@@ -248,28 +248,14 @@ export function PracticeChallenge({ onComplete, onDashboard, onStartLearning }: 
     setSkillErrors(skills.slice(0, 3)) // 最大3件まで表示
     setRuleErrors(rules.slice(0, 3))
     setKnowledgeErrors(knowledge.slice(0, 3))
-  }
+  }, [])
 
   // コードが変更されたら自動的に解析
   useEffect(() => {
     analyzeCode(code)
-  }, [code])
+  }, [analyzeCode, code])
 
-  // キーボードショートカット: Ctrl/Cmd+Enter でコード実行
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Ctrl+Enter または Cmd+Enter でコード実行
-      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-        runCode()
-        e.preventDefault()
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [code])
-
-  const runCode = () => {
+  const runCode = useCallback(() => {
     // 簡易的なエラーチェックとフィードバック
     const hasH1 = code.includes('<h1>')
     const hasH2 = code.includes('<h2>')
@@ -315,7 +301,21 @@ export function PracticeChallenge({ onComplete, onDashboard, onStartLearning }: 
         message: `もう少しです！${warnings.map(e => e.message).join('、')}`
       })
     }
-  }
+  }, [code])
+
+  // キーボードショートカット: Ctrl/Cmd+Enter でコード実行
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+Enter または Cmd+Enter でコード実行
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        runCode()
+        e.preventDefault()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [runCode])
 
   const resetCode = () => {
     setCode(initialCode)
