@@ -16,15 +16,16 @@
 ## 現在地
 
 - 状態: Phase 2およびPhase 2.5正式完了。Phase 3のKAI-9/KAI-10判断はPR #1で`main`へ反映済み、Linear上もDone。KAI-11/OQ-006は研究者採否と指導教員確認を経て初期仕様確定として解消済みであり、D-018を正式追加済み。KAI-15はIn Progressで、予備試行用3ノード9問と教材案は研究者レビュー済み・予備試行前である。
-- 次Phase: Phase 3 中核仕様確定支援
+- 次Phase: Phase 3残仕様確定とPhase 5予備試行用実装準備
 - Phase 2独立再監査: 完了。記録は`docs/audit/phase2-independent-review.md`。
 - Linear移管: 完了。保存先はLinear `Kai02221514` / `WebLearningTool`。
 - Phase 3の性質: 実装開始ではなく仕様確定作業である。
-- Phase 3の優先順位:
-  1. `KAI-11` OQ-006 確認テスト規則
-  2. `KAI-12` OQ-009 研究データ管理仕様
+- 現在の優先順位:
+  1. `KAI-12` OQ-009 研究データ管理仕様
+  2. `KAI-15` 3ノード分の問題データ化・Quiz UI接続・採点仕様具体化
   3. `KAI-13` テスト・型検査基盤
   4. `KAI-14` errorMappings参照切れ整理
+- 補足: KAI-12とKAI-15は一部並行可能だが、研究データ保存・評価ログ・同意に関わる実装はKAI-12確定前に独自補完しない。
 - Phase 3の成果物候補: `docs/architecture/route-generation.md`、`docs/architecture/quiz-assessment.md`、`docs/research/01-confirmed-decisions.md`更新、`docs/research/02-open-questions.md`更新、`docs/research/09-decision-log.md`更新、Linear Issue更新。
 - Phase 3進行状況（2026-07-05）: KAI-9/KAI-10の研究者判断を`docs/architecture/route-generation.md`（`route-spec/1.0`、状態: 承認済み仕様）、`01-confirmed-decisions.md`、`02-open-questions.md`、`09-decision-log.md`へPR #1で反映済み。D-016でOQ-004は条件付き解消、D-017でOQ-005は解消した。KAI-11/OQ-006は`docs/architecture/quiz-assessment.md`の確認テスト規則を指導教員承認済み初期仕様として反映済みであり、D-018を正式追加済みである。KAI-11はLinear上Done。KAI-15では予備試行用3ノード9問と教材案が研究者レビュー済み・予備試行前になったが、UI実装・問題データ化・採点実装・予備試行は未着手である。
 - KAI-9の診断規則はDG-08を除き確定。DG-08は診断必須化、誘導タイミング、診断完了状態保存に関わるためOQ-009/KAI-12へ移管した。
