@@ -36,3 +36,5 @@ npm run verify
 ## Codex Workflow
 
 Codexでの作業はIssue単位で行い、未確定の研究仕様を実装者判断で補完しないでください。詳細は `docs/operations/codex-workflow.md` を参照してください。
+
+Git/GitHub運用では、デフォルトブランチへの直接作業を禁止し、ブランチ名、コミット形式、Pull Request作成手順を `docs/development/git-workflow.md` に従って統一してください。

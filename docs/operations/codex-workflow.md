@@ -8,7 +8,7 @@
 
 本書はCodex作業の実行手順である。研究仕様そのものは `docs/research/` 配下を正本とし、Phase運用の詳細は `docs/operations/ai-research-development-roadmap.md` を参照する。
 
-`AGENTS.md` は短い入口、本文書は実作業チェックリスト、`docs/research/10-handover.md` は現在地の引継ぎとして扱う。
+`AGENTS.md` は短い入口、本文書は実作業チェックリスト、`docs/development/git-workflow.md` はGit/GitHub運用規約、`docs/research/10-handover.md` は現在地の引継ぎとして扱う。
 
 ## 作業開始前
 
@@ -17,6 +17,18 @@
 3. `AGENTS.md` の読書順に従って、関連する正本文書を読む。
 4. 研究者判断が必要な事項がIssue内に残っていないか確認する。
 5. 変更対象ファイルを列挙し、Issue範囲外の変更を混ぜない。
+
+## Git/GitHubゲート
+
+Codexは `docs/development/git-workflow.md` に従う。最低限、次を守る。
+
+- デフォルトブランチ上で直接ファイルを変更、commit、pushしない。
+- `git fetch origin --prune` とデフォルトブランチの最新化後、デフォルトブランチから作業ブランチを作成する。
+- ブランチ名は `<type>/<short-description>` 形式にする。
+- コミットメッセージは `<type>(<scope>): <日本語の変更要約>` 形式にする。
+- Pull Requestは必ず `gh pr create` で作成する。Web UIや独自APIで代替しない。
+- 同一ブランチの既存PRを確認し、重複PRを作成しない。
+- `gh auth status` または `gh pr create` が失敗した場合は、失敗を隠さずコマンドとエラー内容をPR本文または完了報告へ記録する。
 
 ## 実装開始ゲート
 
@@ -52,14 +64,16 @@ npm run verify
 
 PR本文には最低限、次を含める。
 
-- 目的
+- 目的・背景
+- 変更内容
 - 変更対象
 - 対象外
-- 研究仕様への影響
-- 実行した検証
-- 未検証事項
+- 検証方法と結果
+- 研究上の影響
+- リスク・注意点
+- 関連Issue・Linear
+- レビュー時の確認事項
 - ロールバック方法
-- 関連Issue、関連文書、必要に応じた要件ID
 
 研究仕様への影響がない場合は「なし」と明記する。未確定事項を新たに確定していないことも確認する。
 
