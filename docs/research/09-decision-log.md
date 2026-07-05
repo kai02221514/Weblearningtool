@@ -16,7 +16,7 @@
 - 状態: 有効
 - 判断内容: 初回MVPをHTML 7ノード、CSS 5ノードの計12ノードに限定する。
 - 判断理由: 評価時間、教材作成量、エラー接続性、前提関係の明確さを優先するため。
-- 根拠: `docs/mvp-scope.md`、更新日2026-06-19、該当節「確定MVPノード」
+- 根拠: `docs/references/mvp-scope-initial.md`、更新日2026-06-19、該当節「確定MVPノード」
 - 影響範囲: 教材、ルート生成、テスト、実践課題、評価
 - 再検討条件: 12ノードで中核モデルが動作し、追加教材を整備する余力が生じた場合
 
@@ -26,7 +26,7 @@
 - 状態: 有効
 - 判断内容: 正規ノードIDを `^(html|css)-[0-9]{3}$` とする。
 - 判断理由: 表示名・画面ID・旧ドット形式との混在を解消するため。
-- 根拠: `docs/mvp-scope.md`、更新日2026-06-19、該当節「正規ノードID」
+- 根拠: `docs/references/mvp-scope-initial.md`、更新日2026-06-19、該当節「正規ノードID」
 - 影響範囲: 全データ、履歴、API、テスト
 - 再検討条件: 原則変更しない。変更時は移行表とデータ版を必須とする。
 
@@ -36,7 +36,7 @@
 - 状態: 有効
 - 判断内容: 色指定を独立ノードとせず `css-011` 内で扱う。
 - 判断理由: 12ノードへ範囲を収めるため。
-- 根拠: `docs/mvp-scope.md`、更新日2026-06-19、該当節「色指定ノード」
+- 根拠: `docs/references/mvp-scope-initial.md`、更新日2026-06-19、該当節「色指定ノード」
 - 影響範囲: 教材、進捗、テスト
 - 再検討条件: CSSプロパティ学習を拡張する後続フェーズ
 
@@ -46,7 +46,7 @@
 - 状態: 有効
 - 判断内容: 確認テストIDを `quiz-{nodeId}`、中心実践課題IDを `practice-profile-card` とする。
 - 判断理由: ノードとの追跡可能性を確保するため。
-- 根拠: `docs/mvp-scope.md`、更新日2026-06-19、該当節「確認テストID」「実践課題」
+- 根拠: `docs/references/mvp-scope-initial.md`、更新日2026-06-19、該当節「確認テストID」「実践課題」
 - 影響範囲: テストデータ、課題、履歴、評価
 - 再検討条件: 統合テストや複数課題を正式導入する場合
 
@@ -56,7 +56,7 @@
 - 状態: 有効
 - 判断内容: GitHub `docs/` を研究方針と実装契約の共有元とする。
 - 判断理由: ChatGPT・Codex・研究者間の状態乖離を防ぐため。
-- 根拠: `docs/research-status.md`、更新日2026-06-19、該当節「ChatGPT / Codex 同期ルール」
+- 根拠: `docs/references/research-status-legacy.md`、更新日2026-06-19、該当節「ChatGPT / Codex 同期ルール」
 - 影響範囲: 全研究・実装運用
 - 再検討条件: 別の単一情報源へ正式移行する場合
 - 注意: 2026-07-03以降の研究仕様の正本関係と文書優先順位はD-010を優先する。
@@ -67,7 +67,7 @@
 - 状態: 撤回済み
 - 判断内容: MVPノードとID体系を今後決定する事項として扱う。
 - 判断理由: 2026-06-19に12ノードと正規IDが確定したため。
-- 根拠: 旧未確定事項文書と`docs/mvp-scope.md`の差分
+- 根拠: 旧未確定事項文書と`docs/references/mvp-scope-initial.md`の差分
 - 影響範囲: タスク優先順位
 - 再検討条件: なし。変更は新規decisionとして記録する。
 
@@ -102,7 +102,7 @@
 
 - 判断理由: 旧版監査で、Phase間ゲート、正本反映、変更管理、評価開始ゲート等の不足が確認されたため。
 
-- 根拠: `docs/audit/roadmap-process-audit.md`、`docs/operations/ai-research-development-roadmap.md`
+- 根拠: ロードマップ監査記録、`docs/operations/ai-research-development-roadmap.md`
 
 - 影響範囲: 研究仕様化、実装、評価準備、AI間引継ぎ、Linear運用
 
@@ -125,7 +125,7 @@
 - 状態: 有効
 - 判断内容: 研究仕様の正本は`docs/research/`配下とする。矛盾時は、最新の有効な`docs/research/09-decision-log.md`、`docs/research/01-confirmed-decisions.md`、`docs/research/02-open-questions.md`、各研究文書の順に優先する。旧`docs/`直下文書は履歴資料・参考資料・検討案として扱う。コードは実装事実の確認材料であり、研究仕様の正解とはみなさない。
 - 判断理由: 旧`docs/`直下文書と`docs/research/`配下文書の二系統が併存しており、AIまたは実装者が旧案を確定仕様として扱うリスクを下げるため。
-- 根拠: Phase 2.5のP-03に対する研究者本人の承認、`docs/audit/phase2.5-handover.md`
+- 根拠: Phase 2.5のP-03に対する研究者本人の承認、`docs/archive/audit-2026-07-02/phase2.5-handover.md`
 - 影響範囲: 研究仕様参照、AI引継ぎ、Phase 3のOQ解消、実装前レビュー、旧文書の扱い
 - 再検討条件: 研究仕様の管理場所を変更する場合、または指導教員から別の正本管理方法を指示された場合
 
@@ -133,9 +133,9 @@
 
 - 日付または時期: 2026-07-03
 - 状態: 有効
-- 判断内容: 評価計画の正本は`docs/research/05-evaluation-plan.md`とする。旧`docs/evaluation-plan.md`は参考資料とし、旧文書の保存データ案はOQ-009の検討材料としてのみ扱う。現行研究の主張範囲は`docs/research/08-constraints.md`に従う。
+- 判断内容: 評価計画の正本は`docs/research/05-evaluation-plan.md`とする。旧`docs/references/evaluation-plan-initial.md`は参考資料とし、旧文書の保存データ案はOQ-009の検討材料としてのみ扱う。現行研究の主張範囲は`docs/research/08-constraints.md`に従う。
 - 判断理由: 旧評価計画は学習効果や保存データの主張水準が高く、現行の小規模評価・制約文書と混同すると研究主張が過大になるため。
-- 根拠: Phase 2.5のP-04に対する研究者本人の承認、`docs/research/05-evaluation-plan.md`、`docs/research/08-constraints.md`、`docs/audit/phase2.5-handover.md`
+- 根拠: Phase 2.5のP-04に対する研究者本人の承認、`docs/research/05-evaluation-plan.md`、`docs/research/08-constraints.md`、`docs/archive/audit-2026-07-02/phase2.5-handover.md`
 - 影響範囲: 評価計画、OQ-002、OQ-009、評価データ保存設計、研究成果の主張範囲
 - 再検討条件: 指導教員確認または評価設計の正式決定により、評価条件・保存データ・主張範囲を更新する場合
 
@@ -143,9 +143,9 @@
 
 - 日付または時期: 2026-07-03
 - 状態: 有効
-- 判断内容: 旧`docs/route-generation-spec.md`はOQ-005検討用の未確定たたき台として扱い、確定仕様とはしない。優先順位、同点処理、出力契約、理由情報、再計算条件はPhase 3で項目ごとに採否を判断する。旧spec内の具体的な型や命名を正式採用したものとは扱わない。
+- 判断内容: 旧`docs/references/route-generation-spec-draft.md`はOQ-005検討用の未確定たたき台として扱い、確定仕様とはしない。優先順位、同点処理、出力契約、理由情報、再計算条件はPhase 3で項目ごとに採否を判断する。旧spec内の具体的な型や命名を正式採用したものとは扱わない。
 - 判断理由: OQ-005が未解消のまま旧specを実装すると、未承認の優先順位や出力契約が確定仕様として滑り込むため。
-- 根拠: Phase 2.5のP-05に対する研究者本人の承認、`docs/research/02-open-questions.md`、`docs/audit/phase2.5-handover.md`
+- 根拠: Phase 2.5のP-05に対する研究者本人の承認、`docs/research/02-open-questions.md`、`docs/archive/audit-2026-07-02/phase2.5-handover.md`
 - 影響範囲: ルート生成仕様、`routeGenerator`実装、Dashboard推薦理由、評価ログ、Phase 3の仕様化作業
 - 再検討条件: OQ-005が解消され、正式なルート生成仕様が`docs/research/`配下または合意済みの正本へ反映された場合
 
@@ -159,11 +159,11 @@
   - 全文書への波及コストが大きい。
   - ID移行自体は研究目的へ直接寄与しない。
   - Phase 3ではOQ-004・OQ-005の仕様確定を優先する必要がある。
-- 根拠: Phase 2.5のP-19に対する研究者本人の判断、`docs/audit/phase2.5-handover.md`
+- 根拠: Phase 2.5のP-19に対する研究者本人の判断、`docs/archive/audit-2026-07-02/phase2.5-handover.md`
 - 影響範囲:
   - Phase 3の仕様文書でも既存R-xxを使用する。
   - 新分類体系は導入しない。
-  - `docs/audit/requirements-traceability-matrix.md`はR-xx体系を維持する。
+  - `docs/archive/audit-2026-07-02/requirements-traceability-matrix.md`はR-xx体系を維持する。
 - 再検討条件:
   - MVP評価終了後。
   - R-xxのみでは分類困難になった場合。
@@ -202,12 +202,12 @@
 - タイトル: Phase 2およびPhase 2.5の正式完了
 - 判断内容: Phase 2の独立再監査を完了し、Phase 2.5の残作業だったLinear移管とGitHub文書反映を完了したため、Phase 2およびPhase 2.5を正式完了とする。次作業はPhase 3「中核仕様確定支援」とする。
 - 完了根拠:
-  - Phase 2独立再監査を実施し、`docs/audit/phase2-independent-review.md`に記録した。
+  - Phase 2独立再監査を実施し、`docs/archive/audit-2026-07-02/phase2-independent-review.md`に記録した。
   - 原監査のCritical/High指摘を現行`main`で再確認し、解消済み事項と未確定/未実装事項を分離した。
   - `docs/operations/linear-issue-backlog.md`のIssue A〜KをLinear `Kai02221514` / `WebLearningTool`へ移管した。
   - 対応するLinear Issueは`KAI-9`〜`KAI-19`である。
-  - `docs/audit/phase2.5-handover.md`の研究者最終採否表を実Linear Issue IDへ更新した。
-  - `docs/audit/requirements-traceability-matrix.md`を実Linear Issue IDへ更新した。
+  - `docs/archive/audit-2026-07-02/phase2.5-handover.md`の研究者最終採否表を実Linear Issue IDへ更新した。
+  - `docs/archive/audit-2026-07-02/requirements-traceability-matrix.md`を実Linear Issue IDへ更新した。
   - `docs/research/10-handover.md`へPhase 2独立再監査、Linear移管状況、Phase 3の最初のIssue、未完了事項、指導教員確認が必要なIssueを追記した。
 - 対応するLinear Issue一覧:
   - `KAI-9`: OQ-004 診断規則と開始ノード規則を確定する。
@@ -378,3 +378,62 @@
   - 指導教員から変更指示があった場合。
   - 研究評価計画の変更により確認テストの役割が変わった場合。
   - 見直し時は新しいDecisionまたはD-018への補足として変更理由を記録する。
+
+## D-019
+
+- 日付または時期: 2026-07-06
+- 決定者: 北代櫂
+- 状態: 有効
+- タイトル: 研究情報源の参照原則と対象別正本の統一案
+- 提案内容:
+  - 同一対象について情報が矛盾する場合の基本参照順序を定める。
+  - 研究目的、評価方針、技術仕様、実装状態、作業状態ごとに正本を分ける。
+  - 指導教員との最新の明示的合意および履修計画書・正式提出資料を研究上の制約として扱う。
+  - Decision Logを正式な変更履歴、`01-confirmed-decisions.md`を確定事項の集約ビューとして扱う。
+  - 現在の会話や作業指示で生じた新しい判断は、作業完了前にDecision Logまたは正本文書へ反映する。
+  - AIが研究者本人または指導教員を決定者として推定してはならない。
+- 基本参照順序案:
+  1. 研究者本人が現在明示した最新判断
+  2. 指導教員との最新の明示的合意・指示
+  3. 最新の有効な `docs/research/09-decision-log.md`
+  4. `docs/research/01-confirmed-decisions.md`
+  5. 履修計画書・学内提出済みの正式研究資料
+  6. `docs/research/02-open-questions.md`
+  7. `docs/research/03-mvp-scope.md`
+  8. その他の `docs/research/` 配下の研究文書
+  9. `docs/architecture/` 配下の承認済み技術仕様
+  10. `docs/operations/` 配下の運用文書
+  11. 現在のコード
+  12. `docs/references/` と `docs/archive/`
+- 注意: 上記は絶対順位ではなく、同一対象について情報が矛盾した場合の基本原則案である。対象別正本を優先して解釈する。
+- 対象別正本案:
+  | 対象 | 主な正本 | 補足 |
+  |---|---|---|
+  | 研究目的・研究質問 | 指導教員との最新合意、履修計画書、Decision Log、`docs/research/00-research-overview.md` | AIやコードだけで変更しない |
+  | 研究方法・評価方針 | 指導教員との最新合意、履修計画書、`docs/research/05-evaluation-plan.md`、Decision Log | 学内提出内容との矛盾は要確認 |
+  | 現在有効な研究判断 | 最新の有効なDecision Log、`01-confirmed-decisions.md` | Decision Logを変更履歴、confirmed-decisionsを集約ビューとして扱う |
+  | 未確定事項 | `docs/research/02-open-questions.md` | 実装担当者が独自に確定しない |
+  | MVP範囲 | `docs/research/03-mvp-scope.md`、関連Decision | コード上の実装範囲と区別する |
+  | 技術仕様 | 関連Decision、`docs/architecture/` | 承認済み仕様に限る |
+  | 実装状態 | 現在のコード、`docs/research/06-implementation-status.md` | コードは実装事実であり研究仕様の正本ではない |
+  | 作業状態・優先タスク | Linear、`docs/research/10-handover.md` | 未完了タスクはLinearを正とする |
+  | 開発・運用手順 | `docs/operations/`、`AGENTS.md` | 研究仕様を上書きしない |
+  | 過去の経緯・監査証跡 | `docs/references/`、`docs/archive/` | 現行仕様として使用しない |
+- 提案理由:
+  - 一列の優先順位だけでは、研究方針と実装事実の正本が混同されるため。
+  - 会話内だけに判断が残ることによる再現性低下を防ぐため。
+  - 指導教員合意や正式提出資料をGitHub内文書が誤って上書きすることを防ぐため。
+- 根拠: 2026-07-06のPR #8研究情報源の権限設計修正依頼
+- 影響範囲:
+  - Codex、ChatGPT、その他AIの参照順序
+  - 研究仕様確認
+  - 実装前レビュー
+  - 文書間矛盾の解消
+  - 引継ぎ
+- 承認に必要な事項:
+  - 研究者本人による優先原則の確認。
+  - 必要に応じて指導教員との整合確認。
+- 再検討条件:
+  - 文書体系を変更する場合。
+  - `01-confirmed-decisions.md`を自動生成または同期する仕組みを導入する場合。
+  - 指導教員から情報管理方法の変更指示があった場合。

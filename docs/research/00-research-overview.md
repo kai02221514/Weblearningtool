@@ -17,16 +17,11 @@
 
 ## 情報の優先順位
 
-1. 現在の会話で明示された最新判断
-2. `01-confirmed-decisions.md`
-3. `09-decision-log.md` の最新有効判断
-4. `03-mvp-scope.md`
-5. 履修計画書・指導教員との合意
-6. 最新研究資料
-7. GitHubコード
-8. 古い発表資料・古い会話
+D-010により、研究仕様の正本は `docs/research/` 配下である。コードは実装状態の証拠であり、研究仕様の正本ではない。`docs/references/` と `docs/archive/` は現行仕様ではない。
 
-コードは実装状態の一次情報源だが、研究仕様の正解ではない。研究資料とコードが不一致の場合は、仕様を勝手にコードへ合わせず、`02-open-questions.md` または `09-decision-log.md` に記録する。
+研究情報源の詳細な権限設計は `09-decision-log.md` のD-019案を参照する。D-019は研究者本人の承認前であり、現在は提案中である。研究目的、研究方法、評価方針に関わる場合は、指導教員との最新の明示的合意、履修計画書、学内提出済みの正式研究資料との整合も確認する。
+
+現在の会話、Linear Issue、作業指示で新しい研究判断が明示された場合は、作業完了前にDecision Logまたは対応する正本文書へ反映する。反映されていない会話上の判断を、後続作業の恒久的な正本として扱わない。研究資料とコードが不一致の場合は、仕様を勝手にコードへ合わせず、`02-open-questions.md` または `09-decision-log.md` に記録する。
 
 ## 研究背景
 
@@ -70,4 +65,4 @@
 
 - `11-independent-audit.md` と `12-independent-reaudit.md` は、過去版に対する監査履歴であり、現在有効な研究仕様ではない。
 - 現在のパッケージに対する最新監査結果は `14-independent-reaudit.md` を参照する。
-- 過去監査記録と現行仕様が異なる場合は、`01-confirmed-decisions.md`、`02-open-questions.md`、`09-decision-log.md`、各現行仕様文書を優先する。
+- 過去監査記録と現行仕様が異なる場合は、最新の有効な `09-decision-log.md`、`01-confirmed-decisions.md`、`02-open-questions.md`、各現行仕様文書を優先する。

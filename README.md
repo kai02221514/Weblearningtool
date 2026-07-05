@@ -6,11 +6,15 @@
 
 研究仕様の正本は `docs/research/` 配下です。コードは現在の実装状態を示す確認材料であり、研究仕様の正解とはみなしません。
 
+矛盾がある場合は、`docs/research/09-decision-log.md` の最新有効Decisionを優先します。D-019は研究情報源の権限設計に関する提案中の案であり、研究者本人の明示承認までは確定Decisionとして扱いません。
+
 作業前に次を確認してください。
 
 - `AGENTS.md`
+- `docs/research/09-decision-log.md`
 - `docs/operations/codex-workflow.md`
 - `docs/operations/ai-research-development-roadmap.md`
+- `docs/README.md`
 - `docs/research/10-handover.md`
 
 ## Running the Code
