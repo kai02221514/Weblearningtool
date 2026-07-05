@@ -17,7 +17,7 @@
 
 - 状態: Phase 2およびPhase 2.5正式完了。Phase 3のKAI-9/KAI-10判断はPR #1で`main`へ反映済み、Linear上もDone。KAI-11/OQ-006は研究者採否と指導教員確認を経て初期仕様確定として解消済みであり、D-018を正式追加済み。KAI-15はIn Progressで、予備試行用3ノード9問と教材案は研究者レビュー済み・予備試行前である。3ノード9問の型付きデータ化と構造検証テストはKAI-20として追加したが、KAI-15全体は完了ではない。
 - 次Phase: Phase 3残仕様確定とPhase 5予備試行用実装準備
-- Phase 2独立再監査: 完了。記録は`docs/audit/phase2-independent-review.md`。
+- Phase 2独立再監査: 完了。記録は`docs/archive/audit-2026-07-02/phase2-independent-review.md`。
 - Linear移管: 完了。保存先はLinear `Kai02221514` / `WebLearningTool`。
 - Phase 3の性質: 実装開始ではなく仕様確定作業である。
 - 現在の優先順位:
@@ -103,7 +103,7 @@ pnpm、Yarn、Bun等のロックファイルがある場合は、対応するコ
 - `src/components/PracticeChallenge.tsx`: 実践課題・簡易エラー検出
 - `docs/research/03-mvp-scope.md`: 現在有効なMVP仕様
 - `docs/research/06-implementation-status.md`: 実装状態
-- `docs/mvp-scope.md`、`docs/research-status.md`: 参考資料・旧文書
+- `docs/references/mvp-scope-initial.md`、`docs/references/research-status-legacy.md`: 参考資料・旧文書
 
 ## 作業開始前チェック
 

@@ -11,6 +11,7 @@
 - `AGENTS.md`
 - `docs/operations/codex-workflow.md`
 - `docs/operations/ai-research-development-roadmap.md`
+- `docs/README.md`
 - `docs/research/10-handover.md`
 
 ## Running the Code

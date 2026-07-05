@@ -47,7 +47,7 @@
 ## Issue B: OQ-005 ルート生成規則と出力契約を確定する
 
 - 目的: ルート生成優先順位、同点処理、理由情報、再計算条件を確定する。
-- 背景: 旧`docs/route-generation-spec.md`は未確定たたき台であり、無審査で実装してはならない。
+- 背景: 旧`docs/references/route-generation-spec-draft.md`は未確定たたき台であり、無審査で実装してはならない。
 - 対象: 入力契約、出力契約、前提補完、優先順位、同点処理、決定性、`reasonCode`、`evidenceRef`、`routeVersion`、`dataVersion`、再計算条件、例外処理。
 - 対象外: `routeGenerator`実装、Dashboard UI実装、永続化実装。
 - 依存関係: OQ-004の開始ノード規則、OQ-006のテスト結果入力、OQ-009の保存仕様。
