@@ -6,7 +6,8 @@
 > 最新状態は `../architecture/route-generation.md`、`../research/02-open-questions.md`、`../research/09-decision-log.md` を参照する。
 
 - 最終更新日: 2026-06-19
-- 文書ステータス: 実装前の仕様案
+- 当時の文書ステータス: 実装前の仕様案
+- 現在の扱い: 参考資料・非正本
 
 ## 目的
 
