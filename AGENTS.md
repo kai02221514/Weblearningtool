@@ -30,8 +30,24 @@ If documents conflict, follow the latest valid decision in `docs/research/09-dec
 - Run only validation commands that exist in `package.json`. Do not report unrun checks as successful.
 - Leave PR evidence: related issue, changed files, out-of-scope items, validation commands and results, unverified items, and rollback method.
 
+## Git・GitHub運用規約
+
+詳細は `docs/development/git-workflow.md` を正とする。
+
+- デフォルトブランチ上で変更、commit、pushしない。
+- 作業前にワークツリーと現在ブランチを確認する。
+- デフォルトブランチを最新化してから作業ブランチを作成する。
+- ブランチ名は `<type>/<short-description>` とする。
+- コミットは `<type>(<scope>): <日本語の変更要約>` とする。
+- 大規模作業は論理的な単位でコミットを分割する。
+- PR作成には必ず `gh pr create` を使用する。
+- 同一ブランチの既存PRを確認し、重複PRを作成しない。
+- 実行していない検証や失敗した検証を成功として報告しない。
+- 作業と無関係な既存変更を含めない。
+
 ## Related Operations
 
+- Git/GitHub workflow: `docs/development/git-workflow.md`
 - Codex workflow: `docs/operations/codex-workflow.md`
 - AI research/development roadmap: `docs/operations/ai-research-development-roadmap.md`
 - Current handover: `docs/research/10-handover.md`
