@@ -382,29 +382,58 @@
 ## D-019
 
 - 日付または時期: 2026-07-06
-- 決定者: 北代櫂
-- 状態: 有効
-- タイトル: 文書参照優先順位の統一
-- 判断内容: 研究文書の参照優先順位を次のとおり統一する。
-  1. 現在の会話で明示された最新判断
-  2. 最新の有効な `docs/research/09-decision-log.md`
-  3. `docs/research/01-confirmed-decisions.md`
-  4. `docs/research/02-open-questions.md`
-  5. `docs/research/03-mvp-scope.md`
-  6. その他の `docs/research/` 配下の研究文書
-  7. `docs/architecture/` 配下の承認済み技術仕様
-  8. `docs/operations/` 配下の運用文書
-  9. 現在のコード
-  10. `docs/references/` と `docs/archive/`
-- 判断理由:
-  - Decision Logを正式な変更履歴として扱い、確定事項集約文書への反映遅れによる不整合を防ぐため。
-  - コードや旧資料を研究仕様の正本として扱う誤りを防ぐため。
-- 根拠: 2026-07-06のPR #8最終監査指摘対応依頼
+- 決定者: 未確定
+- 状態: 提案中
+- タイトル: 研究情報源の参照原則と対象別正本の統一案
+- 提案内容:
+  - 同一対象について情報が矛盾する場合の基本参照順序を定める。
+  - 研究目的、評価方針、技術仕様、実装状態、作業状態ごとに正本を分ける。
+  - 指導教員との最新の明示的合意および履修計画書・正式提出資料を研究上の制約として扱う。
+  - Decision Logを正式な変更履歴、`01-confirmed-decisions.md`を確定事項の集約ビューとして扱う。
+  - 現在の会話や作業指示で生じた新しい判断は、作業完了前にDecision Logまたは正本文書へ反映する。
+  - AIが研究者本人または指導教員を決定者として推定してはならない。
+- 基本参照順序案:
+  1. 研究者本人が現在明示した最新判断
+  2. 指導教員との最新の明示的合意・指示
+  3. 最新の有効な `docs/research/09-decision-log.md`
+  4. `docs/research/01-confirmed-decisions.md`
+  5. 履修計画書・学内提出済みの正式研究資料
+  6. `docs/research/02-open-questions.md`
+  7. `docs/research/03-mvp-scope.md`
+  8. その他の `docs/research/` 配下の研究文書
+  9. `docs/architecture/` 配下の承認済み技術仕様
+  10. `docs/operations/` 配下の運用文書
+  11. 現在のコード
+  12. `docs/references/` と `docs/archive/`
+- 注意: 上記は絶対順位ではなく、同一対象について情報が矛盾した場合の基本原則案である。対象別正本を優先して解釈する。
+- 対象別正本案:
+  | 対象 | 主な正本 | 補足 |
+  |---|---|---|
+  | 研究目的・研究質問 | 指導教員との最新合意、履修計画書、Decision Log、`docs/research/00-research-overview.md` | AIやコードだけで変更しない |
+  | 研究方法・評価方針 | 指導教員との最新合意、履修計画書、`docs/research/05-evaluation-plan.md`、Decision Log | 学内提出内容との矛盾は要確認 |
+  | 現在有効な研究判断 | 最新の有効なDecision Log、`01-confirmed-decisions.md` | Decision Logを変更履歴、confirmed-decisionsを集約ビューとして扱う |
+  | 未確定事項 | `docs/research/02-open-questions.md` | 実装担当者が独自に確定しない |
+  | MVP範囲 | `docs/research/03-mvp-scope.md`、関連Decision | コード上の実装範囲と区別する |
+  | 技術仕様 | 関連Decision、`docs/architecture/` | 承認済み仕様に限る |
+  | 実装状態 | 現在のコード、`docs/research/06-implementation-status.md` | コードは実装事実であり研究仕様の正本ではない |
+  | 作業状態・優先タスク | Linear、`docs/research/10-handover.md` | 未完了タスクはLinearを正とする |
+  | 開発・運用手順 | `docs/operations/`、`AGENTS.md` | 研究仕様を上書きしない |
+  | 過去の経緯・監査証跡 | `docs/references/`、`docs/archive/` | 現行仕様として使用しない |
+- 提案理由:
+  - 一列の優先順位だけでは、研究方針と実装事実の正本が混同されるため。
+  - 会話内だけに判断が残ることによる再現性低下を防ぐため。
+  - 指導教員合意や正式提出資料をGitHub内文書が誤って上書きすることを防ぐため。
+- 根拠: 2026-07-06のPR #8研究情報源の権限設計修正依頼
 - 影響範囲:
   - Codex、ChatGPT、その他AIの参照順序
   - 研究仕様確認
   - 実装前レビュー
   - 文書間矛盾の解消
+  - 引継ぎ
+- 承認に必要な事項:
+  - 研究者本人による優先原則の確認。
+  - 必要に応じて指導教員との整合確認。
 - 再検討条件:
   - 文書体系を変更する場合。
   - `01-confirmed-decisions.md`を自動生成または同期する仕組みを導入する場合。
+  - 指導教員から情報管理方法の変更指示があった場合。

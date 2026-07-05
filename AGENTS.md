@@ -16,18 +16,21 @@ Before implementation work, read the current task or Linear issue and then use t
 4. `docs/research/02-open-questions.md`
 5. `docs/research/03-mvp-scope.md`
 6. Other task-relevant files under `docs/research/`
-7. Task-relevant files under `docs/architecture/`
-8. Task-relevant files under `docs/operations/`
-9. Current code, as implementation-state evidence only
-10. `docs/references/` and `docs/archive/`, as non-canonical history
+7. Latest explicit supervisor agreement, curriculum plan, or formally submitted research material when the task touches research purpose, research method, or evaluation policy
+8. Task-relevant files under `docs/architecture/`
+9. Task-relevant files under `docs/operations/`
+10. Current code, as implementation-state evidence only
+11. `docs/references/` and `docs/archive/`, as non-canonical history
 
-If documents conflict, follow the latest valid decision in `docs/research/09-decision-log.md`. Code is evidence of implementation state, not the source of research truth.
+If documents conflict, follow the latest valid decision in `docs/research/09-decision-log.md`. D-019 is a proposal until explicitly approved by the researcher. Code is evidence of implementation state, not the source of research truth.
 
 ## Codex Rules
 
 - Work in issue-sized changes. Do not start implementation unless the issue states purpose, scope, out-of-scope items, acceptance criteria, and verification method.
 - Do not decide unresolved research questions. If an issue still requires a researcher decision, stop and report what must be decided.
 - Do not treat mocks, fixed values, or existing UI behavior as confirmed research specification.
+- Do not treat unapproved proposals as confirmed decisions. Do not infer the researcher or supervisor as a decision-maker unless the approval is explicitly recorded.
+- If the current conversation, Linear issue, or task instruction contains a new research judgment, reflect it in the Decision Log or another canonical document before finishing. Unreflected conversation-only judgments are not permanent sources of truth.
 - Keep research specification changes separate from application implementation unless the issue explicitly requires both.
 - Do not change files under `src/` unless the issue explicitly includes application behavior or tests in scope.
 - Run only validation commands that exist in `package.json`. Do not report unrun checks as successful.

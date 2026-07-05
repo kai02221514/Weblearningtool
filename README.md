@@ -6,7 +6,7 @@
 
 研究仕様の正本は `docs/research/` 配下です。コードは現在の実装状態を示す確認材料であり、研究仕様の正解とはみなしません。
 
-矛盾がある場合の参照順序は、`docs/research/09-decision-log.md` D-019 と `docs/README.md` の参照ルールに従ってください。
+矛盾がある場合は、`docs/research/09-decision-log.md` の最新有効Decisionを優先します。D-019は研究情報源の権限設計に関する提案中の案であり、研究者本人の明示承認までは確定Decisionとして扱いません。
 
 作業前に次を確認してください。
 
