@@ -17,6 +17,11 @@
 ## 検証方法と結果
 
 - [ ] `npm run verify`
+- その他:
+
+## 未検証事項
+
+- なし
 
 ## 研究上の影響
 
@@ -26,9 +31,14 @@
 
 -
 
-## 関連Issue・Linear
+## 関連Issue・Linear・研究文書
 
--
+- Linear:
+- GitHub Issue:
+- Decision:
+- OQ:
+- 要件ID:
+- その他の関連文書:
 
 ## レビュー時の確認事項
 
