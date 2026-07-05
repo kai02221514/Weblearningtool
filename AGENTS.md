@@ -10,19 +10,27 @@ These instructions apply to the whole repository.
 
 Before implementation work, read the current task or Linear issue and then use this source order:
 
-1. Current task, Linear issue, or current researcher instruction
+1. Current task, Linear issue, or explicit current researcher instruction
 2. `docs/research/09-decision-log.md`
 3. `docs/research/01-confirmed-decisions.md`
 4. `docs/research/02-open-questions.md`
-5. `docs/research/03-mvp-scope.md`
-6. Other task-relevant files under `docs/research/`
-7. Latest explicit supervisor agreement, curriculum plan, or formally submitted research material when the task touches research purpose, research method, or evaluation policy
-8. Task-relevant files under `docs/architecture/`
-9. Task-relevant files under `docs/operations/`
-10. Current code, as implementation-state evidence only
-11. `docs/references/` and `docs/archive/`, as non-canonical history
+5. Other task-relevant files under `docs/research/`
+6. Task-relevant approved files under `docs/architecture/`
+7. Task-relevant files under `docs/operations/`
+8. Current code, as implementation-state evidence only
+9. `docs/references/` and `docs/archive/`, as non-canonical history
 
-If documents conflict, follow the latest valid decision in `docs/research/09-decision-log.md`. D-019 is a proposal until explicitly approved by the researcher. Code is evidence of implementation state, not the source of research truth.
+If documents conflict, follow the latest valid decision in `docs/research/09-decision-log.md`.
+
+D-019 is a proposal and must not be treated as an active rule until explicitly approved by the researcher. Code is evidence of implementation state, not the source of research truth.
+
+When a task affects research purpose, research method, evaluation policy, or claims made by the research, also verify consistency with:
+
+- the latest explicit supervisor agreement or instruction;
+- the curriculum plan;
+- formally submitted research materials.
+
+Do not infer supervisor approval from repository documents alone.
 
 ## Codex Rules
 
