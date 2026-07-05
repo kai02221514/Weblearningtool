@@ -9,19 +9,22 @@
 ## 実行コマンド
 
 ```bash
+npm ci
 npm run typecheck
+npm run lint
 npm run test
 npm run build
+npm run check
 ```
 
 ## テスト基盤
 
 - `vitest` を使用する。
-- 理由: 既存のVite構成と整合し、`package.json`に `test` スクリプトと依存関係が存在するため。
-- 今回はクイズデータの構造検証に限定し、UI接続、採点、再受験、保存処理は検証対象外とする。
+- 理由: Vite構成と整合し、PR #5で `test` スクリプトと依存関係が導入済みであるため。
+- PR #5で `typecheck`、`lint`、`test`、`build`、`check` スクリプトとGitHub Actionsの `npm run check` 実行を導入した。
+- PR #6では、予備試行用3ノード9問の型付きデータと構造検証テストのみを追加・修正する。
 
-## 今回未実施
+## 今回の検証対象外
 
-- `npm run lint` は今回の必須範囲外。
-- CI導入は今回の必須範囲外。
+- UI接続、採点、許容解正規化、再受験、保存処理は検証対象外とする。
 - ブラウザでのQuiz UI動作確認は、今回UI接続を実装していないため対象外。

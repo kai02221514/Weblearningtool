@@ -16,10 +16,8 @@ export const css011Quiz = {
   questions: [
     {
       questionId: 'css-011-q1',
-      quizId: 'quiz-css-011',
       nodeId: 'css-011',
-      questionSetVersion: 'quiz-css-011/v0.1',
-      passScore: PASS_SCORE,
+      sourceReference: 'docs/content/pilot-quiz-prototype.md#css-011-q1',
       type: 'single-choice',
       difficulty: '基礎',
       prompt: code(
@@ -40,17 +38,17 @@ export const css011Quiz = {
       correctChoiceId: 'choice-1',
       correctAnswer: 'p',
       acceptedAnswers: [],
-      acceptedAnswerNotes: ['選択肢ID一致のみ'],
+      researchMetadata: {
+        notes: ['選択肢ID一致のみ'],
+      },
       explanation: '正解は`p`です。この部分をセレクタと呼び、どのHTML要素にスタイルを適用するかを指定します（この例ではp要素、つまり段落）。`color`はプロパティで「何を変えるか」（文字の色）、`red`は値で「どう変えるか」（赤に）を指定します。`{ }`（波括弧）は、そのセレクタに適用する宣言のまとまりを囲む記号です。復習する場合は教材「CSSルールセットの基本形」（pilot-material-draft.md §5.1）の表を読み直してください。',
       mainReviewNodeId: 'css-011',
       relatedPrerequisiteNodeIds: [],
     },
     {
       questionId: 'css-011-q2',
-      quizId: 'quiz-css-011',
       nodeId: 'css-011',
-      questionSetVersion: 'quiz-css-011/v0.1',
-      passScore: PASS_SCORE,
+      sourceReference: 'docs/content/pilot-quiz-prototype.md#css-011-q2',
       type: 'single-choice',
       difficulty: '標準',
       prompt: '段落（p要素）の文字色を赤にするCSSとして、書き方が正しいものはどれですか。',
@@ -63,17 +61,17 @@ export const css011Quiz = {
       correctChoiceId: 'choice-1',
       correctAnswer: 'p { color: red; }',
       acceptedAnswers: [],
-      acceptedAnswerNotes: ['選択肢ID一致のみ'],
+      researchMetadata: {
+        notes: ['選択肢ID一致のみ'],
+      },
       explanation: '正解は選択肢1です。CSSは「セレクタ { プロパティ: 値; }」の形で書きます。選択肢2は、プロパティと値の区切りに等号（=）を使っていますが、CSSではコロン（:）を使います。選択肢3は、宣言のまとまりを丸括弧（ ( ) ）で囲んでいますが、CSSでは波括弧（ { } ）を使います。選択肢4は、セレクタpが波括弧の中に入っていますが、セレクタは波括弧の外（前）に書きます。復習する場合は教材「CSSルールセットの基本形」「記号の書き間違いに注意」（pilot-material-draft.md §5.1、§5.3）を読み直してください。',
       mainReviewNodeId: 'css-011',
       relatedPrerequisiteNodeIds: [],
     },
     {
       questionId: 'css-011-q3',
-      quizId: 'quiz-css-011',
       nodeId: 'css-011',
-      questionSetVersion: 'quiz-css-011/v0.1',
-      passScore: PASS_SCORE,
+      sourceReference: 'docs/content/pilot-quiz-prototype.md#css-011-q3',
       type: 'code-completion',
       difficulty: '標準',
       prompt: code(
@@ -88,13 +86,15 @@ export const css011Quiz = {
       choices: [],
       correctAnswer: 'color',
       acceptedAnswers: ['color'],
-      acceptedAnswerNotes: [
-        '正規化（案・§12参照）: 前後空白除去、小文字化して比較（CSSのプロパティ名は大文字小文字を区別しないため`COLOR`等も正答扱い）。',
-        '許容解に含めるか要確定: `color:`（コロン付き回答）。空欄の直後にコロンが提示されているため原則不要だが、含めて回答する学習者の発生が予想される。KAI-15で確定が必要。',
-        '正答の一意性: 教材草案§5.5はこの単元で使うプロパティをcolorとfont-sizeの2つに限定しており、「文字の色を変える」に対応するのはcolorのみで、教材範囲内で一意である。（CSS全体では文字色に影響する他の手段が存在し得るが、教材範囲外であり、採点は許容解集合との一致で行うため一意性は保たれる。）',
-      ],
-      unresolvedAcceptedAnswerCandidates: ['color:'],
-      incorrectAnswerExamples: ['colour', 'font-color', 'text-color', 'blue'],
+      researchMetadata: {
+        notes: [
+          '正規化（案・§12参照）: 前後空白除去、小文字化して比較（CSSのプロパティ名は大文字小文字を区別しないため`COLOR`等も正答扱い）。',
+          '許容解に含めるか要確定: `color:`（コロン付き回答）。空欄の直後にコロンが提示されているため原則不要だが、含めて回答する学習者の発生が予想される。KAI-15で確定が必要。',
+          '正答の一意性: 教材草案§5.5はこの単元で使うプロパティをcolorとfont-sizeの2つに限定しており、「文字の色を変える」に対応するのはcolorのみで、教材範囲内で一意である。（CSS全体では文字色に影響する他の手段が存在し得るが、教材範囲外であり、採点は許容解集合との一致で行うため一意性は保たれる。）',
+        ],
+        unresolvedAcceptedAnswerCandidates: ['color:'],
+        incorrectAnswerExamples: ['colour', 'font-color', 'text-color', 'blue'],
+      },
       explanation: '正解は`color`です。文字の色は`color`プロパティで指定します。「プロパティ: 値;」の形で、`color: blue;`と書くと文字が青になります。`font-color`や`text-color`というプロパティはCSSにはありません。値（blue）の側は「どう変えるか」、プロパティ（color）の側は「何を変えるか」を受け持つ、という役割の違いも確認してください。復習する場合は教材「色の指定」「この単元で使うプロパティ」（pilot-material-draft.md §5.4〜§5.5）を読み直してください。',
       mainReviewNodeId: 'css-011',
       relatedPrerequisiteNodeIds: [],

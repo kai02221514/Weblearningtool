@@ -16,10 +16,8 @@ export const html021Quiz = {
   questions: [
     {
       questionId: 'html-021-q1',
-      quizId: 'quiz-html-021',
       nodeId: 'html-021',
-      questionSetVersion: 'quiz-html-021/v0.1',
-      passScore: PASS_SCORE,
+      sourceReference: 'docs/content/pilot-quiz-prototype.md#html-021-q1',
       type: 'single-choice',
       difficulty: '基礎',
       prompt: code(
@@ -42,17 +40,17 @@ export const html021Quiz = {
       correctChoiceId: 'choice-1',
       correctAnswer: '<p>',
       acceptedAnswers: [],
-      acceptedAnswerNotes: ['選択肢ID一致のみ'],
+      researchMetadata: {
+        notes: ['選択肢ID一致のみ'],
+      },
       explanation: '正解は`<p>`です。親要素とは、その要素を直接包んでいる1つ外側の要素のことです。`<strong>`を直接包んでいるのは`<p>`です。`<body>`と`<html>`も`<strong>`を包んでいますが、`<p>`よりさらに外側にあるため、`<strong>`から見ると親のさらに外側（祖先）であり、直接の親ではありません。`<strong>`自身は親にはなれません。復習する場合は教材「要素の中に要素を入れる（入れ子）」（pilot-material-draft.md §4.1）を読み直してください。',
       mainReviewNodeId: 'html-021',
       relatedPrerequisiteNodeIds: [],
     },
     {
       questionId: 'html-021-q2',
-      quizId: 'quiz-html-021',
       nodeId: 'html-021',
-      questionSetVersion: 'quiz-html-021/v0.1',
-      passScore: PASS_SCORE,
+      sourceReference: 'docs/content/pilot-quiz-prototype.md#html-021-q2',
       type: 'single-choice',
       difficulty: '標準',
       prompt: '正しい入れ子構造になっているものはどれですか。',
@@ -65,17 +63,17 @@ export const html021Quiz = {
       correctChoiceId: 'choice-1',
       correctAnswer: '<p><strong>こんにちは</strong></p>',
       acceptedAnswers: [],
-      acceptedAnswerNotes: ['選択肢ID一致のみ'],
+      researchMetadata: {
+        notes: ['選択肢ID一致のみ'],
+      },
       explanation: '正解は選択肢1です。入れ子にした要素は、内側（後から開始した）要素から先に閉じます。選択肢1は`<strong>`を閉じてから`<p>`を閉じており、正しい入れ子です。選択肢2と3は、外側の要素を先に閉じているため、タグの対応関係が交差しており誤りです。選択肢4は`<strong>`の終了タグがなく、要素が閉じられていません。復習する場合は教材「閉じる順序の規則」「交差した入れ子は誤り」（pilot-material-draft.md §4.2〜§4.3）を読み直してください。終了タグの書き方自体が不安な場合は、前の単元「要素とタグ」も見直してください。',
       mainReviewNodeId: 'html-021',
       relatedPrerequisiteNodeIds: ['html-020'],
     },
     {
       questionId: 'html-021-q3',
-      quizId: 'quiz-html-021',
       nodeId: 'html-021',
-      questionSetVersion: 'quiz-html-021/v0.1',
-      passScore: PASS_SCORE,
+      sourceReference: 'docs/content/pilot-quiz-prototype.md#html-021-q3',
       type: 'code-completion',
       difficulty: '標準',
       prompt: code(
@@ -88,13 +86,15 @@ export const html021Quiz = {
       choices: [],
       correctAnswer: 'strong',
       acceptedAnswers: ['strong'],
-      acceptedAnswerNotes: [
-        '正規化（案・§12参照）: 前後空白除去、小文字化して比較。',
-        '許容解に含めるか要確定: `</strong>`（終了タグ全体での回答）、`/strong`。問題文で「要素名」（例: body）を指示するが、タグ形式での回答を不正解にすると採点漏れの恐れがある。KAI-15で確定が必要。',
-        '正答の一意性: 空欄の位置で開いていて閉じられていない要素はstrongのみ（pは末尾で閉じられている）であり、正しい入れ子を成立させる回答はstrongに限られ、一意である。',
-      ],
-      unresolvedAcceptedAnswerCandidates: ['</strong>', '/strong'],
-      incorrectAnswerExamples: ['p', 'body'],
+      researchMetadata: {
+        notes: [
+          '正規化（案・§12参照）: 前後空白除去、小文字化して比較。',
+          '許容解に含めるか要確定: `</strong>`（終了タグ全体での回答）、`/strong`。問題文で「要素名」（例: body）を指示するが、タグ形式での回答を不正解にすると採点漏れの恐れがある。KAI-15で確定が必要。',
+          '正答の一意性: 空欄の位置で開いていて閉じられていない要素はstrongのみ（pは末尾で閉じられている）であり、正しい入れ子を成立させる回答はstrongに限られ、一意である。',
+        ],
+        unresolvedAcceptedAnswerCandidates: ['</strong>', '/strong'],
+        incorrectAnswerExamples: ['p', 'body'],
+      },
       explanation: '正解は`strong`です。空欄の位置では、`<p>`と`<strong>`の2つが開いていますが、内側（後から開始した）の`<strong>`を先に閉じる必要があります。`p`と答えた場合、`<strong>`が閉じられないまま`<p>`を閉じることになり、タグが交差した誤った入れ子になります。`<p>`はコードの末尾の`</p>`で閉じられています。復習する場合は教材「閉じる順序の規則」「交差した入れ子は誤り」（pilot-material-draft.md §4.2〜§4.3）を読み直してください。',
       mainReviewNodeId: 'html-021',
       relatedPrerequisiteNodeIds: ['html-020'],

@@ -12,10 +12,8 @@ export interface QuizChoice {
 
 interface BaseQuizQuestion {
   questionId: string
-  quizId: QuizId
   nodeId: MvpNodeId
-  questionSetVersion: QuestionSetVersion
-  passScore: number
+  sourceReference: string
   type: QuizQuestionType
   difficulty: string
   prompt: string
@@ -23,7 +21,13 @@ interface BaseQuizQuestion {
   explanation: string
   mainReviewNodeId: MvpNodeId
   relatedPrerequisiteNodeIds: readonly MvpNodeId[]
-  acceptedAnswerNotes: readonly string[]
+  researchMetadata: QuizQuestionResearchMetadata
+}
+
+export interface QuizQuestionResearchMetadata {
+  notes: readonly string[]
+  unresolvedAcceptedAnswerCandidates?: readonly string[]
+  incorrectAnswerExamples?: readonly string[]
 }
 
 export interface SingleChoiceQuestion extends BaseQuizQuestion {
@@ -37,8 +41,6 @@ export interface CodeCompletionQuestion extends BaseQuizQuestion {
   type: 'code-completion'
   choices: readonly []
   acceptedAnswers: readonly string[]
-  unresolvedAcceptedAnswerCandidates: readonly string[]
-  incorrectAnswerExamples: readonly string[]
 }
 
 export type QuizQuestion = SingleChoiceQuestion | CodeCompletionQuestion

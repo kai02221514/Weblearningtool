@@ -13,6 +13,8 @@ const expectedQuestionSetVersionByNodeId = {
   'css-011': 'quiz-css-011/v0.1',
 } as const satisfies Record<PilotQuizNodeId, string>
 
+const SOURCE_DOCUMENT_PATH = 'docs/content/pilot-quiz-prototype.md'
+
 describe('pilot quiz catalog', () => {
   it('defines exactly three pilot quiz definitions for the approved nodes', () => {
     expect(PILOT_QUIZ_CATALOG).toHaveLength(3)
@@ -36,18 +38,30 @@ describe('pilot quiz catalog', () => {
       expect(quiz.questionSetVersion).not.toBe('')
       expect(quiz.maxScore).toBe(3)
       expect(quiz.passScore).toBe(2)
+      expect(quiz.sourceDocumentPath).toBe(SOURCE_DOCUMENT_PATH)
     }
   })
 
-  it('keeps question metadata aligned with its parent quiz', () => {
+  it('keeps question metadata aligned with its parent quiz without duplicating quiz metadata', () => {
     for (const quiz of PILOT_QUIZ_CATALOG) {
       for (const question of quiz.questions) {
-        expect(question.quizId).toBe(quiz.quizId)
         expect(question.nodeId).toBe(quiz.nodeId)
-        expect(question.questionSetVersion).toBe(quiz.questionSetVersion)
-        expect(question.passScore).toBe(quiz.passScore)
+        expect(Object.prototype.hasOwnProperty.call(question, 'quizId')).toBe(false)
+        expect(Object.prototype.hasOwnProperty.call(question, 'questionSetVersion')).toBe(false)
+        expect(Object.prototype.hasOwnProperty.call(question, 'passScore')).toBe(false)
         expect(question.prompt.trim()).not.toBe('')
         expect(question.explanation.trim()).not.toBe('')
+        expect(question.researchMetadata.notes.length).toBeGreaterThan(0)
+      }
+    }
+  })
+
+  it('keeps every question linked to its source question section', () => {
+    for (const quiz of PILOT_QUIZ_CATALOG) {
+      for (const question of quiz.questions) {
+        expect(question.sourceReference).toBe(`${quiz.sourceDocumentPath}#${question.questionId}`)
+        expect(question.sourceReference.startsWith(`${SOURCE_DOCUMENT_PATH}#`)).toBe(true)
+        expect(question.sourceReference.endsWith(question.questionId)).toBe(true)
       }
     }
   })
@@ -111,13 +125,11 @@ describe('pilot quiz catalog', () => {
         if (question.type !== 'code-completion') continue
 
         expect(question.choices).toEqual([])
-        expect(
-          question.correctAnswer.trim() !== '' ||
-            question.acceptedAnswers.some(answer => answer.trim() !== '')
-        ).toBe(true)
+        expect(question.correctAnswer.trim()).not.toBe('')
+        expect(question.acceptedAnswers.some(answer => answer.trim() !== '')).toBe(true)
         expect(question.acceptedAnswers).toContain(question.correctAnswer)
 
-        for (const candidate of question.unresolvedAcceptedAnswerCandidates) {
+        for (const candidate of question.researchMetadata.unresolvedAcceptedAnswerCandidates ?? []) {
           expect(question.acceptedAnswers).not.toContain(candidate)
         }
       }
