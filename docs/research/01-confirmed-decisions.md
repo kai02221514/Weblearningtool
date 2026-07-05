@@ -57,7 +57,7 @@
 - [確認済み事実] Supabase接続先修正、Edge Function標準配置、`/health`到達、サインイン成功、認証後Dashboard到達は2026-07-03に手動確認済みである。
 - [未確認] 認証状態のリロード後復元、プロフィール保存成功、診断回答保存成功は確認済みではない。
 - [部分実装] プロファイル保存用エンドポイントは存在するが、初期アンケートからの保存フローは接続・検証が完了していない。
-- [確定事項] 研究仕様の正本は`docs/research/`配下とする。矛盾時は最新の有効な`09-decision-log.md`、`01-confirmed-decisions.md`、`02-open-questions.md`、各研究文書の順に優先する。
+- [確定事項] 研究仕様の正本は`docs/research/`配下とする。文書優先順位はD-019に従い、現在の会話で明示された最新判断、最新の有効な`09-decision-log.md`、`01-confirmed-decisions.md`、`02-open-questions.md`、`03-mvp-scope.md`、その他の`docs/research/`配下の研究文書、`docs/architecture/`、`docs/operations/`、現在のコード、`docs/references/`と`docs/archive/`の順に優先する。
 - [確定事項] 旧`docs/`直下文書は参考資料・履歴資料・検討案として扱う。
 - [確定事項] コードは実装事実の確認材料であり、研究仕様の正解とはみなさない。
 - [確定事項] 要件ID体系はMVP評価終了まで既存のR-xx体系を維持し、RQ/LM/MVP/ERR/EVAL/DATA/OPS体系への全面移行は現時点では行わない。

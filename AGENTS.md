@@ -10,13 +10,16 @@ These instructions apply to the whole repository.
 
 Before implementation work, read the current task or Linear issue and then use this source order:
 
-1. `docs/research/09-decision-log.md`
-2. `docs/research/01-confirmed-decisions.md`
-3. `docs/research/02-open-questions.md`
-4. Task-relevant files under `docs/research/`
-5. `docs/operations/ai-research-development-roadmap.md`
-6. `docs/research/10-handover.md`
-7. `docs/operations/codex-workflow.md`
+1. Current task, Linear issue, or current researcher instruction
+2. `docs/research/09-decision-log.md`
+3. `docs/research/01-confirmed-decisions.md`
+4. `docs/research/02-open-questions.md`
+5. `docs/research/03-mvp-scope.md`
+6. Other task-relevant files under `docs/research/`
+7. Task-relevant files under `docs/architecture/`
+8. Task-relevant files under `docs/operations/`
+9. Current code, as implementation-state evidence only
+10. `docs/references/` and `docs/archive/`, as non-canonical history
 
 If documents conflict, follow the latest valid decision in `docs/research/09-decision-log.md`. Code is evidence of implementation state, not the source of research truth.
 

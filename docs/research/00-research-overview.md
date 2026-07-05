@@ -18,13 +18,15 @@
 ## 情報の優先順位
 
 1. 現在の会話で明示された最新判断
-2. `01-confirmed-decisions.md`
-3. `09-decision-log.md` の最新有効判断
-4. `03-mvp-scope.md`
-5. 履修計画書・指導教員との合意
-6. 最新研究資料
-7. GitHubコード
-8. 古い発表資料・古い会話
+2. 最新の有効な `09-decision-log.md`
+3. `01-confirmed-decisions.md`
+4. `02-open-questions.md`
+5. `03-mvp-scope.md`
+6. その他の `docs/research/` 配下の研究文書
+7. `docs/architecture/` 配下の承認済み技術仕様
+8. `docs/operations/` 配下の運用文書
+9. 現在のコード
+10. `docs/references/` と `docs/archive/`
 
 コードは実装状態の一次情報源だが、研究仕様の正解ではない。研究資料とコードが不一致の場合は、仕様を勝手にコードへ合わせず、`02-open-questions.md` または `09-decision-log.md` に記録する。
 
@@ -70,4 +72,4 @@
 
 - `11-independent-audit.md` と `12-independent-reaudit.md` は、過去版に対する監査履歴であり、現在有効な研究仕様ではない。
 - 現在のパッケージに対する最新監査結果は `14-independent-reaudit.md` を参照する。
-- 過去監査記録と現行仕様が異なる場合は、`01-confirmed-decisions.md`、`02-open-questions.md`、`09-decision-log.md`、各現行仕様文書を優先する。
+- 過去監査記録と現行仕様が異なる場合は、最新の有効な `09-decision-log.md`、`01-confirmed-decisions.md`、`02-open-questions.md`、各現行仕様文書を優先する。

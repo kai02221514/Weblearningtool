@@ -21,13 +21,15 @@
 
 ## 参照ルール
 
-1. 最新の有効な `docs/research/09-decision-log.md`
-2. `docs/research/01-confirmed-decisions.md`
-3. `docs/research/02-open-questions.md`
-4. `docs/research/` 配下の各研究文書
-5. `docs/architecture/` 配下の承認済み技術仕様
-6. `docs/operations/` 配下の運用文書
-7. `docs/references/` 配下の旧資料
-8. `docs/archive/` 配下の監査証跡
+1. 現在の会話で明示された最新判断
+2. 最新の有効な `docs/research/09-decision-log.md`
+3. `docs/research/01-confirmed-decisions.md`
+4. `docs/research/02-open-questions.md`
+5. `docs/research/03-mvp-scope.md`
+6. その他の `docs/research/` 配下の研究文書
+7. `docs/architecture/` 配下の承認済み技術仕様
+8. `docs/operations/` 配下の運用文書
+9. 現在のコード
+10. `docs/references/` と `docs/archive/`
 
 未確定事項をCodexや実装担当者が独自に確定してはならない。コードは実装状態の証拠であり、研究仕様の正本ではない。

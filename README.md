@@ -6,9 +6,12 @@
 
 研究仕様の正本は `docs/research/` 配下です。コードは現在の実装状態を示す確認材料であり、研究仕様の正解とはみなしません。
 
+矛盾がある場合の参照順序は、`docs/research/09-decision-log.md` D-019 と `docs/README.md` の参照ルールに従ってください。
+
 作業前に次を確認してください。
 
 - `AGENTS.md`
+- `docs/research/09-decision-log.md`
 - `docs/operations/codex-workflow.md`
 - `docs/operations/ai-research-development-roadmap.md`
 - `docs/README.md`
