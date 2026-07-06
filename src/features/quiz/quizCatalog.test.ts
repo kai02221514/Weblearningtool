@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+
 import { describe, expect, it } from 'vitest'
 
 import { MVP_NODE_IDS } from '../../domain/mvpScope'
@@ -8,12 +10,19 @@ import {
 } from './quizCatalog'
 
 const expectedQuestionSetVersionByNodeId = {
-  'html-010': 'quiz-html-010/v0.1',
-  'html-021': 'quiz-html-021/v0.1',
-  'css-011': 'quiz-css-011/v0.1',
+  'html-010': 'quiz-html-010/v0.2',
+  'html-021': 'quiz-html-021/v0.2',
+  'css-011': 'quiz-css-011/v0.2',
 } as const satisfies Record<PilotQuizNodeId, string>
 
 const SOURCE_DOCUMENT_PATH = 'docs/content/pilot-quiz-prototype.md'
+const sourceDocument = readFileSync(SOURCE_DOCUMENT_PATH, 'utf8')
+
+const codeCompletionQuestionById = Object.fromEntries(
+  PILOT_QUIZ_CATALOG.flatMap(quiz => quiz.questions)
+    .filter(question => question.type === 'code-completion')
+    .map(question => [question.questionId, question])
+)
 
 describe('pilot quiz catalog', () => {
   it('defines exactly three pilot quiz definitions for the approved nodes', () => {
@@ -36,6 +45,7 @@ describe('pilot quiz catalog', () => {
       expect(quiz.quizId).toBe(`quiz-${quiz.nodeId}`)
       expect(quiz.questionSetVersion).toBe(expectedQuestionSetVersionByNodeId[quiz.nodeId])
       expect(quiz.questionSetVersion).not.toBe('')
+      expect(sourceDocument).toContain(`questionSetVersion: \`${quiz.questionSetVersion}\``)
       expect(quiz.maxScore).toBe(3)
       expect(quiz.passScore).toBe(2)
       expect(quiz.sourceDocumentPath).toBe(SOURCE_DOCUMENT_PATH)
@@ -128,11 +138,32 @@ describe('pilot quiz catalog', () => {
         expect(question.correctAnswer.trim()).not.toBe('')
         expect(question.acceptedAnswers.some(answer => answer.trim() !== '')).toBe(true)
         expect(question.acceptedAnswers).toContain(question.correctAnswer)
+        expect(question.answerNormalization.trimWhitespace).toBe(true)
+        expect(question.answerNormalization.caseInsensitive).toBe(true)
+        expect(question.answerNormalization.matchStrategy).toBe('exact-accepted-answer')
+        expect(question.researchMetadata.acceptedAnswerDecision?.decisionId).toBe('D-020')
+        expect(Object.prototype.hasOwnProperty.call(question.researchMetadata, 'unresolvedAcceptedAnswerCandidates')).toBe(false)
 
-        for (const candidate of question.researchMetadata.unresolvedAcceptedAnswerCandidates ?? []) {
-          expect(question.acceptedAnswers).not.toContain(candidate)
+        for (const rejectedAnswer of question.researchMetadata.acceptedAnswerDecision?.rejected ?? []) {
+          expect(question.acceptedAnswers).not.toContain(rejectedAnswer)
         }
       }
     }
+  })
+
+  it('records the D-020 accepted and rejected answers for pilot code-completion questions', () => {
+    expect(codeCompletionQuestionById['html-010-q3'].acceptedAnswers).toEqual(['body', '<body>'])
+    expect(codeCompletionQuestionById['html-010-q3'].acceptedAnswers).not.toContain('</body>')
+    expect(codeCompletionQuestionById['html-010-q3'].acceptedAnswers).not.toContain('/body')
+
+    expect(codeCompletionQuestionById['html-021-q3'].acceptedAnswers).toEqual([
+      'strong',
+      '</strong>',
+    ])
+    expect(codeCompletionQuestionById['html-021-q3'].acceptedAnswers).not.toContain('/strong')
+    expect(codeCompletionQuestionById['html-021-q3'].acceptedAnswers).not.toContain('<strong>')
+
+    expect(codeCompletionQuestionById['css-011-q3'].acceptedAnswers).toEqual(['color'])
+    expect(codeCompletionQuestionById['css-011-q3'].acceptedAnswers).not.toContain('color:')
   })
 })

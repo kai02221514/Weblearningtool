@@ -9,7 +9,7 @@ const code = (...lines: string[]) => lines.join('\n')
 export const css011Quiz = {
   quizId: 'quiz-css-011',
   nodeId: 'css-011',
-  questionSetVersion: 'quiz-css-011/v0.1',
+  questionSetVersion: 'quiz-css-011/v0.2',
   passScore: PASS_SCORE,
   maxScore: MAX_SCORE,
   sourceDocumentPath: SOURCE_DOCUMENT_PATH,
@@ -86,14 +86,29 @@ export const css011Quiz = {
       choices: [],
       correctAnswer: 'color',
       acceptedAnswers: ['color'],
+      answerNormalization: {
+        trimWhitespace: true,
+        caseInsensitive: true,
+        scope: 'css-property-name',
+        matchStrategy: 'exact-accepted-answer',
+      },
       researchMetadata: {
         notes: [
-          '正規化（案・§12参照）: 前後空白除去、小文字化して比較（CSSのプロパティ名は大文字小文字を区別しないため`COLOR`等も正答扱い）。',
-          '許容解に含めるか要確定: `color:`（コロン付き回答）。空欄の直後にコロンが提示されているため原則不要だが、含めて回答する学習者の発生が予想される。KAI-15で確定が必要。',
+          'D-020により、前後空白を除去し、CSSプロパティ名を大文字小文字を区別せず比較する。',
+          '`color:`は、空欄直後にコロンが表示されているため不採用にする。',
           '正答の一意性: 教材草案§5.5はこの単元で使うプロパティをcolorとfont-sizeの2つに限定しており、「文字の色を変える」に対応するのはcolorのみで、教材範囲内で一意である。（CSS全体では文字色に影響する他の手段が存在し得るが、教材範囲外であり、採点は許容解集合との一致で行うため一意性は保たれる。）',
         ],
-        unresolvedAcceptedAnswerCandidates: ['color:'],
-        incorrectAnswerExamples: ['colour', 'font-color', 'text-color', 'blue'],
+        acceptedAnswerDecision: {
+          decisionId: 'D-020',
+          decidedBy: '北代櫂',
+          accepted: ['color'],
+          rejected: ['color:', 'colour', 'font-color', 'text-color', 'blue'],
+          rationale: [
+            '問題文はプロパティ名を要求しており、空欄直後にコロンが既に表示されている。',
+            '`color:`を空欄へ代入すると`color:: blue;`となり、提示コードとして不正になる。',
+          ],
+        },
+        incorrectAnswerExamples: ['color:', 'colour', 'font-color', 'text-color', 'blue'],
       },
       explanation: '正解は`color`です。文字の色は`color`プロパティで指定します。「プロパティ: 値;」の形で、`color: blue;`と書くと文字が青になります。`font-color`や`text-color`というプロパティはCSSにはありません。値（blue）の側は「どう変えるか」、プロパティ（color）の側は「何を変えるか」を受け持つ、という役割の違いも確認してください。復習する場合は教材「色の指定」「この単元で使うプロパティ」（pilot-material-draft.md §5.4〜§5.5）を読み直してください。',
       mainReviewNodeId: 'css-011',
