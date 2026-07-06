@@ -210,6 +210,8 @@ export default function App() {
     case 'quiz':
       return (
         <Quiz
+          nodeId={progress.currentNodeId}
+          nodeName={progress.currentNodeName}
           onComplete={handleQuizComplete}
           onDashboard={handleDashboard}
           onReturnToLearning={handleReturnToLearning}

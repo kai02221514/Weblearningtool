@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Progress } from './ui/progress'
@@ -6,81 +6,93 @@ import { RadioGroup, RadioGroupItem } from './ui/radio-group'
 import { Label } from './ui/label'
 import { Input } from './ui/input'
 import { Badge } from './ui/badge'
-import { CheckCircle, XCircle, RotateCcw, ArrowRight, Home } from 'lucide-react'
+import { CheckCircle, XCircle, RotateCcw, ArrowRight, Home, AlertTriangle } from 'lucide-react'
+import {
+  QuizGradingInputError,
+  type QuizGradingResult,
+  type QuizQuestionGradingResult,
+} from '../features/quiz/grading'
+import { PILOT_QUIZ_NODE_IDS } from '../features/quiz/quizCatalog'
+import {
+  createEmptyQuizAnswerState,
+  getQuizQuestionAnswer,
+  gradeQuizUiAnswerState,
+  isQuizQuestionAnswered,
+  isQuizReadyToSubmit,
+  resolvePilotQuizByNodeId,
+  setQuizQuestionAnswer,
+  type QuizUiAnswerState,
+} from '../features/quiz/quizUiModel'
+import type { QuizQuestion } from '../features/quiz/types'
 
 interface QuizProps {
+  nodeId: string
+  nodeName: string
   onComplete: (score: number) => void
   onDashboard: () => void
   onReturnToLearning: () => void
 }
 
-const quizQuestions = [
-  {
-    type: 'multiple',
-    question: 'HTMLファイルの基本構造で、最初に書くべき宣言は何ですか？',
-    options: [
-      '<!DOCTYPE html>',
-      '<html>',
-      '<head>',
-      '<body>'
-    ],
-    correct: 0,
-    explanation: '<!DOCTYPE html>は、文書がHTML5であることをブラウザに伝える宣言です。'
-  },
-  {
-    type: 'fill',
-    question: '見出しを表すHTMLタグは < >です。（数字なしで回答）',
-    answer: 'h1',
-    explanation: '<h1>から<h6>まで、6段階の見出しタグがあります。'
-  },
-  {
-    type: 'multiple',
-    question: 'HTMLタグで、段落を表すのはどれですか？',
-    options: [
-      '<div>',
-      '<span>',
-      '<p>',
-      '<section>'
-    ],
-    correct: 2,
-    explanation: '<p>タグは paragraph（段落）の略です。'
-  }
-]
-
-export function Quiz({ onComplete, onDashboard, onReturnToLearning }: QuizProps) {
+export function Quiz({
+  nodeId,
+  nodeName,
+  onComplete,
+  onDashboard,
+  onReturnToLearning,
+}: QuizProps) {
+  const quiz = resolvePilotQuizByNodeId(nodeId)
   const [currentQuestion, setCurrentQuestion] = useState(0)
-  const [answers, setAnswers] = useState<(number | string | null)[]>(new Array(quizQuestions.length).fill(null))
-  const [showResult, setShowResult] = useState(false)
-  const [score, setScore] = useState(0)
+  const [answers, setAnswers] = useState<QuizUiAnswerState>(() =>
+    quiz === null ? {} : createEmptyQuizAnswerState(quiz)
+  )
+  const [gradingResult, setGradingResult] = useState<QuizGradingResult | null>(null)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
-  const handleAnswer = useCallback((answer: number | string) => {
-    setAnswers(prevAnswers => {
-      const newAnswers = [...prevAnswers]
-      newAnswers[currentQuestion] = answer
-      return newAnswers
-    })
-  }, [currentQuestion])
+  useEffect(() => {
+    setCurrentQuestion(0)
+    setAnswers(quiz === null ? {} : createEmptyQuizAnswerState(quiz))
+    setGradingResult(null)
+    setSubmitError(null)
+  }, [quiz])
 
-  const calculateScore = useCallback(() => {
-    let correctCount = 0
-    quizQuestions.forEach((question, index) => {
-      if (question.type === 'multiple') {
-        if (answers[index] === question.correct) correctCount++
-      } else if (question.type === 'fill') {
-        if (answers[index]?.toString().toLowerCase() === question.answer.toLowerCase()) correctCount++
-      }
-    })
-    setScore(correctCount)
-    setShowResult(true)
-  }, [answers])
+  const resultByQuestionId = useMemo(() => {
+    return new Map(
+      gradingResult?.questionResults.map(result => [result.questionId, result]) ?? []
+    )
+  }, [gradingResult])
+
+  const handleAnswer = useCallback((answer: string) => {
+    if (quiz === null) return
+
+    const question = quiz.questions[currentQuestion]
+    setAnswers(prevAnswers => setQuizQuestionAnswer(prevAnswers, question, answer))
+  }, [currentQuestion, quiz])
+
+  const submitQuiz = useCallback(() => {
+    if (quiz === null || !isQuizReadyToSubmit(quiz, answers)) return
+
+    try {
+      setGradingResult(gradeQuizUiAnswerState(quiz, answers))
+      setSubmitError(null)
+    } catch (error) {
+      const detail = error instanceof QuizGradingInputError
+        ? `${error.code}: ${JSON.stringify(error.details)}`
+        : String(error)
+
+      console.error('Quiz grading failed', detail)
+      setSubmitError('確認テストの採点中に問題が発生しました。回答内容を確認してもう一度送信してください。')
+    }
+  }, [answers, quiz])
 
   const nextQuestion = useCallback(() => {
-    if (currentQuestion < quizQuestions.length - 1) {
+    if (quiz === null) return
+
+    if (currentQuestion < quiz.questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1)
     } else {
-      calculateScore()
+      submitQuiz()
     }
-  }, [calculateScore, currentQuestion])
+  }, [currentQuestion, quiz, submitQuiz])
 
   const prevQuestion = useCallback(() => {
     if (currentQuestion > 0) {
@@ -88,104 +100,111 @@ export function Quiz({ onComplete, onDashboard, onReturnToLearning }: QuizProps)
     }
   }, [currentQuestion])
 
-  const progress = ((currentQuestion + 1) / quizQuestions.length) * 100
-  const question = quizQuestions[currentQuestion]
-
-  // キーボードナビゲーション
   useEffect(() => {
-    // 結果画面では無効化
-    if (showResult) return
+    if (quiz === null || gradingResult !== null) return
+
+    const question = quiz.questions[currentQuestion]
 
     const handleKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement
+      const isTextInput = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement
 
-      // 選択式問題の場合
-      if (question.type === 'multiple') {
-        // Input要素以外で数字キー（1-4）を押した場合
-        if (!(target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement)) {
-          const num = parseInt(event.key)
-          if (num >= 1 && num <= 4 && question.options && num <= question.options.length) {
-            handleAnswer(num - 1)
-            event.preventDefault()
-            return
-          }
-
-          // 矢印キーで選択肢を移動
-          if (event.key === 'ArrowUp') {
-            const current = answers[currentQuestion] as number | null
-            if (current !== null && current > 0) {
-              handleAnswer(current - 1)
-            } else if (current === null && question.options) {
-              handleAnswer(question.options.length - 1)
-            }
-            event.preventDefault()
-            return
-          }
-
-          if (event.key === 'ArrowDown') {
-            const current = answers[currentQuestion] as number | null
-            if (current !== null && question.options && current < question.options.length - 1) {
-              handleAnswer(current + 1)
-            } else if (current === null) {
-              handleAnswer(0)
-            }
-            event.preventDefault()
-            return
-          }
+      if (question.type === 'single-choice' && !isTextInput) {
+        const num = parseInt(event.key)
+        if (num >= 1 && num <= question.choices.length) {
+          handleAnswer(question.choices[num - 1].id)
+          event.preventDefault()
+          return
         }
-      }
 
-      // テキスト入力式問題の場合
-      if (question.type === 'fill') {
-        // Input内でEnterキーまたはCmd/Ctrl+Enterで次へ
-        if (event.key === 'Enter' && target instanceof HTMLInputElement) {
-          const hasAnswer = answers[currentQuestion] !== null && answers[currentQuestion] !== ''
-          if (hasAnswer) {
-            nextQuestion()
-            event.preventDefault()
-          }
+        const currentAnswer = getQuizQuestionAnswer(answers, question)
+        const currentChoiceId = currentAnswer?.type === 'single-choice'
+          ? currentAnswer.choiceId
+          : null
+        const currentChoiceIndex = currentChoiceId === null
+          ? -1
+          : question.choices.findIndex(choice => choice.id === currentChoiceId)
+
+        if (event.key === 'ArrowUp') {
+          const previousIndex = currentChoiceIndex > 0
+            ? currentChoiceIndex - 1
+            : question.choices.length - 1
+          handleAnswer(question.choices[previousIndex].id)
+          event.preventDefault()
+          return
+        }
+
+        if (event.key === 'ArrowDown') {
+          const nextIndex = currentChoiceIndex >= 0 && currentChoiceIndex < question.choices.length - 1
+            ? currentChoiceIndex + 1
+            : 0
+          handleAnswer(question.choices[nextIndex].id)
+          event.preventDefault()
           return
         }
       }
 
-      // 共通: Enterキーで次へ（Input以外の場合）
-      if (event.key === 'Enter' && !(target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement)) {
-        const hasAnswer = answers[currentQuestion] !== null && answers[currentQuestion] !== ''
-        if (hasAnswer) {
+      if (event.key === 'Enter' && (question.type !== 'code-completion' || isTextInput)) {
+        if (isQuizQuestionAnswered(answers, question)) {
           nextQuestion()
           event.preventDefault()
         }
         return
       }
 
-      // 左右矢印キーで前後の問題へ移動（Input以外の場合）
-      if (!(target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement)) {
-        if (event.key === 'ArrowLeft') {
-          if (currentQuestion > 0) {
-            prevQuestion()
-            event.preventDefault()
-          }
-          return
-        }
+      if (!isTextInput && event.key === 'ArrowLeft') {
+        prevQuestion()
+        event.preventDefault()
+        return
+      }
 
-        if (event.key === 'ArrowRight') {
-          const hasAnswer = answers[currentQuestion] !== null && answers[currentQuestion] !== ''
-          if (hasAnswer && currentQuestion < quizQuestions.length - 1) {
-            nextQuestion()
-            event.preventDefault()
-          }
-          return
+      if (!isTextInput && event.key === 'ArrowRight') {
+        if (isQuizQuestionAnswered(answers, question) && currentQuestion < quiz.questions.length - 1) {
+          nextQuestion()
+          event.preventDefault()
         }
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [answers, currentQuestion, handleAnswer, nextQuestion, prevQuestion, question, showResult])
+  }, [answers, currentQuestion, gradingResult, handleAnswer, nextQuestion, prevQuestion, quiz])
 
-  if (showResult) {
-    const percentage = Math.round((score / quizQuestions.length) * 100)
-    const isPassed = percentage >= 70
+  if (quiz === null) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-4xl mx-auto px-4">
+          <Card className="shadow-lg border-amber-200">
+            <CardHeader className="text-center">
+              <div className="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center bg-amber-100">
+                <AlertTriangle className="w-10 h-10 text-amber-700" />
+              </div>
+              <CardTitle className="text-2xl">このノードの確認テストは未対応です</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="text-center text-muted-foreground">
+                <p>対象ノード: {nodeId}</p>
+                <p>現在接続済みの確認テスト: {PILOT_QUIZ_NODE_IDS.join(', ')}</p>
+              </div>
+              <div className="flex gap-4 justify-center">
+                <Button variant="outline" onClick={onDashboard}>
+                  <Home className="w-4 h-4 mr-2" />
+                  ダッシュボード
+                </Button>
+                <Button variant="outline" onClick={onReturnToLearning}>
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  学習に戻る
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
+
+  if (gradingResult !== null) {
+    const percentage = Math.round((gradingResult.score / gradingResult.maxScore) * 100)
 
     return (
       <div className="min-h-screen bg-gray-50 py-8">
@@ -193,45 +212,58 @@ export function Quiz({ onComplete, onDashboard, onReturnToLearning }: QuizProps)
           <Card className="shadow-lg">
             <CardHeader className="text-center">
               <div className={`w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center ${
-                isPassed ? 'bg-green-100' : 'bg-red-100'
+                gradingResult.passed ? 'bg-green-100' : 'bg-red-100'
               }`}>
-                {isPassed ? (
+                {gradingResult.passed ? (
                   <CheckCircle className="w-10 h-10 text-green-600" />
                 ) : (
                   <XCircle className="w-10 h-10 text-red-600" />
                 )}
               </div>
               <CardTitle className="text-2xl">
-                {isPassed ? '合格おめでとうございます！' : 'もう少し復習が必要です'}
+                {gradingResult.passed ? '合格おめでとうございます！' : 'もう少し復習が必要です'}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-center mb-6">
-                <div className="text-4xl mb-2">{score} / {quizQuestions.length}</div>
+                <div className="text-4xl mb-2">
+                  {gradingResult.score} / {gradingResult.maxScore}
+                </div>
                 <div className="text-xl mb-4">正答率: {percentage}%</div>
-                <Badge variant={isPassed ? 'default' : 'destructive'} className="text-lg px-4 py-2">
-                  {isPassed ? '合格（70%以上）' : '再挑戦が必要（70%未満）'}
+                <Badge variant={gradingResult.passed ? 'default' : 'destructive'} className="text-lg px-4 py-2">
+                  {gradingResult.passed
+                    ? `合格（${gradingResult.passScore}/${gradingResult.maxScore}以上）`
+                    : `再挑戦が必要（${gradingResult.passScore}/${gradingResult.maxScore}未満）`}
                 </Badge>
+                <p className="text-sm text-muted-foreground mt-3">
+                  {gradingResult.quizId} / {gradingResult.questionSetVersion}
+                </p>
               </div>
 
               <div className="space-y-4 mb-6">
-                {quizQuestions.map((q, index) => {
-                  const isCorrect = q.type === 'multiple' 
-                    ? answers[index] === q.correct
-                    : answers[index]?.toString().toLowerCase() === q.answer.toLowerCase()
-                  
+                {quiz.questions.map((question, index) => {
+                  const questionResult = resultByQuestionId.get(question.questionId)
+                  if (questionResult === undefined) return null
+
                   return (
-                    <Card key={index} className={isCorrect ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}>
+                    <Card
+                      key={question.questionId}
+                      className={questionResult.isCorrect ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}
+                    >
                       <CardContent className="p-4">
                         <div className="flex items-start gap-3">
-                          {isCorrect ? (
+                          {questionResult.isCorrect ? (
                             <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
                           ) : (
                             <XCircle className="w-5 h-5 text-red-600 mt-0.5" />
                           )}
-                          <div className="flex-1">
-                            <p className="mb-2">問題{index + 1}: {q.question}</p>
-                            <p className="text-sm text-muted-foreground">{q.explanation}</p>
+                          <div className="flex-1 space-y-2">
+                            <p className="mb-2">問題{index + 1}: {question.prompt}</p>
+                            <p className="text-sm">
+                              あなたの回答: {formatSubmittedAnswer(question, questionResult)}
+                            </p>
+                            <p className="text-sm">正答: {question.correctAnswer}</p>
+                            <p className="text-sm text-muted-foreground">{question.explanation}</p>
                           </div>
                         </div>
                       </CardContent>
@@ -245,15 +277,15 @@ export function Quiz({ onComplete, onDashboard, onReturnToLearning }: QuizProps)
                   <Home className="w-4 h-4 mr-2" />
                   ダッシュボード
                 </Button>
-                
-                {!isPassed && (
+
+                {!gradingResult.passed && (
                   <Button variant="outline" onClick={onReturnToLearning}>
                     <RotateCcw className="w-4 h-4 mr-2" />
                     復習する
                   </Button>
                 )}
-                
-                {isPassed && (
+
+                {gradingResult.passed && (
                   <Button onClick={() => onComplete(percentage)}>
                     実践課題へ
                     <ArrowRight className="w-4 h-4 ml-2" />
@@ -267,19 +299,29 @@ export function Quiz({ onComplete, onDashboard, onReturnToLearning }: QuizProps)
     )
   }
 
+  const progress = ((currentQuestion + 1) / quiz.questions.length) * 100
+  const question = quiz.questions[currentQuestion]
+  const currentAnswer = getQuizQuestionAnswer(answers, question)
+  const isCurrentQuestionAnswered = isQuizQuestionAnswered(answers, question)
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
-            <h1>確認テスト: HTMLの基礎</h1>
+            <div>
+              <h1>確認テスト: {nodeName}</h1>
+              <p className="text-sm text-muted-foreground">
+                {quiz.quizId} / {quiz.questionSetVersion}
+              </p>
+            </div>
             <Button variant="outline" size="sm" onClick={onDashboard}>
               <Home className="w-4 h-4 mr-2" />
               ダッシュボード
             </Button>
           </div>
           <div className="flex justify-between text-sm text-muted-foreground mb-2">
-            <span>問題 {currentQuestion + 1} / {quizQuestions.length}</span>
+            <span>問題 {currentQuestion + 1} / {quiz.questions.length}</span>
             <span>進捗: {Math.round(progress)}%</span>
           </div>
           <Progress value={progress} />
@@ -291,54 +333,71 @@ export function Quiz({ onComplete, onDashboard, onReturnToLearning }: QuizProps)
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              <p className="text-lg">{question.question}</p>
+              <div className="text-lg whitespace-pre-wrap">{question.prompt}</div>
 
-              {question.type === 'multiple' && (
-                <RadioGroup 
-                  value={answers[currentQuestion]?.toString()} 
-                  onValueChange={(value) => handleAnswer(parseInt(value))}
+              {question.type === 'single-choice' && (
+                <RadioGroup
+                  value={currentAnswer?.type === 'single-choice' ? currentAnswer.choiceId : ''}
+                  onValueChange={(value) => handleAnswer(value)}
                 >
-                  {question.options.map((option, index) => (
-                    <div 
-                      key={index} 
-                      className="flex items-center space-x-2 p-3 rounded border hover:bg-gray-50 cursor-pointer"
-                      onClick={() => document.getElementById(`option-${index}`)?.click()}
-                    >
-                      <RadioGroupItem value={index.toString()} id={`option-${index}`} />
-                      <Label htmlFor={`option-${index}`} className="flex-1 cursor-pointer">
-                        {option}
-                      </Label>
-                    </div>
-                  ))}
+                  {question.choices.map((choice, index) => {
+                    const optionId = `${question.questionId}-${choice.id}`
+
+                    return (
+                      <div
+                        key={choice.id}
+                        className="flex items-center space-x-2 p-3 rounded border hover:bg-gray-50 cursor-pointer"
+                        onClick={() => document.getElementById(optionId)?.click()}
+                      >
+                        <RadioGroupItem value={choice.id} id={optionId} />
+                        <Label htmlFor={optionId} className="flex-1 cursor-pointer">
+                          <span className="mr-2 text-muted-foreground">{index + 1}.</span>
+                          {choice.presentation === 'code' ? (
+                            <pre className="inline-block align-top whitespace-pre-wrap font-mono text-sm">
+                              {choice.label}
+                            </pre>
+                          ) : (
+                            choice.label
+                          )}
+                        </Label>
+                      </div>
+                    )
+                  })}
                 </RadioGroup>
               )}
 
-              {question.type === 'fill' && (
+              {question.type === 'code-completion' && (
                 <div className="space-y-2">
                   <Label>答えを入力してください:</Label>
                   <Input
-                    placeholder="タグ名を入力（例: div）"
-                    value={answers[currentQuestion]?.toString() || ''}
-                    onChange={(e) => handleAnswer(e.target.value)}
+                    placeholder="回答を入力"
+                    value={currentAnswer?.type === 'code-completion' ? currentAnswer.answer : ''}
+                    onChange={(event) => handleAnswer(event.target.value)}
                     className="text-lg p-4"
                   />
                 </div>
               )}
 
+              {submitError !== null && (
+                <div className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                  {submitError}
+                </div>
+              )}
+
               <div className="flex justify-between pt-4">
-                <Button 
-                  variant="outline" 
-                  onClick={prevQuestion} 
+                <Button
+                  variant="outline"
+                  onClick={prevQuestion}
                   disabled={currentQuestion === 0}
                 >
                   前の問題
                 </Button>
-                
-                <Button 
+
+                <Button
                   onClick={nextQuestion}
-                  disabled={answers[currentQuestion] === null || answers[currentQuestion] === ''}
+                  disabled={!isCurrentQuestionAnswered}
                 >
-                  {currentQuestion === quizQuestions.length - 1 ? '結果を見る' : '次の問題'}
+                  {currentQuestion === quiz.questions.length - 1 ? '結果を見る' : '次の問題'}
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </div>
@@ -348,4 +407,20 @@ export function Quiz({ onComplete, onDashboard, onReturnToLearning }: QuizProps)
       </div>
     </div>
   )
+}
+
+function formatSubmittedAnswer(
+  question: QuizQuestion,
+  result: QuizQuestionGradingResult,
+): string {
+  if (question.type === 'single-choice' && result.questionType === 'single-choice') {
+    const submittedChoice = question.choices.find(choice => choice.id === result.submittedChoiceId)
+    return submittedChoice?.label ?? '未回答'
+  }
+
+  if (question.type === 'code-completion' && result.questionType === 'code-completion') {
+    return result.submittedAnswer ?? '未回答'
+  }
+
+  return '未回答'
 }
