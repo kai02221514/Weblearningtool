@@ -8,13 +8,19 @@ import { Input } from './ui/input'
 import { Badge } from './ui/badge'
 import { CheckCircle, XCircle, RotateCcw, ArrowRight, Home, AlertTriangle } from 'lucide-react'
 import {
+  QuizAttemptInputError,
+  addQuizAttempt,
+  getQuizAttemptState,
+  type QuizAttemptResult,
+} from '../features/quiz/attempts'
+import {
   QuizGradingInputError,
-  type QuizGradingResult,
   type QuizQuestionGradingResult,
 } from '../features/quiz/grading'
 import { PILOT_QUIZ_NODE_IDS } from '../features/quiz/quizCatalog'
 import {
   createEmptyQuizAnswerState,
+  buildQuizSubmission,
   getQuizQuestionAnswer,
   gradeQuizUiAnswerState,
   isQuizQuestionAnswered,
@@ -23,7 +29,7 @@ import {
   setQuizQuestionAnswer,
   type QuizUiAnswerState,
 } from '../features/quiz/quizUiModel'
-import type { QuizQuestion } from '../features/quiz/types'
+import type { QuizId, QuizQuestion } from '../features/quiz/types'
 
 interface QuizProps {
   nodeId: string
@@ -45,21 +51,29 @@ export function Quiz({
   const [answers, setAnswers] = useState<QuizUiAnswerState>(() =>
     quiz === null ? {} : createEmptyQuizAnswerState(quiz)
   )
-  const [gradingResult, setGradingResult] = useState<QuizGradingResult | null>(null)
+  const [attemptHistory, setAttemptHistory] = useState<readonly QuizAttemptResult[]>([])
+  const [currentAttempt, setCurrentAttempt] = useState<QuizAttemptResult | null>(null)
+  const [attemptStartedAt, setAttemptStartedAt] = useState(() => new Date().toISOString())
   const [submitError, setSubmitError] = useState<string | null>(null)
 
   useEffect(() => {
     setCurrentQuestion(0)
     setAnswers(quiz === null ? {} : createEmptyQuizAnswerState(quiz))
-    setGradingResult(null)
+    setAttemptHistory([])
+    setCurrentAttempt(null)
+    setAttemptStartedAt(new Date().toISOString())
     setSubmitError(null)
   }, [quiz])
 
+  const attemptState = useMemo(() => {
+    return quiz === null ? null : getQuizAttemptState(attemptHistory, quiz)
+  }, [attemptHistory, quiz])
+
   const resultByQuestionId = useMemo(() => {
     return new Map(
-      gradingResult?.questionResults.map(result => [result.questionId, result]) ?? []
+      currentAttempt?.questionResults.map(result => [result.questionId, result]) ?? []
     )
-  }, [gradingResult])
+  }, [currentAttempt])
 
   const handleAnswer = useCallback((answer: string) => {
     if (quiz === null) return
@@ -69,20 +83,46 @@ export function Quiz({
   }, [currentQuestion, quiz])
 
   const submitQuiz = useCallback(() => {
-    if (quiz === null || !isQuizReadyToSubmit(quiz, answers)) return
+    if (
+      quiz === null
+      || !isQuizReadyToSubmit(quiz, answers)
+      || attemptState === null
+      || !attemptState.canAttempt
+    ) return
 
     try {
-      setGradingResult(gradeQuizUiAnswerState(quiz, answers))
+      const submission = buildQuizSubmission(quiz, answers)
+      const gradingResult = gradeQuizUiAnswerState(quiz, answers)
+      const addedAttempt = addQuizAttempt({
+        attempts: attemptHistory,
+        submission,
+        gradingResult,
+        attemptId: createQuizAttemptId(quiz.quizId, attemptState.nextAttemptNumber),
+        startedAt: attemptStartedAt,
+        submittedAt: new Date().toISOString(),
+      })
+      setAttemptHistory(addedAttempt.attempts)
+      setCurrentAttempt(addedAttempt.attempt)
       setSubmitError(null)
     } catch (error) {
-      const detail = error instanceof QuizGradingInputError
+      const detail = error instanceof QuizGradingInputError || error instanceof QuizAttemptInputError
         ? `${error.code}: ${JSON.stringify(error.details)}`
         : String(error)
 
       console.error('Quiz grading failed', detail)
       setSubmitError('確認テストの採点中に問題が発生しました。回答内容を確認してもう一度送信してください。')
     }
-  }, [answers, quiz])
+  }, [answers, attemptHistory, attemptStartedAt, attemptState, quiz])
+
+  const retryQuiz = useCallback(() => {
+    if (quiz === null || attemptState === null || !attemptState.canAttempt) return
+
+    setCurrentQuestion(0)
+    setAnswers(createEmptyQuizAnswerState(quiz))
+    setCurrentAttempt(null)
+    setAttemptStartedAt(new Date().toISOString())
+    setSubmitError(null)
+  }, [attemptState, quiz])
 
   const nextQuestion = useCallback(() => {
     if (quiz === null) return
@@ -101,7 +141,7 @@ export function Quiz({
   }, [currentQuestion])
 
   useEffect(() => {
-    if (quiz === null || gradingResult !== null) return
+    if (quiz === null || currentAttempt !== null) return
 
     const question = quiz.questions[currentQuestion]
 
@@ -168,7 +208,7 @@ export function Quiz({
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [answers, currentQuestion, gradingResult, handleAnswer, nextQuestion, prevQuestion, quiz])
+  }, [answers, currentAttempt, currentQuestion, handleAnswer, nextQuestion, prevQuestion, quiz])
 
   if (quiz === null) {
     return (
@@ -203,8 +243,8 @@ export function Quiz({
     )
   }
 
-  if (gradingResult !== null) {
-    const percentage = Math.round((gradingResult.score / gradingResult.maxScore) * 100)
+  if (currentAttempt !== null) {
+    const percentage = Math.round((currentAttempt.score / currentAttempt.maxScore) * 100)
 
     return (
       <div className="min-h-screen bg-gray-50 py-8">
@@ -212,31 +252,31 @@ export function Quiz({
           <Card className="shadow-lg">
             <CardHeader className="text-center">
               <div className={`w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center ${
-                gradingResult.passed ? 'bg-green-100' : 'bg-red-100'
+                currentAttempt.passed ? 'bg-green-100' : 'bg-red-100'
               }`}>
-                {gradingResult.passed ? (
+                {currentAttempt.passed ? (
                   <CheckCircle className="w-10 h-10 text-green-600" />
                 ) : (
                   <XCircle className="w-10 h-10 text-red-600" />
                 )}
               </div>
               <CardTitle className="text-2xl">
-                {gradingResult.passed ? '合格おめでとうございます！' : 'もう少し復習が必要です'}
+                {currentAttempt.passed ? '合格おめでとうございます！' : 'もう少し復習が必要です'}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-center mb-6">
                 <div className="text-4xl mb-2">
-                  {gradingResult.score} / {gradingResult.maxScore}
+                  {currentAttempt.score} / {currentAttempt.maxScore}
                 </div>
                 <div className="text-xl mb-4">正答率: {percentage}%</div>
-                <Badge variant={gradingResult.passed ? 'default' : 'destructive'} className="text-lg px-4 py-2">
-                  {gradingResult.passed
-                    ? `合格（${gradingResult.passScore}/${gradingResult.maxScore}以上）`
-                    : `再挑戦が必要（${gradingResult.passScore}/${gradingResult.maxScore}未満）`}
+                <Badge variant={currentAttempt.passed ? 'default' : 'destructive'} className="text-lg px-4 py-2">
+                  {currentAttempt.passed
+                    ? `合格（${currentAttempt.passScore}/${currentAttempt.maxScore}以上）`
+                    : `再挑戦が必要（${currentAttempt.passScore}/${currentAttempt.maxScore}未満）`}
                 </Badge>
                 <p className="text-sm text-muted-foreground mt-3">
-                  {gradingResult.quizId} / {gradingResult.questionSetVersion}
+                  {currentAttempt.quizId} / {currentAttempt.questionSetVersion} / 試行{currentAttempt.attemptNumber}
                 </p>
               </div>
 
@@ -278,14 +318,21 @@ export function Quiz({
                   ダッシュボード
                 </Button>
 
-                {!gradingResult.passed && (
+                {!currentAttempt.passed && (
                   <Button variant="outline" onClick={onReturnToLearning}>
                     <RotateCcw className="w-4 h-4 mr-2" />
                     復習する
                   </Button>
                 )}
 
-                {gradingResult.passed && (
+                {!currentAttempt.passed && attemptState?.canAttempt && (
+                  <Button onClick={retryQuiz}>
+                    <RotateCcw className="w-4 h-4 mr-2" />
+                    再受験する
+                  </Button>
+                )}
+
+                {currentAttempt.passed && (
                   <Button onClick={() => onComplete(percentage)}>
                     実践課題へ
                     <ArrowRight className="w-4 h-4 ml-2" />
@@ -322,7 +369,7 @@ export function Quiz({
           </div>
           <div className="flex justify-between text-sm text-muted-foreground mb-2">
             <span>問題 {currentQuestion + 1} / {quiz.questions.length}</span>
-            <span>進捗: {Math.round(progress)}%</span>
+            <span>試行 {attemptState?.nextAttemptNumber ?? 1} / 進捗: {Math.round(progress)}%</span>
           </div>
           <Progress value={progress} />
         </div>
@@ -423,4 +470,12 @@ function formatSubmittedAnswer(
   }
 
   return '未回答'
+}
+
+function createQuizAttemptId(quizId: QuizId, attemptNumber: number): string {
+  const randomId = typeof crypto !== 'undefined' && 'randomUUID' in crypto
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`
+
+  return `${quizId}-attempt-${attemptNumber}-${randomId}`
 }
