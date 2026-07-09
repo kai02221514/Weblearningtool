@@ -6,6 +6,7 @@ import {
   addQuizAttempt,
   canAttemptQuiz,
   getQuizAttemptState,
+  type AddQuizAttemptInput,
   type QuizAttemptResult,
 } from './attempts'
 import { css011Quiz } from './data/css-011'
@@ -13,6 +14,9 @@ import { html010Quiz } from './data/html-010'
 import { html021Quiz } from './data/html-021'
 import { gradeQuizSubmission, type QuizSubmission } from './grading'
 import type { QuizDefinition, QuizQuestion } from './types'
+
+const DEFAULT_STARTED_AT = '2026-07-07T00:00:00.000Z'
+const DEFAULT_SUBMITTED_AT = '2026-07-07T00:01:00.000Z'
 
 describe('quiz attempt control', () => {
   it('allows the first attempt when there is no attempt history', () => {
@@ -99,6 +103,216 @@ describe('quiz attempt control', () => {
     ).toThrow(QuizAttemptInputError)
   })
 
+  it('rejects an empty startedAt timestamp', () => {
+    expectQuizAttemptInputError(
+      () => addQuizAttempt(validAttemptInput({ startedAt: '' })),
+      'invalid_attempt_timestamp',
+      {
+        startedAt: '',
+        submittedAt: DEFAULT_SUBMITTED_AT,
+      },
+    )
+  })
+
+  it('rejects an empty submittedAt timestamp', () => {
+    expectQuizAttemptInputError(
+      () => addQuizAttempt(validAttemptInput({ submittedAt: '' })),
+      'invalid_attempt_timestamp',
+      {
+        startedAt: DEFAULT_STARTED_AT,
+        submittedAt: '',
+      },
+    )
+  })
+
+  it('rejects an unparseable startedAt timestamp', () => {
+    expectQuizAttemptInputError(
+      () => addQuizAttempt(validAttemptInput({ startedAt: 'not-a-date' })),
+      'invalid_attempt_timestamp',
+      {
+        startedAt: 'not-a-date',
+        submittedAt: DEFAULT_SUBMITTED_AT,
+      },
+    )
+  })
+
+  it('rejects an unparseable submittedAt timestamp', () => {
+    expectQuizAttemptInputError(
+      () => addQuizAttempt(validAttemptInput({ submittedAt: 'not-a-date' })),
+      'invalid_attempt_timestamp',
+      {
+        startedAt: DEFAULT_STARTED_AT,
+        submittedAt: 'not-a-date',
+      },
+    )
+  })
+
+  it('rejects a submittedAt timestamp before startedAt', () => {
+    expectQuizAttemptInputError(
+      () =>
+        addQuizAttempt(
+          validAttemptInput({
+            startedAt: '2026-07-07T00:02:00.000Z',
+            submittedAt: '2026-07-07T00:01:00.000Z',
+          }),
+        ),
+      'invalid_attempt_timestamp',
+      {
+        startedAt: '2026-07-07T00:02:00.000Z',
+        submittedAt: '2026-07-07T00:01:00.000Z',
+      },
+    )
+  })
+
+  it('allows equal startedAt and submittedAt timestamps', () => {
+    const { attempt } = addQuizAttempt(
+      validAttemptInput({
+        startedAt: DEFAULT_STARTED_AT,
+        submittedAt: DEFAULT_STARTED_AT,
+      }),
+    )
+
+    expect(attempt.startedAt).toBe(DEFAULT_STARTED_AT)
+    expect(attempt.submittedAt).toBe(DEFAULT_STARTED_AT)
+  })
+
+  it('adds an attempt with valid ISO timestamps', () => {
+    const { attempt, attempts } = addQuizAttempt(validAttemptInput())
+
+    expect(attempt.startedAt).toBe(DEFAULT_STARTED_AT)
+    expect(attempt.submittedAt).toBe(DEFAULT_SUBMITTED_AT)
+    expect(attempts).toHaveLength(1)
+  })
+
+  it('rejects a duplicate attemptId for the same quiz', () => {
+    const history = addQuizAttempt(
+      attemptInputFor(html010Quiz, [true, false, false], {
+        attemptId: 'duplicate-attempt-id',
+      }),
+    ).attempts
+
+    expectQuizAttemptInputError(
+      () =>
+        addQuizAttempt(
+          attemptInputFor(html010Quiz, [false, true, false], {
+            attempts: history,
+            attemptId: 'duplicate-attempt-id',
+          }),
+        ),
+      'duplicate_attempt_id',
+      {
+        attemptId: 'duplicate-attempt-id',
+      },
+    )
+  })
+
+  it('rejects a duplicate attemptId for another quizId', () => {
+    const history = addQuizAttempt(
+      attemptInputFor(html010Quiz, [true, false, false], {
+        attemptId: 'duplicate-attempt-id',
+      }),
+    ).attempts
+
+    expectQuizAttemptInputError(
+      () =>
+        addQuizAttempt(
+          attemptInputFor(html021Quiz, [true, false, false], {
+            attempts: history,
+            attemptId: 'duplicate-attempt-id',
+          }),
+        ),
+      'duplicate_attempt_id',
+      {
+        attemptId: 'duplicate-attempt-id',
+      },
+    )
+  })
+
+  it('rejects a duplicate attemptId for another nodeId', () => {
+    const history = addQuizAttempt(
+      attemptInputFor(html010Quiz, [true, false, false], {
+        attemptId: 'duplicate-attempt-id',
+      }),
+    ).attempts
+
+    expectQuizAttemptInputError(
+      () =>
+        addQuizAttempt(
+          attemptInputFor(css011Quiz, [true, false, false], {
+            attempts: history,
+            attemptId: 'duplicate-attempt-id',
+          }),
+        ),
+      'duplicate_attempt_id',
+      {
+        attemptId: 'duplicate-attempt-id',
+      },
+    )
+  })
+
+  it('allows another attempt when attemptId is different', () => {
+    const history = addQuizAttempt(
+      attemptInputFor(html010Quiz, [true, false, false], {
+        attemptId: 'first-attempt-id',
+      }),
+    ).attempts
+    const { attempts } = addQuizAttempt(
+      attemptInputFor(html010Quiz, [false, true, false], {
+        attempts: history,
+        attemptId: 'second-attempt-id',
+      }),
+    )
+
+    expect(attempts.map(attempt => attempt.attemptId)).toEqual([
+      'first-attempt-id',
+      'second-attempt-id',
+    ])
+  })
+
+  it('reports duplicate_attempt_id and the duplicate id in details', () => {
+    const history = addQuizAttempt(
+      attemptInputFor(html010Quiz, [true, false, false], {
+        attemptId: 'duplicate-attempt-id',
+      }),
+    ).attempts
+
+    expectQuizAttemptInputError(
+      () =>
+        addQuizAttempt(
+          attemptInputFor(html021Quiz, [true, false, false], {
+            attempts: history,
+            attemptId: 'duplicate-attempt-id',
+          }),
+        ),
+      'duplicate_attempt_id',
+      {
+        attemptId: 'duplicate-attempt-id',
+      },
+    )
+  })
+
+  it('does not mutate existing history when attemptId is duplicated', () => {
+    const history = addQuizAttempt(
+      attemptInputFor(html010Quiz, [true, false, false], {
+        attemptId: 'duplicate-attempt-id',
+      }),
+    ).attempts
+    const beforeDuplicate = [...history]
+
+    expectQuizAttemptInputError(
+      () =>
+        addQuizAttempt(
+          attemptInputFor(html021Quiz, [true, false, false], {
+            attempts: history,
+            attemptId: 'duplicate-attempt-id',
+          }),
+        ),
+      'duplicate_attempt_id',
+    )
+    expect(history).toEqual(beforeDuplicate)
+    expect(history).toHaveLength(1)
+  })
+
   it('creates deterministic attempt results when inputs and dependencies are the same', () => {
     const submission = submissionFor(html010Quiz, [true, false, false])
     const gradingResult = gradeQuizSubmission(html010Quiz, submission)
@@ -131,6 +345,31 @@ describe('quiz attempt control', () => {
   })
 })
 
+function validAttemptInput(
+  overrides: Partial<AddQuizAttemptInput> = {},
+): AddQuizAttemptInput {
+  return attemptInputFor(html010Quiz, [true, false, false], overrides)
+}
+
+function attemptInputFor(
+  quiz: QuizDefinition,
+  correctnessByQuestion: readonly boolean[],
+  overrides: Partial<AddQuizAttemptInput> = {},
+): AddQuizAttemptInput {
+  const submission = submissionFor(quiz, correctnessByQuestion)
+  const gradingResult = gradeQuizSubmission(quiz, submission)
+
+  return {
+    attempts: [],
+    submission,
+    gradingResult,
+    attemptId: 'attempt-valid',
+    startedAt: DEFAULT_STARTED_AT,
+    submittedAt: DEFAULT_SUBMITTED_AT,
+    ...overrides,
+  }
+}
+
 function addAttempt(
   attempts: readonly QuizAttemptResult[],
   quiz: QuizDefinition,
@@ -148,6 +387,31 @@ function addAttempt(
     startedAt: `2026-07-07T00:0${attemptNumberForId}:00.000Z`,
     submittedAt: `2026-07-07T00:0${attemptNumberForId}:30.000Z`,
   })
+}
+
+function expectQuizAttemptInputError(
+  action: () => unknown,
+  code: QuizAttemptInputError['code'],
+  details?: Readonly<Record<string, string>>,
+): void {
+  let caughtError: unknown
+
+  try {
+    action()
+  } catch (error) {
+    caughtError = error
+  }
+
+  if (!(caughtError instanceof QuizAttemptInputError)) {
+    expect(caughtError).toBeInstanceOf(QuizAttemptInputError)
+    return
+  }
+
+  expect(caughtError.code).toBe(code)
+
+  if (details !== undefined) {
+    expect(caughtError.details).toMatchObject(details)
+  }
 }
 
 function submissionFor(

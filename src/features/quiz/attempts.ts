@@ -46,6 +46,7 @@ export type QuizAttemptState = {
 
 export type QuizAttemptInputErrorCode =
   | 'attempt_after_passed'
+  | 'duplicate_attempt_id'
   | 'grading_submission_mismatch'
   | 'invalid_attempt_timestamp'
 
@@ -116,6 +117,7 @@ export function addQuizAttempt({
   submittedAt,
 }: AddQuizAttemptInput): AddQuizAttemptResult {
   validateAttemptTimestamp(startedAt, submittedAt)
+  validateUniqueAttemptId(attempts, attemptId)
   validateGradingSubmissionMatch(submission, gradingResult)
 
   const target = {
@@ -168,10 +170,45 @@ function isTargetAttempt(
 }
 
 function validateAttemptTimestamp(startedAt: string, submittedAt: string): void {
-  if (startedAt === '' || submittedAt === '') {
+  const startedAtTime = Date.parse(startedAt)
+  const submittedAtTime = Date.parse(submittedAt)
+
+  if (
+    startedAt.trim() === '' ||
+    submittedAt.trim() === '' ||
+    Number.isNaN(startedAtTime) ||
+    Number.isNaN(submittedAtTime) ||
+    submittedAtTime < startedAtTime
+  ) {
+    throw invalidAttemptTimestampError(startedAt, submittedAt)
+  }
+}
+
+function invalidAttemptTimestampError(
+  startedAt: string,
+  submittedAt: string,
+): QuizAttemptInputError {
+  return new QuizAttemptInputError(
+    'invalid_attempt_timestamp',
+    'Quiz attempt timestamps must be non-empty date-time strings, and submittedAt must be at or after startedAt.',
+    {
+      startedAt,
+      submittedAt,
+    },
+  )
+}
+
+function validateUniqueAttemptId(
+  attempts: readonly QuizAttemptResult[],
+  attemptId: QuizAttemptId,
+): void {
+  if (attempts.some(attempt => attempt.attemptId === attemptId)) {
     throw new QuizAttemptInputError(
-      'invalid_attempt_timestamp',
-      'Quiz attempt timestamps must be non-empty ISO-8601 strings.',
+      'duplicate_attempt_id',
+      'A quiz attempt with the same attemptId already exists.',
+      {
+        attemptId,
+      },
     )
   }
 }
