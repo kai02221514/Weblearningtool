@@ -140,7 +140,7 @@
 - 自動テスト: [部分確認済み] PR #5で `typecheck`、`lint`、`test`、`build`、`check` スクリプトとGitHub Actionsによる `npm run check` を導入済み。PR #6ではMVPノード定義と予備試行用クイズカタログの構造検証テストのみを追加・修正した。
 - KAI-22自動検証: [確認済み] 2026-07-06に `npm ci`、`npm run typecheck`、`npm run lint`、`npm run test`、`npm run build`、`npm run check`、`npm run verify`、`git diff --check` を実行し成功した。`npm run test`では3ファイル67件が成功した。`npm ci`ではNode 20.10.0に対して一部依存がNode 22以上を要求する警告が出たが、インストール自体は成功した。
 - KAI-21自動検証: [確認済み] 2026-07-06に `npm ci`、`npm run typecheck`、`npm run lint`、`npm run test`、`npm run build`、`npm run check`、`npm run verify`、`git diff --check` を実行し成功した。`npm run test`では4ファイル75件が成功した。`npm ci`ではNode 20.17.0に対して一部依存がNode 22以上等を要求する`EBADENGINE`警告が出たが、インストール自体は成功した。
-- KAI-23自動検証: [確認済み] 2026-07-07に `npm run typecheck` と `npm run test` を実行し成功した。`npm run test`では5ファイル86件が成功した。メモリ内の試行結果モデル、再受験可否、合格後の試行追加拒否、対象3ノードと採点関数の整合を単体テストで確認した。永続化、同意、評価ログ、KAI-24の統合検証は未実施である。
+- KAI-23自動検証: [確認済み] PR #12を2026-07-09に`main`へマージした後、`npm run typecheck`、`npm run lint`、`npm run test`、`npm run build`、`npm run check`、`npm run verify`を実行し成功した。`npm run test`では5ファイル99件が成功した。メモリ内の試行結果モデル、再受験可否、合格後の試行追加拒否、不正日時・時刻逆転・`attemptId`重複拒否、対象3ノードと採点関数の整合を単体テストで確認した。永続化、同意、評価ログ、KAI-24の統合検証は未実施である。
 - セッション復元: [未確認] リロード後の認証状態復元は確認していない
 - プロフィール保存: [未確認] 実際の保存成功は確認していない
 
