@@ -9,6 +9,12 @@
 - 追加確認日: 2026-07-05
 - KAI-20作業開始時点の`main`: `233f9ac6152bc587643134f67bcfeea50be69d37`
 - KAI-21作業開始時点の`main`: `461dea5e7eca532eb077f0998a4b680945ba74c8`
+- KAI-24監査指摘追加確認日: 2026-07-13
+- KAI-24対象PR: Draft PR #17（`main` <- `test/kai-24-pilot-quiz-integration`、mainマージ前）
+- KAI-24対象base commit: `ee375b4a78915a2e760aaaef5f3c951f0ed390b6`
+- KAI-24監査開始時head commit: `dbdf6b67db7933062c82f8cf392303b106997eed`（修正後headと最新CIはPR #17を正とする）
+- KAI-24再現可能UIハーネスcommit: `bea03f8`
+- KAI-24確認状態: 自動検証とブラウザ手動確認を実施済み。正本文書との内容一致は自動構造確認と9問の手動原文照合を区別して記録する。
 
 [注意] `1a8efb5aa28a9ef08042a9e275cc171dccf8b6a2`および`0f09e5b9f7ba500eaa2a2a8e33252c03d59410d4`は2026-07-02監査時点の旧スナップショットである。以下は2026-07-03に最新`main`を再確認した結果を含む。
 
@@ -58,6 +64,7 @@
 - 予備試行用確認テストデータ: `html-010`、`html-021`、`css-011` の3ノード9問を `src/features/quiz/` 配下の型付きデータへ変換し、ID、版、形式、出典参照、参照整合性の構造検証テストを追加した。
 - KAI-22採点・正規化: `src/features/quiz/grading.ts` に、短いコード補完回答の正規化、単一問題の採点、クイズ全体の採点、提出入力の実装上の検証を行う純粋関数を追加した。実行時のコード補完判定は各問題の`acceptedAnswers`と`answerNormalization`を使用し、`researchMetadata.acceptedAnswerDecision`は説明・追跡情報として扱う。
 - KAI-21 Quiz UI接続: `src/components/Quiz.tsx` は `progress.currentNodeId` から渡されたノードIDを使い、`src/features/quiz/` の型付きクイズカタログを表示する。回答はquestionId単位で保持し、単一選択はchoice ID、短いコード補完は文字列として `QuizSubmission` へ変換したうえで、KAI-22の `gradeQuizSubmission` へ採点を委譲する。未対応ノードは固定問題へフォールバックせず、未対応状態を表示する。
+- KAI-24統合検証: `src/features/quiz/pilotQuizIntegration.test.ts` に、対象3ノードについてUI回答状態、提出変換、採点、D-020境界値、試行追加、再受験可否、合格後試行拒否を横断する統合テストを追加した。これは検証証跡であり、問題内容、許容解、合格基準、再受験規則、保存仕様は変更していない。
 
 ## 2026-07-03手動確認
 
@@ -141,6 +148,8 @@
 - KAI-22自動検証: [確認済み] 2026-07-06に `npm ci`、`npm run typecheck`、`npm run lint`、`npm run test`、`npm run build`、`npm run check`、`npm run verify`、`git diff --check` を実行し成功した。`npm run test`では3ファイル67件が成功した。`npm ci`ではNode 20.10.0に対して一部依存がNode 22以上を要求する警告が出たが、インストール自体は成功した。
 - KAI-21自動検証: [確認済み] 2026-07-06に `npm ci`、`npm run typecheck`、`npm run lint`、`npm run test`、`npm run build`、`npm run check`、`npm run verify`、`git diff --check` を実行し成功した。`npm run test`では4ファイル75件が成功した。`npm ci`ではNode 20.17.0に対して一部依存がNode 22以上等を要求する`EBADENGINE`警告が出たが、インストール自体は成功した。
 - KAI-23自動検証: [確認済み] PR #12を2026-07-09に`main`へマージした後、`npm run typecheck`、`npm run lint`、`npm run test`、`npm run build`、`npm run check`、`npm run verify`を実行し成功した。`npm run test`では5ファイル99件が成功した。メモリ内の試行結果モデル、再受験可否、合格後の試行追加拒否、不正日時・時刻逆転・`attemptId`重複拒否、対象3ノードと採点関数の整合を単体テストで確認した。永続化、同意、評価ログ、KAI-24の統合検証は未実施である。
+- KAI-24統合検証: [確認済み] 2026-07-09に `npm ci`、`npm run test -- src/features/quiz/pilotQuizIntegration.test.ts`、`npm run typecheck`、`npm run lint`、`npm run test`、`npm run build`、`npm run check`、`npm run verify`、`git diff --check` を実行し成功した。`npm run test`では6ファイル104件が成功した。対象3ノードについて、UI回答状態から提出、採点、試行追加、再受験制御までを横断して確認した。ブラウザ手動確認では、初回合格、不合格後再受験、回答初期化、試行番号増加、D-020代表境界値、合格後再受験導線なし、実践課題イベント、未対応ノード表示を確認した。初回PR head `dbdf6b67db7933062c82f8cf392303b106997eed`のGitHub Actions `check`はrun `29202826108`で成功した。
+- KAI-24最新main再検証: [確認済み] 2026-07-13にmain `ee375b4a78915a2e760aaaef5f3c951f0ed390b6`へrebase後、対象限定テスト、`npm run typecheck`、`npm run lint`、`npm run test`、`npm run build`、`npm run verify`、`git diff --check`を実行し成功した。ブラウザでは対象3ノードの固有問題、3/3・2/3合格、1/3不合格、不合格後の回答初期化と試行2、D-020代表境界、合格後再受験導線なし、未対応ノード表示、コンソールwarn/errorなしを再確認した。
 - セッション復元: [未確認] リロード後の認証状態復元は確認していない
 - プロフィール保存: [未確認] 実際の保存成功は確認していない
 
@@ -149,9 +158,9 @@
 ## 次の最小作業単位
 
 1. OQ-004、OQ-005、OQ-006は初期仕様として解消済みである。
-2. KAI-24で予備試行前統合検証を行う。
-3. KAI-12確定後に、必要な保存処理へ進む。
-4. 3〜5名程度の予備試行を行う。
-5. Phase 3でOQ-009を解消し、研究データ管理、同意、保存、削除、アクセス権限を確定する。
+2. KAI-24 Draft PR #17のレビュー、必要修正、mainマージ後の最終確認を行う。
+3. 研究判断ゲートとしてKAI-12 / OQ-009を解消し、研究データ管理、同意、保存、削除、アクセス権限、評価ログを確定する。
+4. KAI-13等の独立実装候補は、Linear上の確認事項を満たす範囲だけ進める。
+5. 予備試行はKAI-24マージと関連準備の条件を確認した後に実施する。
 
 [注意] Phase 3は仕様確定作業であり、未確定の診断重み、ルート生成優先順位、確認テスト閾値、保存項目を実装上の既定値で補完してはならない。
