@@ -1,0 +1,7 @@
+interface:
+  display_name: "Weblearningtool Task Executor"
+  short_description: "研究仕様を確認して実装からDraft PRまで進める"
+  default_prompt: "$weblearningtool-task-executor を使って、Weblearningtoolの確定済みタスクを研究仕様と実装状態を区別して実行してください。"
+
+policy:
+  allow_implicit_invocation: false
