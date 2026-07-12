@@ -1,6 +1,6 @@
 [mcp_servers.supabase]
 url = "https://mcp.supabase.com/mcp?project_ref=znfwkrhquegvlcmugkoe&read_only=true&features=database,docs"
-enabled = true
+enabled = false
 required = false
 default_tools_approval_mode = "prompt"
 enabled_tools = [
@@ -9,3 +9,15 @@ enabled_tools = [
   "list_extensions",
   "list_migrations",
 ]
+
+[mcp_servers.supabase.tools.search_docs]
+approval_mode = "prompt"
+
+[mcp_servers.supabase.tools.list_tables]
+approval_mode = "prompt"
+
+[mcp_servers.supabase.tools.list_extensions]
+approval_mode = "prompt"
+
+[mcp_servers.supabase.tools.list_migrations]
+approval_mode = "prompt"
