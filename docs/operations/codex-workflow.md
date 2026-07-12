@@ -10,6 +10,16 @@
 
 `AGENTS.md` は短い入口、本文書は実作業チェックリスト、`docs/development/git-workflow.md` はGit/GitHub運用規約、`docs/research/10-handover.md` は現在地の引継ぎとして扱う。
 
+## プロジェクト専用Skill
+
+Weblearningtoolの確定済みタスクをCodexで実行する場合は、原則として `$weblearningtool-task-executor` を明示的に呼び出す。
+
+このSkillは、正本確認、未確定事項と作業範囲の確認、Git開始ゲート、変更、検証、commit、push、Draft PR作成、最終報告を一貫して行うための作業入口である。詳細な手順は `.agents/skills/weblearningtool-task-executor/SKILL.md` を参照する。
+
+Skillは研究仕様の正本ではない。研究仕様は `AGENTS.md` の参照順序に従い、`docs/research/`、Decision Log、confirmed decisions、関連する承認済みアーキテクチャ文書から確認する。未確定の研究判断をSkill、コード、mock、既存UIから補完してはならない。作業に新しい研究判断が必要な場合は変更を開始せず、必要な判断と反映先を報告する。
+
+暗黙呼び出しは無効であるため、利用時は明示的にSkill名を指定する。使用例: `$weblearningtool-task-executor KAI-XXを実行してください。`
+
 ## 作業開始前
 
 1. `git status --short --branch` でブランチと未コミット差分を確認する。
