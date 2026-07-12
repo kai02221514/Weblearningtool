@@ -39,10 +39,12 @@ npm run check
 - 実行済みコマンド: `npm ci`、`npm run test -- src/features/quiz/pilotQuizIntegration.test.ts`、`npm run typecheck`、`npm run lint`、`npm run test`、`npm run build`、`npm run check`、`npm run verify`、`git diff --check`
 - 結果: すべて成功。`npm run test` は6ファイル104件成功。
 - 注意: `npm ci`ではNode v20.17.0に対する`EBADENGINE`警告が出た。インストールと後続検証は成功したため、KAI-24起因の阻害要因ではない。
-- ブラウザ確認: 一時ハーネスで対象3ノードの初回合格、不合格後再受験、回答初期化、試行番号増加、D-020代表境界値、合格後再受験導線なし、実践課題イベント、未対応ノード表示を確認した。ハーネスはコミット対象に残していない。
+- 2026-07-09ブラウザ確認: 当時の一時ハーネスで対象3ノードの初回合格、不合格後再受験、回答初期化、試行番号増加、D-020代表境界値、合格後再受験導線なし、実践課題イベント、未対応ノード表示を確認した。この一時ハーネスは残していないが、監査指摘対応で同等目的の再利用可能ハーネスを追加した。
 - 最新main再検証: 2026-07-13にmain `ee375b4a78915a2e760aaaef5f3c951f0ed390b6`へrebaseし、対象限定5件、全104件、typecheck、lint、build、verify、`git diff --check`に成功した。ブラウザでも対象3ノード、合否境界、再受験、D-020代表境界、未対応ノード、コンソールwarn/errorなしを再確認した。
+- 再現可能なUI確認: `npm run dev -- --host 127.0.0.1`を実行し、`http://127.0.0.1:3000/manual/kai-24/`を開く。`manual/kai-24/index.html`から非プロダクションentry `src/manual/kai24QuizHarness.tsx`だけを読み込み、通常の`src/main.tsx`からは参照しない。ノード選択で対象3ノードと`html-000`を切り替える。詳細な操作ケースと期待結果は`docs/research/kai-24-pilot-quiz-integration-verification.md`を参照する。
+- GitHub Actions: 初回PR head `dbdf6b67db7933062c82f8cf392303b106997eed`のworkflow `Check` / job `check`はrun `29202826108`で成功した。監査修正後headの最新結果はPR #17を正本とする。
 
 ## 今回の検証対象外
 
 - Supabase保存、同意取得、評価ログ、研究データ利用、予備試行そのものはKAI-24の検証対象外とする。
-- KAI-24ではブラウザでのQuiz UI動作確認を別途実施し、保存済み履歴ではなくメモリ内状態として記録する。
+- KAI-24では再現可能な非プロダクションハーネスでQuiz UI動作確認を実施し、保存済み履歴ではなくメモリ内状態として記録する。ハーネスは認証情報を持たず、研究データを外部送信しない。
