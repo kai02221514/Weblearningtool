@@ -88,7 +88,7 @@ pnpm、Yarn、Bun等のロックファイルがある場合は、対応するコ
 - `src/features/quiz/`: 予備試行用3ノード9問の型付きクイズカタログと構造検証テスト
 - `src/App.tsx`: 画面遷移と状態管理
 - `src/components/Dashboard.tsx`: 推薦表示
-- `src/components/Quiz.tsx`: 固定確認問題
+- `src/components/Quiz.tsx`: 対象3ノードの型付きクイズ表示・回答・採点接続。未対応ノードでは固定問題へフォールバックせず、未対応状態を表示する
 - `src/components/PracticeChallenge.tsx`: 実践課題・簡易エラー検出
 - `docs/research/03-mvp-scope.md`: 現在有効なMVP仕様
 - `docs/research/06-implementation-status.md`: 実装状態
