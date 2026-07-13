@@ -6,6 +6,8 @@
 - 検証日: 2026-07-09、最新main上の再検証: 2026-07-13
 - 対象ブランチ: `test/kai-24-pilot-quiz-integration`
 - baseとなったmain: `ee375b4a78915a2e760aaaef5f3c951f0ed390b6`
+- PR #17マージ: 2026-07-12T18:22:11Z、merge commit `e947b3ddd62528b915bee11ca2bea89ac4c635b9`
+- main確認commit: `e947b3ddd62528b915bee11ca2bea89ac4c635b9`
 - 再現可能UIハーネスcommit: `bea03f8`
 - 対象ノード: `html-010`, `html-021`, `css-011`
 - 関連Decision: D-018, D-020
@@ -101,6 +103,8 @@ KAI-24で `src/features/quiz/pilotQuizIntegration.test.ts` を追加し、次を
 
 2026-07-13に最新mainへrebase後、対象限定テスト、`typecheck`、`lint`、全テスト、`build`、`verify`、`git diff --check`を再実行し、すべて成功した。全テストは6ファイル104件、対象限定テストは1ファイル5件である。`npm ci`と`npm run check`の個別実行は2026-07-09の記録であり、2026-07-13は`npm run verify`経由で`check`を実行した。
 
+PR #17マージ後のmain `e947b3ddd62528b915bee11ca2bea89ac4c635b9`でも、`npm ci`、対象限定テスト、`typecheck`、`lint`、全テスト、`build`、`verify`、`git diff --check`を実行し、すべて成功した。対象限定テストは1ファイル5件、全テストは6ファイル104件である。`npm ci`ではNode v20.17.0に対し、一部依存がNode 22以上またはNode 20.19.0以上を要求する`EBADENGINE`警告と、`recharts@2.15.4`の非推奨警告が出たが、インストールと後続検証は成功した。
+
 ## ブラウザ手動確認結果
 
 再現手順:
@@ -148,7 +152,7 @@ npm run dev -- --host 127.0.0.1
 
 ## GitHub Actions
 
-初回PR head `dbdf6b67db7933062c82f8cf392303b106997eed`のGitHub Actions workflow `Check` / job `check`はrun `29202826108`で成功済みである。監査修正後headの最新run ID、URL、対象commit、conclusion、実行日時は、自己参照によるcommit SHA不一致を避けるためPR #17のChecks、PR本文、Linearコメントを最終証跡とする。
+PR #17のmerge commit `e947b3ddd62528b915bee11ca2bea89ac4c635b9`に対するGitHub Actions workflow `Check` / job `check`はrun `29203744740`（2026-07-12T18:22:13Z開始、同18:22:44Z完了）で成功した。run URLは `https://github.com/kai02221514/Weblearningtool/actions/runs/29203744740` である。これによりKAI-24の統合検証証跡はmainへ反映済みである。ただし、予備試行、保存、同意、評価ログ、研究データ利用、本実験用問題・教材の最終確定は完了していない。
 
 ## Decision Log更新判定
 

@@ -40,9 +40,10 @@ npm run check
 - 結果: すべて成功。`npm run test` は6ファイル104件成功。
 - 注意: `npm ci`ではNode v20.17.0に対する`EBADENGINE`警告が出た。インストールと後続検証は成功したため、KAI-24起因の阻害要因ではない。
 - 2026-07-09ブラウザ確認: 当時の一時ハーネスで対象3ノードの初回合格、不合格後再受験、回答初期化、試行番号増加、D-020代表境界値、合格後再受験導線なし、実践課題イベント、未対応ノード表示を確認した。この一時ハーネスは残していないが、監査指摘対応で同等目的の再利用可能ハーネスを追加した。
-- 最新main再検証: 2026-07-13にmain `ee375b4a78915a2e760aaaef5f3c951f0ed390b6`へrebaseし、対象限定5件、全104件、typecheck、lint、build、verify、`git diff --check`に成功した。ブラウザでも対象3ノード、合否境界、再受験、D-020代表境界、未対応ノード、コンソールwarn/errorなしを再確認した。
+- PR #17 main反映: 2026-07-12T18:22:11Zにmerge commit `e947b3ddd62528b915bee11ca2bea89ac4c635b9`として`main`へ反映済みである。
+- main再検証: 2026-07-13にmain `e947b3ddd62528b915bee11ca2bea89ac4c635b9`で`npm ci`、対象限定5件、全104件、typecheck、lint、build、verify、`git diff --check`に成功した。`npm ci`ではNode v20.17.0に対する`EBADENGINE`警告と`recharts@2.15.4`の非推奨警告が出たが、後続検証は成功した。ブラウザ確認結果はPR #17でmainへ反映された検証文書を参照する。
 - 再現可能なUI確認: `npm run dev -- --host 127.0.0.1`を実行し、`http://127.0.0.1:3000/manual/kai-24/`を開く。`manual/kai-24/index.html`から非プロダクションentry `src/manual/kai24QuizHarness.tsx`だけを読み込み、通常の`src/main.tsx`からは参照しない。ノード選択で対象3ノードと`html-000`を切り替える。詳細な操作ケースと期待結果は`docs/research/kai-24-pilot-quiz-integration-verification.md`を参照する。
-- GitHub Actions: 初回PR head `dbdf6b67db7933062c82f8cf392303b106997eed`のworkflow `Check` / job `check`はrun `29202826108`で成功した。監査修正後headの最新結果はPR #17を正本とする。
+- GitHub Actions: merge commit `e947b3ddd62528b915bee11ca2bea89ac4c635b9`に対するworkflow `Check` / job `check`はrun `29203744740`（2026-07-12T18:22:13Z開始、同18:22:44Z完了）で成功した。URLは `https://github.com/kai02221514/Weblearningtool/actions/runs/29203744740`。
 
 ## 今回の検証対象外
 
