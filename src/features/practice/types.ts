@@ -17,15 +17,30 @@ export interface PracticeCompletionCondition {
   mode: PracticeCheckMode
 }
 
-export interface PracticeExpectedError {
+interface PracticeExpectedErrorBase {
   label: string
-  mappingStatus: PracticeErrorMappingStatus
-  errorId?: string
   srk: SrkClassification
-  reviewNodeIds: readonly MvpNodeId[]
   detection: PracticeCheckMode | 'unsupported'
   note: string
 }
+
+export type PracticeExpectedError = PracticeExpectedErrorBase & (
+  | {
+    mappingStatus: 'mvp'
+    errorId: string
+    reviewNodeIds: readonly MvpNodeId[]
+  }
+  | {
+    mappingStatus: 'out-of-mvp'
+    errorId: string
+    reviewNodeIds: readonly []
+  }
+  | {
+    mappingStatus: 'unsupported'
+    errorId?: never
+    reviewNodeIds: readonly MvpNodeId[]
+  }
+)
 
 export interface PracticeChallengeDefinition {
   practiceId: 'practice-profile-card'

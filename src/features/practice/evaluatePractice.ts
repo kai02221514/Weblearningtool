@@ -5,45 +5,119 @@ import type {
 } from './types'
 import { getPilotPracticeChallenge } from './pilotPracticeChallenges'
 
-const compact = (code: string) => code.replace(/\s+/g, ' ').trim()
+interface MarkupNode {
+  name: string
+  children: MarkupNode[]
+  text: string
+}
+
+const VOID_ELEMENTS = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr'])
+
+function parseLimitedMarkup(code: string): { root: MarkupNode; wellFormed: boolean } {
+  const root: MarkupNode = { name: '#root', children: [], text: '' }
+  const stack = [root]
+  const tokenPattern = /<!--[\s\S]*?-->|<!doctype\s+html\s*>|<\/?([a-z][a-z0-9-]*)\b[^>]*>|([^<]+)/gi
+  let wellFormed = true
+  let match: RegExpExecArray | null
+
+  while ((match = tokenPattern.exec(code)) !== null) {
+    const token = match[0]
+    const text = match[2]
+
+    if (text !== undefined) {
+      stack[stack.length - 1].text += text
+      continue
+    }
+    if (token.startsWith('<!--') || /^<!doctype/i.test(token)) {
+      continue
+    }
+
+    const name = match[1]?.toLowerCase()
+    if (!name) continue
+
+    if (token.startsWith('</')) {
+      if (stack.length === 1 || stack[stack.length - 1].name !== name) {
+        wellFormed = false
+        continue
+      }
+      stack.pop()
+      continue
+    }
+
+    const node: MarkupNode = { name, children: [], text: '' }
+    stack[stack.length - 1].children.push(node)
+    if (!token.endsWith('/>') && !VOID_ELEMENTS.has(name)) {
+      stack.push(node)
+    }
+  }
+
+  return { root, wellFormed: wellFormed && stack.length === 1 }
+}
+
+function directChild(node: MarkupNode | undefined, name: string): MarkupNode | undefined {
+  return node?.children.find(child => child.name === name)
+}
+
+function textContent(node: MarkupNode | undefined): string {
+  if (!node) return ''
+  return `${node.text}${node.children.map(textContent).join('')}`.trim()
+}
 
 function evaluateHtml010(code: string): Record<string, boolean> {
-  const normalized = compact(code)
-  const htmlMatch = normalized.match(/<html(?:\s[^>]*)?>([\s\S]*)<\/html>/i)
-  const htmlContent = htmlMatch?.[1] ?? ''
-  const headMatch = htmlContent.match(/<head(?:\s[^>]*)?>([\s\S]*?)<\/head>/i)
-  const bodyMatch = htmlContent.match(/<body(?:\s[^>]*)?>([\s\S]*?)<\/body>/i)
-  const headIndex = htmlContent.search(/<head(?:\s[^>]*)?>/i)
-  const bodyIndex = htmlContent.search(/<body(?:\s[^>]*)?>/i)
+  const parsed = parseLimitedMarkup(code)
+  const html = directChild(parsed.root, 'html')
+  const head = directChild(html, 'head')
+  const body = directChild(html, 'body')
+  const headIndex = html?.children.indexOf(head!) ?? -1
+  const bodyIndex = html?.children.indexOf(body!) ?? -1
+  const validStructure = parsed.wellFormed
+    && html !== undefined
+    && head !== undefined
+    && body !== undefined
+    && headIndex >= 0
+    && bodyIndex > headIndex
 
   return {
-    'doctype-first': /^<!doctype html>\s*<html(?:\s[^>]*)?>/i.test(normalized),
-    'head-before-body': headIndex >= 0 && bodyIndex > headIndex,
-    'title-in-head': /<title(?:\s[^>]*)?>\s*[^<\s][\s\S]*?<\/title>/i.test(headMatch?.[1] ?? ''),
-    'paragraph-in-body': /<p(?:\s[^>]*)?>\s*[^<\s][\s\S]*?<\/p>/i.test(bodyMatch?.[1] ?? ''),
+    'doctype-first': /^\s*<!doctype\s+html\s*>\s*<html\b/i.test(code),
+    'head-before-body': validStructure,
+    'title-in-head': validStructure && textContent(directChild(head, 'title')).length > 0,
+    'paragraph-in-body': validStructure && textContent(directChild(body, 'p')).length > 0,
   }
 }
 
 function evaluateHtml021(code: string): Record<string, boolean> {
-  const normalized = compact(code)
-  const nestedMatch = normalized.match(/<p(?:\s[^>]*)?>[\s\S]*?<strong(?:\s[^>]*)?>([\s\S]*?)<\/strong>[\s\S]*?<\/p>/i)
+  const parsed = parseLimitedMarkup(code)
+  const findNodes = (node: MarkupNode, name: string): MarkupNode[] => [
+    ...(node.name === name ? [node] : []),
+    ...node.children.flatMap(child => findNodes(child, name)),
+  ]
+  const paragraphs = findNodes(parsed.root, 'p')
+  const directStrong = paragraphs
+    .map(paragraph => directChild(paragraph, 'strong'))
+    .find((node): node is MarkupNode => node !== undefined)
+  const validNesting = parsed.wellFormed && directStrong !== undefined
 
   return {
-    'nested-strong': nestedMatch !== null,
-    'closing-order': nestedMatch !== null && !/<p(?:\s[^>]*)?>[\s\S]*?<strong(?:\s[^>]*)?>[\s\S]*?<\/p>[\s\S]*?<\/strong>/i.test(normalized),
-    'important-text': nestedMatch?.[1].includes('重要') ?? false,
+    'nested-strong': validNesting,
+    'closing-order': validNesting,
+    'important-text': validNesting && textContent(directStrong).includes('重要'),
   }
 }
 
 function evaluateCss011(code: string): Record<string, boolean> {
-  const normalized = compact(code)
-  const ruleMatch = normalized.match(/(?:^|[}>])\s*p\s*\{([^}]*)\}/i)
-  const declarations = ruleMatch?.[1] ?? ''
+  const styleContents = [...code.matchAll(/<style(?:\s[^>]*)?>([\s\S]*?)<\/style>/gi)]
+    .map(match => match[1])
+  const pRules = styleContents.flatMap(styleContent => (
+    [...styleContent.matchAll(/(?:^|})\s*p\s*\{([^}]*)\}/gi)].map(match => match[1])
+  ))
+  const hasBlue = (declarations: string) => /(?:^|;)\s*color\s*:\s*blue\s*;/i.test(`;${declarations}`)
+  const hasFontSize = (declarations: string) => /(?:^|;)\s*font-size\s*:\s*20px\s*;/i.test(`;${declarations}`)
+  const acceptedRule = pRules.find(declarations => hasBlue(declarations) && hasFontSize(declarations))
 
   return {
-    'p-rule': ruleMatch !== null,
-    'blue-color': /(?:^|;)\s*color\s*:\s*blue\s*;/i.test(`;${declarations}`),
-    'font-size': /(?:^|;)\s*font-size\s*:\s*20px\s*;/i.test(`;${declarations}`),
+    'p-rule': pRules.length > 0,
+    'blue-color': acceptedRule !== undefined,
+    'font-size': acceptedRule !== undefined,
   }
 }
 

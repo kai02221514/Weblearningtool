@@ -14,6 +14,7 @@ import {
 } from '../domain/mvpScope'
 import { getPilotPracticeChallenge } from '../features/practice/pilotPracticeChallenges'
 import { evaluatePracticeCode } from '../features/practice/evaluatePractice'
+import { canCompletePractice } from '../features/practice/practiceCompletionGate'
 import type {
   PracticeChallengeDefinition,
   PracticeEvaluationResult,
@@ -100,8 +101,8 @@ function SupportedPracticeChallenge({
   const startingCode = initialCode ?? challenge.initialCode
   const [code, setCode] = useState(startingCode)
   const [feedback, setFeedback] = useState<{type: 'success' | 'warning' | 'error', message: string} | null>(null)
-  const [isCompleted, setIsCompleted] = useState(false)
   const [evaluation, setEvaluation] = useState<PracticeEvaluationResult | null>(null)
+  const [confirmedDisplayConditionIds, setConfirmedDisplayConditionIds] = useState<string[]>([])
   const [srkTab, setSrkTab] = useState('overview')
   const [visibleHints, setVisibleHints] = useState(2)
   const [understanding, setUnderstanding] = useState('')
@@ -289,13 +290,11 @@ function SupportedPracticeChallenge({
         type: 'success',
         message: '限定自動判定の条件を満たしました。表示確認の条件はプレビューで確認してください。'
       })
-      setIsCompleted(true)
     } else {
       setFeedback({
         type: 'warning',
         message: `未達成: ${failedConditions.map(condition => condition.label).join('、')}`
       })
-      setIsCompleted(false)
     }
   }, [challenge.nodeId, code])
 
@@ -316,8 +315,16 @@ function SupportedPracticeChallenge({
   const resetCode = () => {
     setCode(startingCode)
     setFeedback(null)
-    setIsCompleted(false)
     setEvaluation(null)
+    setConfirmedDisplayConditionIds([])
+  }
+
+  const completionAllowed = canCompletePractice(evaluation, confirmedDisplayConditionIds)
+
+  const completeChallenge = () => {
+    if (canCompletePractice(evaluation, confirmedDisplayConditionIds)) {
+      onComplete()
+    }
   }
 
   // 簡易プレビュー生成
@@ -480,11 +487,27 @@ function SupportedPracticeChallenge({
                   <ul className="space-y-1.5">
                     {challenge.completionConditions.map(condition => {
                       const result = evaluation?.conditionResults.find(item => item.id === condition.id)
-                      const status = result?.passed
+                      const displayConfirmed = confirmedDisplayConditionIds.includes(condition.id)
+                      const status = condition.mode === 'display-only' ? null : result?.passed
 
                       return (
                         <li key={condition.id} className="flex items-start gap-2 text-xs">
-                          {status === true ? (
+                          {condition.mode === 'display-only' ? (
+                            <input
+                              type="checkbox"
+                              className="mt-0.5 h-3.5 w-3.5 flex-shrink-0"
+                              aria-label={`プレビューを目視確認: ${condition.label}`}
+                              checked={displayConfirmed}
+                              disabled={!evaluation?.automaticChecksPassed}
+                              onChange={(event) => {
+                                setConfirmedDisplayConditionIds(current => (
+                                  event.target.checked
+                                    ? [...new Set([...current, condition.id])]
+                                    : current.filter(id => id !== condition.id)
+                                ))
+                              }}
+                            />
+                          ) : status === true ? (
                             <CheckCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-green-500" />
                           ) : status === false ? (
                             <XCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-red-500" />
@@ -604,7 +627,7 @@ function SupportedPracticeChallenge({
                       setCode(e.target.value)
                       setFeedback(null)
                       setEvaluation(null)
-                      setIsCompleted(false)
+                      setConfirmedDisplayConditionIds([])
                     }}
                     className="min-h-[220px] font-mono text-xs border-0 resize-none rounded-none bg-gray-50 pl-10"
                     placeholder="HTMLコードをここに入力..."
@@ -1045,12 +1068,15 @@ function SupportedPracticeChallenge({
             
 
             {/* 完了ボタン */}
-            {isCompleted && (
-              <Button onClick={onComplete} className="w-full" size="lg">
-                課題完了
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            )}
+            <Button
+              onClick={completeChallenge}
+              className="w-full"
+              size="lg"
+              disabled={!completionAllowed}
+            >
+              課題完了
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
           </div>
           
         </div>

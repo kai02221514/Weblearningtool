@@ -15,6 +15,20 @@ describe('evaluatePracticeCode', () => {
     expect(result.conditionResults.find(condition => condition.mode === 'display-only')?.passed).toBeNull()
   })
 
+  it('rejects html-010 when body is nested inside head', () => {
+    const result = evaluatePracticeCode('html-010', `<!DOCTYPE html>
+<html><head><title>自己紹介</title><body><p>こんにちは</p></body></head></html>`)
+
+    expect(result.automaticChecksPassed).toBe(false)
+  })
+
+  it('rejects html-010 when head is nested inside body', () => {
+    const result = evaluatePracticeCode('html-010', `<!DOCTYPE html>
+<html><body><head><title>自己紹介</title></head><p>こんにちは</p></body></html>`)
+
+    expect(result.automaticChecksPassed).toBe(false)
+  })
+
   it('rejects html-010 when head and body are reversed', () => {
     const result = evaluatePracticeCode('html-010', `<!DOCTYPE html>
 <html><body><p>こんにちは</p></body><head><title>自己紹介</title></head></html>`)
@@ -37,13 +51,42 @@ describe('evaluatePracticeCode', () => {
     expect(rejected.automaticChecksPassed).toBe(false)
   })
 
+  it('rejects html-021 when another element separates p and strong', () => {
+    const result = evaluatePracticeCode(
+      'html-021',
+      '<p><span><strong>重要</strong></span>なお知らせです。</p>',
+    )
+
+    expect(result.automaticChecksPassed).toBe(false)
+  })
+
   it('accepts css-011 declarations in either order with whitespace differences', () => {
-    const result = evaluatePracticeCode('css-011', `p {
-      font-size: 20px;
-      color: blue;
-    }`)
+    const result = evaluatePracticeCode('css-011', `<style>
+      p {
+        font-size: 20px;
+        color: blue;
+      }
+    </style>`)
 
     expect(result.automaticChecksPassed).toBe(true)
+  })
+
+  it('rejects css-011 declarations outside a style element', () => {
+    const result = evaluatePracticeCode(
+      'css-011',
+      '<p>p { color: blue; font-size: 20px; }</p>',
+    )
+
+    expect(result.automaticChecksPassed).toBe(false)
+  })
+
+  it('requires both css-011 declarations in the same p rule', () => {
+    const result = evaluatePracticeCode(
+      'css-011',
+      '<style>p { color: blue; } p { font-size: 20px; }</style>',
+    )
+
+    expect(result.automaticChecksPassed).toBe(false)
   })
 
   it('rejects the css-011 initial code until its delimiters are fixed', () => {
