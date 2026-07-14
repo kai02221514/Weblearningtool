@@ -4,7 +4,8 @@
 
 - 現行構成: Vite + React + TypeScript
 - 今回の追加対象: 予備試行用3ノード9問の型付きクイズカタログ、KAI-22のUI非依存採点・許容解正規化純粋関数、KAI-23のメモリ内再受験制御、KAI-24の予備試行前統合検証
-- 検証範囲: クイズ件数、ID、版情報、問題形式、選択肢、正答参照、関連前提ノードID、D-020許容解、正規化、単一選択採点、クイズ全体採点、UI回答状態からの提出変換、試行追加、再受験可否、実装上の入力検証
+- KAI-25追加対象: 予備試行対象3ノードの型付き実践課題、限定判定、既存エラーマッピング参照、未対応ノード表示
+- 検証範囲: クイズ件数、ID、版情報、問題形式、選択肢、正答参照、関連前提ノードID、D-020許容解、正規化、単一選択採点、クイズ全体採点、UI回答状態からの提出変換、試行追加、再受験可否、実装上の入力検証、実践課題と教材・クイズ・MVPエラー境界の参照整合、限定完了条件
 
 ## 実行コマンド
 
@@ -49,3 +50,14 @@ npm run check
 
 - Supabase保存、同意取得、評価ログ、研究データ利用、予備試行そのものはKAI-24の検証対象外とする。
 - KAI-24では再現可能な非プロダクションハーネスでQuiz UI動作確認を実施し、保存済み履歴ではなくメモリ内状態として記録する。ハーネスは認証情報を持たず、研究データを外部送信しない。
+
+## KAI-25検証結果
+
+- 実行日: 2026-07-15
+- 対象限定: `npm run test -- src/features/practice/pilotPracticeChallenges.test.ts src/features/practice/evaluatePractice.test.ts`で2ファイル10件成功。
+- 全体: `npm run typecheck`、`npm run lint`、`npm run test`、`npm run build`、`npm run verify`、`git diff --check`に成功。全体テストは9ファイル121件成功。
+- 依存修復: 初回テストは`@rollup/rollup-darwin-x64`欠落で起動前に失敗したため、依存定義を追加せず`npm install`を実行した。Node 20.10.0に対する既存依存の`EBADENGINE`警告は出たが、後続検証は成功した。
+- ブラウザ: `npm run dev -- --host 127.0.0.1`を実行し、`http://127.0.0.1:3000/manual/kai-25/`で対象3ノードの固有課題、初期コード、限定判定、完了導線、プレビューを確認した。`html-000`では未対応表示となり、汎用課題へフォールバックしない。コンソールwarning/errorは0件。
+- 表示確認: `html-010`は本文「こんにちは」、`html-021`は`p > strong`の「重要」、`css-011`は段落の`rgb(0, 0, 255)`と`20px`を確認した。
+- build境界: `manual/kai-25/index.html`は非プロダクションentry `src/manual/kai25PracticeHarness.tsx`だけを読み、通常の`src/main.tsx`から参照しない。`npm run build`の出力は通常entryの`index.html`とassetsだけであり、手動ハーネスは本番bundleへ混入していない。
+- 対象外: 保存、同意、評価ログ、研究データ利用、routeGenerator、予備試行、12ノード展開、OQ-007の確定は検証・実装していない。
