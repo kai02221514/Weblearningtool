@@ -7,7 +7,7 @@ import { Badge } from './ui/badge'
 import { Textarea } from './ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs'
 import { Separator } from './ui/separator'
-import errorMappingsData from '../data/errorMappings'
+import { getMvpErrorMapping } from '../data/errorMappings'
 import {
   getMvpLearningNodes,
   isMvpNodeId,
@@ -15,15 +15,6 @@ import {
 } from '../domain/mvpScope'
 
 const learningNodesArray = getMvpLearningNodes()
-
-const errorMappingsArray = (() => {
-  if (Array.isArray(errorMappingsData)) {
-    return errorMappingsData
-  }
-  // 新しいスキーマ構造の場合、errors プロパティを取得
-  const data = errorMappingsData as any
-  return data.errors || []
-})()
 
 interface PracticeChallengeProps {
   onComplete: () => void
@@ -130,7 +121,7 @@ export function PracticeChallenge({ onComplete, onDashboard, onStartLearning }: 
           const closeTag = `</${tagName}>`
           if (!currentCode.includes(closeTag)) {
             // E_HTML_MISSING_CLOSING_TAG に対応
-            const errorMapping = errorMappingsArray.find(e => e.id === 'E_HTML_MISSING_CLOSING_TAG')
+            const errorMapping = getMvpErrorMapping('E_HTML_MISSING_CLOSING_TAG')
             const relatedNodeIds = errorMapping?.nodeRefs?.map(ref => ref.nodeId) || []
             skills.push({
               line: index + 1,
@@ -146,7 +137,7 @@ export function PracticeChallenge({ onComplete, onDashboard, onStartLearning }: 
         const inStyle = currentCode.substring(0, currentCode.indexOf(line)).includes('<style>')
         if (inStyle) {
           // E_CSS_SYNTAX_MISSING_SEMICOLON に対応
-          const errorMapping = errorMappingsArray.find(e => e.id === 'E_CSS_SYNTAX_MISSING_SEMICOLON')
+          const errorMapping = getMvpErrorMapping('E_CSS_SYNTAX_MISSING_SEMICOLON')
           const relatedNodeIds = errorMapping?.nodeRefs?.map(ref => ref.nodeId) || []
           skills.push({
             line: index + 1,
@@ -174,7 +165,7 @@ export function PracticeChallenge({ onComplete, onDashboard, onStartLearning }: 
         const content = ul.replace(/<ul[^>]*>|<\/ul>/gi, '')
         if (content.match(/<(?!li|\/li)[a-z]/i)) {
           // E_HTML_INVALID_NESTING に対応
-          const errorMapping = errorMappingsArray.find(e => e.id === 'E_HTML_INVALID_NESTING')
+          const errorMapping = getMvpErrorMapping('E_HTML_INVALID_NESTING')
           const relatedNodeIds = errorMapping?.nodeRefs?.map(ref => ref.nodeId) || []
           rules.push({
             message: '`<ul>` の直下には `<li>` だけを入れます。現在は他の要素が入っています。',
@@ -212,7 +203,7 @@ export function PracticeChallenge({ onComplete, onDashboard, onStartLearning }: 
     const h1Count = (currentCode.match(/<h1[^>]*>/gi) || []).length
     if (h1Count > 1) {
       // E_HTML_HEADING_STRUCTURE に対応
-      const errorMapping = errorMappingsArray.find(e => e.id === 'E_HTML_HEADING_STRUCTURE')
+      const errorMapping = getMvpErrorMapping('E_HTML_HEADING_STRUCTURE')
       const relatedNodeIds = errorMapping?.nodeRefs?.map(ref => ref.nodeId) || []
       knowledge.push({
         message: `このページには \`<h1>\` が${h1Count}つあります。ページの主題となる見出しは1つにするのが望ましいです。`,
@@ -225,7 +216,7 @@ export function PracticeChallenge({ onComplete, onDashboard, onStartLearning }: 
     const hasH3 = currentCode.includes('<h3')
     if (hasH3 && !hasH1) {
       // E_HTML_HEADING_STRUCTURE に対応
-      const errorMapping = errorMappingsArray.find(e => e.id === 'E_HTML_HEADING_STRUCTURE')
+      const errorMapping = getMvpErrorMapping('E_HTML_HEADING_STRUCTURE')
       const relatedNodeIds = errorMapping?.nodeRefs?.map(ref => ref.nodeId) || []
       knowledge.push({
         message: 'h3タグを使う前に、h1タグから順番に使用することが推奨されます。',
@@ -237,7 +228,7 @@ export function PracticeChallenge({ onComplete, onDashboard, onStartLearning }: 
     const imgWithoutAlt = currentCode.match(/<img(?![^>]*alt=)[^>]*>/gi)
     if (imgWithoutAlt && imgWithoutAlt.length > 0) {
       // E_HTML_MISSING_REQUIRED_ATTR に対応
-      const errorMapping = errorMappingsArray.find(e => e.id === 'E_HTML_MISSING_REQUIRED_ATTR')
+      const errorMapping = getMvpErrorMapping('E_HTML_MISSING_REQUIRED_ATTR')
       const relatedNodeIds = errorMapping?.nodeRefs?.map(ref => ref.nodeId) || []
       knowledge.push({
         message: '画像タグ（img）には、アクセシビリティのためalt属性を追加することが推奨されます。',
@@ -360,8 +351,7 @@ export function PracticeChallenge({ onComplete, onDashboard, onStartLearning }: 
     
     // エラーマッピングから推奨ノードを取得
     const recommendations = [...new Set(detectedErrorIds)].map(errorId => {
-      const mapping = errorMappingsArray.find(m => m.id === errorId)
-      return mapping
+      return getMvpErrorMapping(errorId)
     }).filter(Boolean)
     
     // 優先順位でソート（knowledge > rule > skill）
