@@ -20,6 +20,7 @@ interface PracticeChallengeProps {
   onComplete: () => void
   onDashboard: () => void
   onStartLearning?: (nodeId: string) => void
+  initialCode?: string
 }
 
 interface ErrorItem {
@@ -32,7 +33,7 @@ type SkillError = ErrorItem
 type RuleError = ErrorItem & { example?: string }
 type KnowledgeError = ErrorItem
 
-const initialCode = `<!DOCTYPE html>
+const defaultInitialCode = `<!DOCTYPE html>
 <html>
 <head>
     <title>私のWebページ</title>
@@ -83,7 +84,12 @@ const challenge = {
   ]
 }
 
-export function PracticeChallenge({ onComplete, onDashboard, onStartLearning }: PracticeChallengeProps) {
+export function PracticeChallenge({
+  onComplete,
+  onDashboard,
+  onStartLearning,
+  initialCode = defaultInitialCode,
+}: PracticeChallengeProps) {
   const [code, setCode] = useState(initialCode)
   const [feedback, setFeedback] = useState<{type: 'success' | 'warning' | 'error', message: string} | null>(null)
   const [isCompleted, setIsCompleted] = useState(false)
@@ -888,6 +894,7 @@ export function PracticeChallenge({ onComplete, onDashboard, onStartLearning }: 
                           return (
                             <div 
                               key={index}
+                              data-recommend-node-id={nodeId}
                               className="p-2 bg-white border-2 border-red-300 rounded hover:bg-red-50 cursor-pointer transition-colors"
                               onClick={() => onStartLearning && onStartLearning(nodeId)}
                             >
