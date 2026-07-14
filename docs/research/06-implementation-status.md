@@ -1,11 +1,11 @@
 # 実装状態
 
-- 確認日: 2026-07-03
+- 最新確認日: 2026-07-15
 - 対象: `kai02221514/Weblearningtool`
 - GitHub取得時点（2026-07-02）の`main`: `1a8efb5aa28a9ef08042a9e275cc171dccf8b6a2`
-- 最新確認時点（2026-07-03）の`main`: `42c298ca2f1ed084121de0decb3df18be590a9eb`
-- 実装状態の基準コミット: `42c298ca2f1ed084121de0decb3df18be590a9eb`
-- 検証対象コミット: `42c298ca2f1ed084121de0decb3df18be590a9eb`
+- 最新確認時点の`main`: `b134f8c6fe2612821fd2285899711806724fb27e`
+- 実装状態の最新有効基準コミット: `b134f8c6fe2612821fd2285899711806724fb27e`
+- 最新検証対象コミット: `b134f8c6fe2612821fd2285899711806724fb27e`
 - 追加確認日: 2026-07-05
 - KAI-20作業開始時点の`main`: `233f9ac6152bc587643134f67bcfeea50be69d37`
 - KAI-21作業開始時点の`main`: `461dea5e7eca532eb077f0998a4b680945ba74c8`
@@ -22,7 +22,9 @@
 - KAI-14確認状態: 14エラーを初回MVP 8件とMVP外6件へ型付きデータで区分し、実行可能な参照整合性をVitestで検証する。
 - KAI-25作業開始日: 2026-07-15
 - KAI-25作業開始時点の`main`: `1b99f49fb8d8377cc951de363d58589ad21463cc`
-- KAI-25確認状態: `html-010`、`html-021`、`css-011`のノード固有実践課題を型付き定義へ分離し、限定自動判定と表示確認を区別する。OQ-007の自動判定範囲は確定していない。
+- KAI-25対象PR: PR #22（merge commit `b134f8c6fe2612821fd2285899711806724fb27e`でmain反映済み）
+- KAI-25 main CI: workflow `Check`、push run `29354376730`、job `check`、`success`
+- KAI-25確認状態: Linear上Done。`html-010`、`html-021`、`css-011`のノード固有実践課題を型付き定義へ分離し、限定自動判定と表示確認を区別する実装はmain上で再検証済みである。OQ-007の自動判定範囲は確定していない。
 
 [注意] `1a8efb5aa28a9ef08042a9e275cc171dccf8b6a2`および`0f09e5b9f7ba500eaa2a2a8e33252c03d59410d4`は2026-07-02監査時点の旧スナップショットである。以下は2026-07-03に最新`main`を再確認した結果を含む。
 
@@ -150,8 +152,8 @@
 
 ## 検証状態
 
-- コード状態の対象コミット: `42c298ca2f1ed084121de0decb3df18be590a9eb`
-- 文書追加後の`main`: `42c298ca2f1ed084121de0decb3df18be590a9eb`
+- コード状態の最新対象コミット: `b134f8c6fe2612821fd2285899711806724fb27e`
+- 最新検証済み`main`: `b134f8c6fe2612821fd2285899711806724fb27e`
 - `npm run build`: [確認済み] 2026-07-02、Supabase接続復旧後に成功（Vite CJS deprecation warningあり）
 - Supabase Edge Function deploy: [確認済み] `make-server-f3d88633`が対象プロジェクトでACTIVEとして確認済み
 - Health endpoint: [確認済み] `https://znfwkrhquegvlcmugkoe.supabase.co/functions/v1/make-server-f3d88633/health` がHTTP 200を返すことを確認済み
@@ -170,7 +172,9 @@
 - KAI-25ローカル検証: [確認済み] 対象限定10テスト、`npm run typecheck`、`npm run lint`、全9ファイル121テスト、`npm run build`、`npm run verify`、`git diff --check`に成功した。`npm install`ではNode 20.10.0に対する既存依存の`EBADENGINE`警告が出たが、依存修復と後続検証は成功した。
 - KAI-25ブラウザ確認: [確認済み] 非プロダクションハーネス`manual/kai-25/index.html`で、対象3ノードの固有タイトル・初期コード・修正後完了導線を確認した。プレビューで`html-010`の本文、`html-021`の`p > strong`、`css-011`の青色・20pxを確認した。`html-000`はエディタを表示せず未対応状態を表示し、汎用課題へフォールバックしない。コンソールwarning/errorは0件だった。
 - KAI-25本番build境界: [確認済み] 手動ハーネスは通常の`src/main.tsx`から参照せず、`npm run build`の出力は通常entryの`index.html`とそのassetsだけであり、`manual/kai-25/`は本番bundleへ混入していない。
-- KAI-25監査修正: [確認済み] 2026-07-15に、限定自動判定と表示確認を組み合わせる完了ゲート、コード変更・初期状態復帰時の確認解除、`html-010`のhead/body直下兄弟構造、`html-021`の直接の`p > strong`構造、`css-011`のstyle要素内p規則へ限定した判定を確認した。対象限定3ファイル18件、全10ファイル129件、typecheck、lint、build、verify、`git diff --check`に成功した。ブラウザでは代表解、誤受理ケース、表示確認前後、状態解除、CSS上書き境界、未対応ノード、console warning/errorなしを確認した。GitHub Actionsのhead SHA、PR merge-ref SHA、run ID、job結論はpush後にPR本文とLinearへ分離して記録する。
+- KAI-25監査修正: [確認済み] 2026-07-15に、限定自動判定と表示確認を組み合わせる完了ゲート、コード変更・初期状態復帰時の確認解除、`html-010`のhead/body直下兄弟構造、`html-021`の直接の`p > strong`構造、`css-011`のstyle要素内p規則へ限定した判定を確認した。対象限定3ファイル18件、全10ファイル129件、typecheck、lint、build、verify、`git diff --check`に成功した。ブラウザでは代表解、誤受理ケース、表示確認前後、状態解除、CSS上書き境界、未対応ノード、console warning/errorなしを確認した。PR段階のGitHub Actions証跡は次項に記録し、main push runとは分離する。
+- KAI-25 PR段階検証: [確認済み] PR head `cd56ce91e54f450dc41de661f476d0c3f7e4b68f`に対するrun `29353631105`はPR merge-refを検証した`pull_request`段階の`Check/check`で`success`だった。main push runとは分離して扱う。
+- KAI-25 main反映後検証: [確認済み] PR #22をmerge commit `b134f8c6fe2612821fd2285899711806724fb27e`としてmainへ反映後、同一SHAで`npm ci`、対象限定3ファイル18件、`npm run verify`（typecheck、lint、全10ファイル129件、build）、`git diff --check`に成功した。ブラウザでは3ノードの代表解、表示確認前後、誤受理境界、コード変更・初期状態復帰時の解除、CSS上書き境界、未対応`html-000`、console warning/error 0件、通常buildへのハーネス非混入を確認した。main pushのworkflow `Check` / job `check`はrun `29354376730`で`success`だった。KAI-25はLinear上Doneだが、保存、同意、評価ログ、研究データ利用、予備試行、KAI-15全体は未完了である。
 - セッション復元: [未確認] リロード後の認証状態復元は確認していない
 - プロフィール保存: [未確認] 実際の保存成功は確認していない
 
@@ -180,8 +184,8 @@
 
 1. OQ-004、OQ-005、OQ-006は初期仕様として解消済みである。
 2. 研究判断ゲートとしてKAI-12 / OQ-009を解消し、研究データ管理、同意、保存、削除、アクセス権限、評価ログを確定する。
-3. KAI-13等の独立実装候補は、Linear上の確認事項を満たす範囲だけ進める。
-4. KAI-14はDoneでPR #20がmainへ反映済みである。KAI-25は依存条件を確認し、保存・同意・評価ログ・routeGeneratorから独立した対象3ノードの実装を進行中である。
+3. KAI-13はLinear上Backlogであり、独立実装候補として扱う場合もCI必須化タイミングを確認した範囲だけ進める。
+4. KAI-14はDoneでPR #20がmainへ反映済みである。KAI-25はDoneでPR #22がmainへ反映済み・main再検証済みである。ただしKAI-15全体、MVP 12ノード全体、個別ルートモデルは完了していない。
 5. 予備試行は関連準備と研究者判断を確認した後に実施する。
 
 [注意] Phase 3は仕様確定作業であり、未確定の診断重み、ルート生成優先順位、確認テスト閾値、保存項目を実装上の既定値で補完してはならない。
