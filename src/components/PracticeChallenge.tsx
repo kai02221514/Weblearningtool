@@ -11,12 +11,18 @@ import { getMvpErrorMapping } from '../data/errorMappings'
 import {
   getMvpLearningNodes,
   isMvpNodeId,
-  type MvpNodeId,
 } from '../domain/mvpScope'
+import { getPilotPracticeChallenge } from '../features/practice/pilotPracticeChallenges'
+import { evaluatePracticeCode } from '../features/practice/evaluatePractice'
+import type {
+  PracticeChallengeDefinition,
+  PracticeEvaluationResult,
+} from '../features/practice/types'
 
 const learningNodesArray = getMvpLearningNodes()
 
 interface PracticeChallengeProps {
+  nodeId: string
   onComplete: () => void
   onDashboard: () => void
   onStartLearning?: (nodeId: string) => void
@@ -33,74 +39,77 @@ type SkillError = ErrorItem
 type RuleError = ErrorItem & { example?: string }
 type KnowledgeError = ErrorItem
 
-const defaultInitialCode = `<!DOCTYPE html>
-<html>
-<head>
-    <title>私のWebページ</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-        }
-        h1 {
-            color: #333;
-        }
-    </style>
-</head>
-<body>
-    <h1>こんにちは！</h1>
-    <p>ここにあなたのメッセージを書いてください。</p>
-</body>
-</html>`
-
-const challenge = {
-  id: 'practice-profile-card',
-  title: '自己紹介ページを作成しよう',
-  description: 'HTMLとCSSを使って、あなた自身の自己紹介ページを作成してください。',
-  targetNodeIds: [
-    'html-010',
-    'html-020',
-    'html-021',
-    'html-022',
-    'html-031',
-    'html-040',
-    'css-010',
-    'css-011',
-    'css-020',
-    'css-060',
-  ] as const satisfies readonly MvpNodeId[],
-  requirements: [
-    'h1タグで名前を表示',
-    'pタグで自己紹介文を記述',
-    'h2タグで「趣味」の見出しを追加',
-    'ulタグで趣味のリストを作成',
-    'CSSで文字色や背景色をカスタマイズ'
-  ],
-  hints: [
-    'HTMLの基本構造を忘れずに！',
-    '<ul><li>...</li></ul>でリストが作れます',
-    'CSSのcolorプロパティで文字色を変更できます',
-    'background-colorプロパティで背景色を設定できます'
-  ]
-}
-
 export function PracticeChallenge({
+  nodeId,
   onComplete,
   onDashboard,
   onStartLearning,
-  initialCode = defaultInitialCode,
+  initialCode,
 }: PracticeChallengeProps) {
-  const [code, setCode] = useState(initialCode)
+  const challenge = getPilotPracticeChallenge(nodeId)
+
+  if (!challenge) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="mx-auto max-w-2xl px-4 py-12">
+          <Card>
+            <CardHeader>
+              <CardTitle>このノードの実践課題は未対応です</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                <code>{nodeId}</code> には固有の実践課題が定義されていません。汎用課題へのフォールバックは行いません。
+              </p>
+              <Button onClick={onDashboard} variant="outline">
+                <Home className="mr-2 h-4 w-4" />
+                ダッシュボードへ戻る
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <SupportedPracticeChallenge
+      challenge={challenge}
+      initialCode={initialCode}
+      onComplete={onComplete}
+      onDashboard={onDashboard}
+      onStartLearning={onStartLearning}
+    />
+  )
+}
+
+interface SupportedPracticeChallengeProps {
+  challenge: PracticeChallengeDefinition
+  onComplete: () => void
+  onDashboard: () => void
+  onStartLearning?: (nodeId: string) => void
+  initialCode?: string
+}
+
+function SupportedPracticeChallenge({
+  challenge,
+  onComplete,
+  onDashboard,
+  onStartLearning,
+  initialCode,
+}: SupportedPracticeChallengeProps) {
+  const startingCode = initialCode ?? challenge.initialCode
+  const [code, setCode] = useState(startingCode)
   const [feedback, setFeedback] = useState<{type: 'success' | 'warning' | 'error', message: string} | null>(null)
   const [isCompleted, setIsCompleted] = useState(false)
+  const [evaluation, setEvaluation] = useState<PracticeEvaluationResult | null>(null)
   const [srkTab, setSrkTab] = useState('overview')
   const [visibleHints, setVisibleHints] = useState(2)
   const [understanding, setUnderstanding] = useState('')
   const [difficultyNote, setDifficultyNote] = useState('')
-  const [checklist, setChecklist] = useState([false, false, false, false, false])
+  const [checklist, setChecklist] = useState(() => challenge.requirements.map(() => false))
   const [selectedNodeForPreview, setSelectedNodeForPreview] = useState<string | null>(null)
   
-  const currentChallengeNodeId = challenge.targetNodeIds[0]
+  const currentChallengeNodeId = challenge.nodeId
   const currentNode = learningNodesArray.find(n => n.id === currentChallengeNodeId)
   
   // SRKエラーのstate
@@ -182,6 +191,23 @@ export function PracticeChallenge({
       })
     }
 
+    if (/<p(?:\s[^>]*)?>[\s\S]*?<strong(?:\s[^>]*)?>[\s\S]*?<\/p>[\s\S]*?<\/strong>/i.test(currentCode)) {
+      const errorMapping = getMvpErrorMapping('E_HTML_INVALID_NESTING')
+      rules.push({
+        message: '`<p>` と `<strong>` の終了タグが交差しています。内側の `<strong>` から閉じてください。',
+        example: '<p><strong>重要</strong>なお知らせです。</p>',
+        relatedNodeIds: errorMapping?.nodeRefs.map(ref => ref.nodeId) ?? [],
+      })
+    }
+
+    if (/\b(?:color|font-size)\s*=/.test(currentCode)) {
+      const errorMapping = getMvpErrorMapping('E_CSS_SYNTAX_MISSING_SEMICOLON')
+      skills.push({
+        message: 'CSSのプロパティと値は `=` ではなく `:` で区切ります。',
+        relatedNodeIds: errorMapping?.nodeRefs.map(ref => ref.nodeId) ?? [],
+      })
+    }
+
     // 基本構造チェック
     if (!currentCode.includes('<!DOCTYPE html>')) {
       rules.push({
@@ -253,52 +279,25 @@ export function PracticeChallenge({
   }, [analyzeCode, code])
 
   const runCode = useCallback(() => {
-    // 簡易的なエラーチェックとフィードバック
-    const hasH1 = code.includes('<h1>')
-    const hasH2 = code.includes('<h2>')
-    const hasUL = code.includes('<ul>')
-    const hasCSS = code.includes('<style>') || code.includes('color')
-    const hasProperStructure = code.includes('<!DOCTYPE html>') && code.includes('<html>') && code.includes('<body>')
+    const result = evaluatePracticeCode(challenge.nodeId, code)
+    const failedConditions = result.conditionResults.filter(condition => condition.passed === false)
 
-    let errors: SkillError[] = []
-    let warnings: RuleError[] = []
-    let knowledgeErrors: KnowledgeError[] = []
-    let completedRequirements = 0
+    setEvaluation(result)
 
-    if (!hasProperStructure) {
-      errors.push({ message: 'HTML の基本構造が不完全です' })
-    }
-
-    if (hasH1) completedRequirements++
-    else warnings.push({ message: 'h1タグで名前を表示してください' })
-
-    if (hasH2) completedRequirements++
-    else warnings.push({ message: 'h2タグで見出しを追加してください' })
-
-    if (hasUL) completedRequirements++
-    else warnings.push({ message: 'ulタグでリストを作成してください' })
-
-    if (hasCSS) completedRequirements++
-    else warnings.push({ message: 'CSSでスタイルを追加してください' })
-
-    if (errors.length > 0) {
-      setFeedback({
-        type: 'error',
-        message: `エラー: ${errors.map(e => e.message).join(', ')}`
-      })
-    } else if (completedRequirements >= 4) {
+    if (result.automaticChecksPassed) {
       setFeedback({
         type: 'success',
-        message: `素晴らしいです！課題を完了しました（${completedRequirements}/4項目達成）`
+        message: '限定自動判定の条件を満たしました。表示確認の条件はプレビューで確認してください。'
       })
       setIsCompleted(true)
     } else {
       setFeedback({
         type: 'warning',
-        message: `もう少しです！${warnings.map(e => e.message).join('、')}`
+        message: `未達成: ${failedConditions.map(condition => condition.label).join('、')}`
       })
+      setIsCompleted(false)
     }
-  }, [code])
+  }, [challenge.nodeId, code])
 
   // キーボードショートカット: Ctrl/Cmd+Enter でコード実行
   useEffect(() => {
@@ -315,9 +314,10 @@ export function PracticeChallenge({
   }, [runCode])
 
   const resetCode = () => {
-    setCode(initialCode)
+    setCode(startingCode)
     setFeedback(null)
     setIsCompleted(false)
+    setEvaluation(null)
   }
 
   // 簡易プレビュー生成
@@ -335,10 +335,15 @@ export function PracticeChallenge({
       if (skillErrors.some(e => e.message.includes('`;`'))) {
         detectedErrorIds.push('E_CSS_SYNTAX_MISSING_SEMICOLON')
       }
+      if (skillErrors.some(e => e.message.includes('`=` ではなく `:`'))) {
+        detectedErrorIds.push('E_CSS_SYNTAX_MISSING_SEMICOLON')
+      }
     }
     
     if (ruleErrors.length > 0) {
-      if (ruleErrors.some(e => e.message.includes('`<ul>`'))) {
+      if (ruleErrors.some(e => (
+        e.message.includes('`<ul>`') || e.message.includes('終了タグが交差')
+      ))) {
         detectedErrorIds.push('E_HTML_INVALID_NESTING')
       }
     }
@@ -440,6 +445,11 @@ export function PracticeChallenge({
               </CardHeader>
               <CardContent className="space-y-3">
                 <p className="text-xs text-muted-foreground">{challenge.description}</p>
+
+                <div className="rounded border bg-blue-50 p-2">
+                  <h4 className="mb-1 text-xs">学習目標</h4>
+                  <p className="text-xs text-muted-foreground">{challenge.learningObjective}</p>
+                </div>
                 
                 <div>
                   <h4 className="text-xs mb-2">必要要件</h4>
@@ -464,6 +474,59 @@ export function PracticeChallenge({
                     ))}
                   </ul>
                 </div>
+
+                <div>
+                  <h4 className="mb-2 text-xs">完了条件</h4>
+                  <ul className="space-y-1.5">
+                    {challenge.completionConditions.map(condition => {
+                      const result = evaluation?.conditionResults.find(item => item.id === condition.id)
+                      const status = result?.passed
+
+                      return (
+                        <li key={condition.id} className="flex items-start gap-2 text-xs">
+                          {status === true ? (
+                            <CheckCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-green-500" />
+                          ) : status === false ? (
+                            <XCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-red-500" />
+                          ) : (
+                            <Square className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-gray-400" />
+                          )}
+                          <span>
+                            {condition.label}
+                            <Badge variant="outline" className="ml-1 h-4 py-0 text-[10px]">
+                              {condition.mode === 'limited-automatic' ? '限定自動判定' : '表示確認'}
+                            </Badge>
+                          </span>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                  {evaluation && (
+                    <p className="mt-2 text-[11px] text-muted-foreground">{evaluation.note}</p>
+                  )}
+                </div>
+
+                <details className="text-xs">
+                  <summary className="cursor-pointer">許容条件と想定エラー</summary>
+                  <div className="mt-2 space-y-2 text-muted-foreground">
+                    <ul className="list-disc space-y-1 pl-4">
+                      {challenge.acceptedSolutionConditions.map(condition => (
+                        <li key={condition}>{condition}</li>
+                      ))}
+                    </ul>
+                    {challenge.expectedErrors.map(error => (
+                      <div key={`${error.label}-${error.errorId ?? 'unsupported'}`} className="rounded border bg-gray-50 p-2">
+                        <div>{error.label}</div>
+                        <div>
+                          {error.errorId ?? '既存エラーIDなし'} / {error.mappingStatus} / {error.srk}
+                        </div>
+                        <div>
+                          復習先: {error.reviewNodeIds.length > 0 ? error.reviewNodeIds.join(', ') : 'MVP内推薦なし'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </details>
                 
                 <Separator className="my-2" />
                 
@@ -501,8 +564,32 @@ export function PracticeChallenge({
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm">コードエディタ</CardTitle>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="h-7 text-xs" onClick={resetCode}>
+                      <RefreshCw className="mr-1 h-3 w-3" />
+                      初期状態へ戻す
+                    </Button>
+                    <Button size="sm" className="h-7 text-xs" onClick={runCode}>
+                      <Play className="mr-1 h-3 w-3" />
+                      条件を確認
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
+              {feedback && (
+                <div
+                  className={`mx-3 mb-2 rounded border p-2 text-xs ${
+                    feedback.type === 'success'
+                      ? 'border-green-200 bg-green-50 text-green-800'
+                      : feedback.type === 'error'
+                        ? 'border-red-200 bg-red-50 text-red-800'
+                        : 'border-amber-200 bg-amber-50 text-amber-800'
+                  }`}
+                  role="status"
+                >
+                  {feedback.message}
+                </div>
+              )}
               <CardContent className="p-0">
                 {/* タブ風ラベル */}
                 <div className="px-3 pt-1.5 pb-0 bg-gray-50 border-b">
@@ -513,7 +600,12 @@ export function PracticeChallenge({
                 <div className="relative">
                   <Textarea
                     value={code}
-                    onChange={(e) => setCode(e.target.value)}
+                    onChange={(e) => {
+                      setCode(e.target.value)
+                      setFeedback(null)
+                      setEvaluation(null)
+                      setIsCompleted(false)
+                    }}
                     className="min-h-[220px] font-mono text-xs border-0 resize-none rounded-none bg-gray-50 pl-10"
                     placeholder="HTMLコードをここに入力..."
                     style={{ lineHeight: '1.5' }}

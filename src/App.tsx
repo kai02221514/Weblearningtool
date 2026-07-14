@@ -221,6 +221,7 @@ export default function App() {
     case 'practice':
       return (
         <PracticeChallenge
+          nodeId={progress.currentNodeId}
           onComplete={handlePracticeComplete}
           onDashboard={handleDashboard}
           onStartLearning={handleStartLearning}

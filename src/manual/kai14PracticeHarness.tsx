@@ -6,6 +6,7 @@ import '../index.css'
 
 const HARNESS_CASES = {
   missingClosingTag: {
+    nodeId: 'html-021',
     errorId: 'E_HTML_MISSING_CLOSING_TAG',
     label: 'HTML閉じタグ不足',
     expectedNodeId: 'html-020',
@@ -20,6 +21,7 @@ const HARNESS_CASES = {
 </html>`,
   },
   invalidNesting: {
+    nodeId: 'html-021',
     errorId: 'E_HTML_INVALID_NESTING',
     label: 'HTML不正な入れ子',
     expectedNodeId: 'html-021',
@@ -34,6 +36,7 @@ const HARNESS_CASES = {
 </html>`,
   },
   missingSemicolon: {
+    nodeId: 'css-011',
     errorId: 'E_CSS_SYNTAX_MISSING_SEMICOLON',
     label: 'CSSセミコロン不足',
     expectedNodeId: 'css-011',
@@ -97,6 +100,7 @@ function Kai14PracticeHarness() {
       </aside>
       <PracticeChallenge
         key={caseId}
+        nodeId={selectedCase.nodeId}
         initialCode={selectedCase.initialCode}
         onComplete={() => setLastEvent('onComplete')}
         onDashboard={() => setLastEvent('onDashboard')}
