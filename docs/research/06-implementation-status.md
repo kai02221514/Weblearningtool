@@ -20,6 +20,9 @@
 - KAI-24 main確認結果: Node v20.17.0 / npm 11.4.2で`npm ci`、対象限定5テスト、typecheck、lint、全104テスト、build、verify、`git diff --check`に成功。`npm ci`ではNode engine警告とRecharts 2系deprecated警告が発生したが、後続検証は成功した。
 - KAI-14実装確認日: 2026-07-14
 - KAI-14確認状態: 14エラーを初回MVP 8件とMVP外6件へ型付きデータで区分し、実行可能な参照整合性をVitestで検証する。
+- KAI-25作業開始日: 2026-07-15
+- KAI-25作業開始時点の`main`: `1b99f49fb8d8377cc951de363d58589ad21463cc`
+- KAI-25確認状態: `html-010`、`html-021`、`css-011`のノード固有実践課題を型付き定義へ分離し、限定自動判定と表示確認を区別する。OQ-007の自動判定範囲は確定していない。
 
 [注意] `1a8efb5aa28a9ef08042a9e275cc171dccf8b6a2`および`0f09e5b9f7ba500eaa2a2a8e33252c03d59410d4`は2026-07-02監査時点の旧スナップショットである。以下は2026-07-03に最新`main`を再確認した結果を含む。
 
@@ -50,6 +53,9 @@
 - 予備試行用クイズカタログの構造検証テスト
 - 予備試行用3ノード9問を対象にしたUI非依存の採点・許容解正規化純粋関数
 - 予備試行用3ノード（`html-010`、`html-021`、`css-011`）のQuiz UI接続
+- 予備試行用3ノードのノード固有実践課題、初期コード、学習目標、完了条件、許容条件、想定エラー対応（`src/features/practice/`）
+- 対象3ノードの実践課題UI接続と、未対応ノードで汎用課題へフォールバックしない表示
+- 実践課題カタログ、確認テスト参照、MVPエラーマッピング、限定判定の自動テスト
 - 簡易文字列・正規表現ベースの一部エラー検出
 - `practice-profile-card` のメタデータ
 - 振り返り入力と簡易推薦文
@@ -72,6 +78,7 @@
 - KAI-22採点・正規化: `src/features/quiz/grading.ts` に、短いコード補完回答の正規化、単一問題の採点、クイズ全体の採点、提出入力の実装上の検証を行う純粋関数を追加した。実行時のコード補完判定は各問題の`acceptedAnswers`と`answerNormalization`を使用し、`researchMetadata.acceptedAnswerDecision`は説明・追跡情報として扱う。
 - KAI-21 Quiz UI接続: `src/components/Quiz.tsx` は `progress.currentNodeId` から渡されたノードIDを使い、`src/features/quiz/` の型付きクイズカタログを表示する。回答はquestionId単位で保持し、単一選択はchoice ID、短いコード補完は文字列として `QuizSubmission` へ変換したうえで、KAI-22の `gradeQuizSubmission` へ採点を委譲する。未対応ノードは固定問題へフォールバックせず、未対応状態を表示する。
 - KAI-24統合検証: `src/features/quiz/pilotQuizIntegration.test.ts` に、対象3ノードについてUI回答状態、提出変換、採点、D-020境界値、試行追加、再受験可否、合格後試行拒否を横断する統合テストを追加した。これは検証証跡であり、問題内容、許容解、合格基準、再受験規則、保存仕様は変更していない。
+- KAI-25実践課題: `src/features/practice/`に対象3ノード固有の課題定義とUI非依存の限定判定関数を追加した。課題は研究者レビュー済みの`docs/content/pilot-material-draft.md`と対象9問の概念・用語の範囲内に限定する。見た目・意味の妥当性は表示確認とし、AI評価や高精度HTML/CSS解析は行わない。想定エラーはKAI-14の既存MVP 8件・MVP外6件の境界を再利用し、対応IDがないDOCTYPE等の配置誤りは新規IDを作らず`unsupported`として保持する。
 
 ## 2026-07-03手動確認
 
@@ -120,6 +127,7 @@
 
 - MVP 12ノード全体のノード対応済み確認テストデータ `quiz-{nodeId}`（予備試行用3ノード9問の型付きデータ化のみ追加済み）
 - MVP 12ノード全体の再受験処理・試行履歴管理（KAI-23で予備試行用3ノードのメモリ内制御のみ追加済み）
+- MVP 12ノード全体の実践課題（KAI-25は予備試行対象3ノードだけを扱う）
 - 診断・進捗・テスト・エラー・振り返りを統合する `routeGenerator`
 - 推薦理由の構造化形式、根拠参照、ルート版・データ版
 - 学習進捗、テスト、実践、エラー、振り返り、ルート履歴の永続化・復元
@@ -138,6 +146,7 @@
 - 型付きクイズカタログ、UI非依存の採点・正規化関数、KAI-21のQuiz UI接続、KAI-23のメモリ内再受験制御が存在しても、永続的な受験履歴保存、同意、評価ログ、予備試行はまだ完了していない。
 - P-02対応としてDashboard上の固定推薦表示を明示し、診断結果から算出済みと誤認させる文言を修正した。これは表示是正のみであり、個別ルート生成機能の実装ではない。
 - 簡易エラー検出を汎用HTML/CSS解析器として説明しない。
+- KAI-25の課題完了は、対象構造の限定自動判定合格に加えて、既存の全`display-only`条件を学習者がプレビューで目視し明示確認した場合にだけ可能とする。表示確認を自動判定済みと扱わず、本実験用課題の最終確定やOQ-007の解消を意味しない。
 
 ## 検証状態
 
@@ -158,6 +167,10 @@
 - KAI-24統合検証: [確認済み] 2026-07-09に `npm ci`、`npm run test -- src/features/quiz/pilotQuizIntegration.test.ts`、`npm run typecheck`、`npm run lint`、`npm run test`、`npm run build`、`npm run check`、`npm run verify`、`git diff --check` を実行し成功した。`npm run test`では6ファイル104件が成功した。対象3ノードについて、UI回答状態から提出、採点、試行追加、再受験制御までを横断して確認した。ブラウザ手動確認では、初回合格、不合格後再受験、回答初期化、試行番号増加、D-020代表境界値、合格後再受験導線なし、実践課題イベント、未対応ノード表示を確認した。初回PR head `dbdf6b67db7933062c82f8cf392303b106997eed`のGitHub Actions `check`はrun `29202826108`で成功した。
 - KAI-24最新main再検証: [確認済み] 2026-07-13にmain `ee375b4a78915a2e760aaaef5f3c951f0ed390b6`へrebase後、対象限定テスト、`npm run typecheck`、`npm run lint`、`npm run test`、`npm run build`、`npm run verify`、`git diff --check`を実行し成功した。ブラウザでは対象3ノードの固有問題、3/3・2/3合格、1/3不合格、不合格後の回答初期化と試行2、D-020代表境界、合格後再受験導線なし、未対応ノード表示、コンソールwarn/errorなしを再確認した。
 - KAI-24 main反映後検証: [確認済み] PR #17をmerge commit方式でmainへ反映し、merge commit `e947b3ddd62528b915bee11ca2bea89ac4c635b9`上でローカル検証とGitHub Actions run `29203744740`が成功した。再現可能な非プロダクションUIハーネス`manual/kai-24/index.html`もmainに存在する。KAI-24の技術的統合検証は完了したが、保存、同意、評価ログ、研究データ利用、予備試行は未実施である。
+- KAI-25ローカル検証: [確認済み] 対象限定10テスト、`npm run typecheck`、`npm run lint`、全9ファイル121テスト、`npm run build`、`npm run verify`、`git diff --check`に成功した。`npm install`ではNode 20.10.0に対する既存依存の`EBADENGINE`警告が出たが、依存修復と後続検証は成功した。
+- KAI-25ブラウザ確認: [確認済み] 非プロダクションハーネス`manual/kai-25/index.html`で、対象3ノードの固有タイトル・初期コード・修正後完了導線を確認した。プレビューで`html-010`の本文、`html-021`の`p > strong`、`css-011`の青色・20pxを確認した。`html-000`はエディタを表示せず未対応状態を表示し、汎用課題へフォールバックしない。コンソールwarning/errorは0件だった。
+- KAI-25本番build境界: [確認済み] 手動ハーネスは通常の`src/main.tsx`から参照せず、`npm run build`の出力は通常entryの`index.html`とそのassetsだけであり、`manual/kai-25/`は本番bundleへ混入していない。
+- KAI-25監査修正: [確認済み] 2026-07-15に、限定自動判定と表示確認を組み合わせる完了ゲート、コード変更・初期状態復帰時の確認解除、`html-010`のhead/body直下兄弟構造、`html-021`の直接の`p > strong`構造、`css-011`のstyle要素内p規則へ限定した判定を確認した。対象限定3ファイル18件、全10ファイル129件、typecheck、lint、build、verify、`git diff --check`に成功した。ブラウザでは代表解、誤受理ケース、表示確認前後、状態解除、CSS上書き境界、未対応ノード、console warning/errorなしを確認した。GitHub Actionsのhead SHA、PR merge-ref SHA、run ID、job結論はpush後にPR本文とLinearへ分離して記録する。
 - セッション復元: [未確認] リロード後の認証状態復元は確認していない
 - プロフィール保存: [未確認] 実際の保存成功は確認していない
 
@@ -168,7 +181,7 @@
 1. OQ-004、OQ-005、OQ-006は初期仕様として解消済みである。
 2. 研究判断ゲートとしてKAI-12 / OQ-009を解消し、研究データ管理、同意、保存、削除、アクセス権限、評価ログを確定する。
 3. KAI-13等の独立実装候補は、Linear上の確認事項を満たす範囲だけ進める。
-4. KAI-14とKAI-25は未確定判断・依存条件を確認してから着手可否を決める。
+4. KAI-14はDoneでPR #20がmainへ反映済みである。KAI-25は依存条件を確認し、保存・同意・評価ログ・routeGeneratorから独立した対象3ノードの実装を進行中である。
 5. 予備試行は関連準備と研究者判断を確認した後に実施する。
 
 [注意] Phase 3は仕様確定作業であり、未確定の診断重み、ルート生成優先順位、確認テスト閾値、保存項目を実装上の既定値で補完してはならない。
