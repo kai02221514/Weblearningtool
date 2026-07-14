@@ -4,8 +4,8 @@
 
 - 現行構成: Vite + React + TypeScript
 - 今回の追加対象: 予備試行用3ノード9問の型付きクイズカタログ、KAI-22のUI非依存採点・許容解正規化純粋関数、KAI-23のメモリ内再受験制御、KAI-24の予備試行前統合検証
-- KAI-25追加対象: 予備試行対象3ノードの型付き実践課題、限定判定、既存エラーマッピング参照、未対応ノード表示
-- 検証範囲: クイズ件数、ID、版情報、問題形式、選択肢、正答参照、関連前提ノードID、D-020許容解、正規化、単一選択採点、クイズ全体採点、UI回答状態からの提出変換、試行追加、再受験可否、実装上の入力検証、実践課題と教材・クイズ・MVPエラー境界の参照整合、限定完了条件
+- KAI-25追加対象: 予備試行対象3ノードの型付き実践課題、限定判定、表示確認の完了ゲート、既存エラーマッピング参照、未対応ノード表示
+- 検証範囲: クイズ件数、ID、版情報、問題形式、選択肢、正答参照、関連前提ノードID、D-020許容解、正規化、単一選択採点、クイズ全体採点、UI回答状態からの提出変換、試行追加、再受験可否、実装上の入力検証、実践課題と教材・クイズ・MVPエラー境界の参照整合、限定自動判定と表示確認を組み合わせた完了条件
 
 ## 実行コマンド
 
@@ -61,3 +61,16 @@ npm run check
 - 表示確認: `html-010`は本文「こんにちは」、`html-021`は`p > strong`の「重要」、`css-011`は段落の`rgb(0, 0, 255)`と`20px`を確認した。
 - build境界: `manual/kai-25/index.html`は非プロダクションentry `src/manual/kai25PracticeHarness.tsx`だけを読み、通常の`src/main.tsx`から参照しない。`npm run build`の出力は通常entryの`index.html`とassetsだけであり、手動ハーネスは本番bundleへ混入していない。
 - 対象外: 保存、同意、評価ログ、研究データ利用、routeGenerator、予備試行、12ノード展開、OQ-007の確定は検証・実装していない。
+
+## KAI-25監査修正の検証結果
+
+- 実行日: 2026-07-15
+- 対象限定: `npm run test -- src/features/practice/evaluatePractice.test.ts src/features/practice/practiceCompletionGate.test.ts src/features/practice/pilotPracticeChallenges.test.ts`で3ファイル18件成功。
+- 全体: `npm run typecheck`、`npm run lint`、`npm run test`、`npm run build`、`npm run verify`、`git diff --check`を実行し成功。全体テストは10ファイル129件成功。
+- 誤受理回帰: `html-010`のbody-in-head/head-in-body、`html-021`の交差タグと`p > span > strong`、`css-011`のstyle外CSS文字列を不合格として確認した。3ノードの代表解とCSSの宣言順序・空白差は合格する。
+- 完了ゲート: 限定自動判定合格だけでは完了不可、既存の全`display-only`条件を学習者が明示確認した場合だけ完了可とする純粋関数を自動テストした。コード変更と初期状態へのリセットでは評価結果と表示確認状態を解除する。
+- CSS上書き境界: 後続の`p { color: red; }`がある場合も限定自動判定は合格し得るが、表示確認前は完了不可である。CSSカスケード全体は自動解析しない。
+- ブラウザ: `manual/kai-25/index.html`で3ノードの代表解、誤受理ケース、表示確認前後の完了ボタン、コード変更・リセットによる確認解除、未対応`html-000`を確認した。`css-011`代表解のcomputed styleは`rgb(0, 0, 255)` / `20px`、コンソールwarning/errorは0件だった。
+- build境界: `npm run build`の出力は通常entryの`index.html`とassetsだけで、KAI-25手動ハーネスは本番bundleへ混入していない。
+- CI証跡の記録規則: PR head SHA、base SHA、merge-base SHA、ActionsがcheckoutしたPR merge-ref SHAを別項目として記録する。PR merge-refを検証するActions runについて、head SHAを「Actions対象SHA」とだけ記載しない。
+- 未確認: 監査修正後コミットに対するGitHub Actionsのrun ID、merge-ref SHA、job結論はpush後にPR本文とLinear KAI-25へ記録する。PRマージ後のmain上検証は未実施とする。
