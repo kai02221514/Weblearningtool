@@ -8,15 +8,18 @@
 - KAI-9/KAI-10反映確認時点（2026-07-03）の`main`: `1a6216b01e9d49315f9bee84e67c93b449b44432`
 - KAI-11/OQ-006仕様案作業開始時点（2026-07-03）の`main`: `31ed4e247d44bfbf877716783a16e7f2323d3962`
 - 反映PR: `#1`（`docs/phase3-route-spec-proposal` -> `main`、2026-07-03T08:11:37Z merged）
-- 実装状態の基準コミット: `42c298ca2f1ed084121de0decb3df18be590a9eb`
-- 参照日: 2026-07-15（KAI-25作業開始）
+- 実装状態の最新基準コミット: `b134f8c6fe2612821fd2285899711806724fb27e`
+- 参照日: 2026-07-15（KAI-25 main反映後検証）
+- 最新確認済み`main`: `b134f8c6fe2612821fd2285899711806724fb27e`
 - KAI-25作業開始時点の`main`: `1b99f49fb8d8377cc951de363d58589ad21463cc`
+- KAI-25 PR #22: merged。PR head `cd56ce91e54f450dc41de661f476d0c3f7e4b68f`、merge commit `b134f8c6fe2612821fd2285899711806724fb27e`
+- KAI-25 main push Actions: workflow `Check` / job `check`、run `29354376730`、`success`
 
 [注意] `1a8efb5...`と`0f09e5...`は2026-07-02監査時点の旧スナップショットである。`42c298c...`はコード実装状態を再確認した基準コミットであり、`1a6216b...`はKAI-9/KAI-10仕様文書をPR #1で`main`へ取り込んだマージコミットである。`31ed4e...`はKAI-11/OQ-006仕様案作業開始時点の最新`main`である。新規担当者は作業開始時にさらに最新`main`との差分を確認する。
 
 ## 現在地
 
-- 状態: Phase 2およびPhase 2.5正式完了。Phase 3のKAI-9/KAI-10判断はPR #1で`main`へ反映済み、Linear上もDone。KAI-11/OQ-006は研究者採否と指導教員確認を経て初期仕様確定として解消済みであり、D-018を正式追加済み。KAI-15はIn Progressで、予備試行用3ノード9問と教材案は研究者レビュー済み・予備試行前である。KAI-20〜KAI-23で型付きデータ、採点・正規化、対象3ノードのQuiz UI接続、メモリ内再受験制御・試行結果モデルを追加済みである。KAI-14はDoneでPR #20が`main`へ反映済み、KAI-24はDoneでPR #17/#18が`main`へ反映済みである。KAI-12はIn Reviewで指導教員確認待ち、PR #19は未マージである。KAI-25は保存・同意・評価ログ・routeGeneratorから独立した対象3ノードの実践課題実装としてIn Progressである。保存、同意、評価ログ、研究データ利用、予備試行は未実施で、KAI-15全体も完了ではない。
+- 状態: Phase 2およびPhase 2.5正式完了。Phase 3のKAI-9/KAI-10判断はPR #1で`main`へ反映済み、Linear上もDone。KAI-11/OQ-006は研究者採否と指導教員確認を経て初期仕様確定として解消済みであり、D-018を正式追加済み。KAI-15はIn Progressで、予備試行用3ノード9問と教材案は研究者レビュー済み・予備試行前である。KAI-20〜KAI-23で型付きデータ、採点・正規化、対象3ノードのQuiz UI接続、メモリ内再受験制御・試行結果モデルを追加済みである。KAI-14はDoneでPR #20が`main`へ反映済み、KAI-24はDoneでPR #17/#18が`main`へ反映済みである。KAI-12はIn Reviewで指導教員確認待ち、PR #19はDraft/Openで未マージである。KAI-25はDoneでPR #22が`main`へ反映済みであり、merge commit `b134f8c6fe2612821fd2285899711806724fb27e`上の自動・ブラウザ・main push CI再検証に成功した。保存、同意、評価ログ、研究データ利用、予備試行は未実施で、KAI-15全体も完了ではない。
 - 次Phase: Phase 3残仕様確定とPhase 5予備試行用実装準備
 - Phase 2独立再監査: 完了。記録は`docs/archive/audit-2026-07-02/phase2-independent-review.md`。
 - Linear移管: 完了。保存先はLinear `Kai02221514` / `WebLearningTool`。
@@ -25,8 +28,9 @@
   1. `KAI-14`: Done。PR #20で`main`へ反映済み。
   2. `KAI-24`: Done。PR #17/#18で`main`へ反映済み。
   3. `KAI-12`: In Review。指導教員確認待ちで、PR #19は未マージ。
-  4. `KAI-25`: In Progress。今回の独立実装対象。
-  5. 保存、同意、評価ログ、研究データ利用、予備試行: 未実施。
+  4. `KAI-25`: Done。PR #22はmain反映済み・main再検証済み。
+  5. `KAI-13`: Backlog。独立候補だが、CI必須化タイミングは確認対象。
+  6. 保存、同意、評価ログ、研究データ利用、予備試行: 未実施。
 - 補足: KAI-12とKAI-15は一部並行可能だが、研究データ保存・評価ログ・同意に関わる実装はKAI-12確定前に独自補完しない。
 - Phase 3の成果物候補: `docs/architecture/route-generation.md`、`docs/architecture/quiz-assessment.md`、`docs/research/01-confirmed-decisions.md`更新、`docs/research/02-open-questions.md`更新、`docs/research/09-decision-log.md`更新、Linear Issue更新。
 - Phase 3進行状況（2026-07-07）: KAI-9/KAI-10の研究者判断を`docs/architecture/route-generation.md`（`route-spec/1.0`、状態: 承認済み仕様）、`01-confirmed-decisions.md`、`02-open-questions.md`、`09-decision-log.md`へPR #1で反映済み。D-016でOQ-004は条件付き解消、D-017でOQ-005は解消した。KAI-11/OQ-006は`docs/architecture/quiz-assessment.md`の確認テスト規則を指導教員承認済み初期仕様として反映済みであり、D-018を正式追加済みである。KAI-11はLinear上Done。KAI-15では予備試行用3ノード9問と教材案が研究者レビュー済み・予備試行前になり、3ノード9問の型付きデータ化と構造検証テストを追加した。D-020で短いコード補完3問の許容解・正規化規則を確定し、KAI-22でUI非依存の採点・正規化純粋関数を追加した。KAI-21でQuiz UIを対象3ノードの型付きデータとKAI-22採点関数へ接続した。KAI-23でメモリ内の再受験制御と試行結果モデルを追加した。保存・同意・評価ログ・予備試行は未実施である。
@@ -36,8 +40,8 @@
 - 未完了事項: 予備試行、OQ-009、`routeGenerator`、教材UI組み込み、同意・永続化・評価ログ、研究データ利用、テスト基盤の継続整備、P-06/P-07/P-09の保留判断。
 - 次の最小作業:
   1. 研究判断ゲートとしてKAI-12 / OQ-009を確定する。保存・同意・評価ログ実装は確定前に開始しない。
-  2. 並行可能な独立候補はKAI-13とし、CI必須化タイミングを確認した範囲だけ進める。
-  3. KAI-14はDone、KAI-24はDoneである。KAI-25は対象3ノードの独立実装を進め、PRマージとmain上の確認まではDoneにしない。
+  2. Linear上BacklogのKAI-13は並行可能な独立候補だが、CI必須化タイミングを確認した範囲だけ進める。
+  3. KAI-14、KAI-24、KAI-25はDoneでmain反映済みである。KAI-25の実装作業は次の最小作業から除外する。
   4. 予備試行は関連準備と研究者判断を確認してから実施する。
 - 指導教員確認が必要なIssue: `KAI-12`、`KAI-16`は必須。`KAI-15`は予備試行結果や本実験用教材・問題の最終化で必要に応じて確認する。KAI-9/KAI-10で採用した開始2候補、上位3件提示、6段階優先順位を研究主張へ使う場合も確認推奨。
 
@@ -134,7 +138,7 @@ Codexは確認テスト規則、保存項目、評価条件、研究質問を独
 
 Linear `WebLearningTool`プロジェクトへIssue A〜Kを登録済みである。旧Issue案と実Issue IDの対応は`docs/operations/linear-issue-backlog.md`を参照する。
 
-`KAI-9`、`KAI-10`、`KAI-11`は研究者判断を正本文書へ反映しLinear上も完了済みである。KAI-14はDoneでPR #20、KAI-24はDoneでPR #17/#18が`main`へ反映済みである。KAI-12はIn Reviewで指導教員確認待ち、KAI-25は保存・同意・評価ログ・routeGeneratorから独立した実装としてIn Progressである。
+`KAI-9`、`KAI-10`、`KAI-11`は研究者判断を正本文書へ反映しLinear上も完了済みである。KAI-14はDoneでPR #20、KAI-24はDoneでPR #17/#18、KAI-25はDoneでPR #22が`main`へ反映済みである。KAI-12はIn Reviewで指導教員確認待ち、PR #19はDraft/Openで未マージである。
 
 - `KAI-9`: OQ-004 診断規則と開始ノード規則を確定する。状態: 完了。DG-08のみOQ-009へ移管。
 - `KAI-10`: OQ-005 ルート生成規則と出力契約を確定する。状態: 完了。
@@ -178,7 +182,8 @@ Linear `WebLearningTool`プロジェクトへIssue A〜Kを登録済みである
 - KAI-11の反映済み範囲: 問題数、問題形式、採点、合格判定、再受験、不合格時の主推薦、誤答と補助前提ノード、問題集合版、論理データ契約、KAI-12/KAI-15境界。
 - 主要判断: MVP 12ノードへ`quiz-{nodeId}`を対応、原則3問、`score >= passScore`、3問中2問以上で合格、MVP正式形式は単一選択と短いコード補完、合格後再受験なし、同一版で`passed=true`維持。
 - KAI-15の現在地: `html-010`、`html-021`、`css-011`の3ノード9問と教材案は研究者レビュー済み・予備試行前。3ノード9問の型付きデータ化と構造検証テストは追加済み。D-020で短いコード補完3問の許容解・正規化規則は確定済み。KAI-15はIn Progressで完了ではない。
-- KAI-15の残作業: KAI-12確定後の保存実装、KAI-25のPRマージとmain上の確認、3〜5名程度の予備試行。KAI-24の技術的統合検証はPR #17/#18で`main`へ反映済みだが、KAI-15全体は完了ではない。
+- KAI-15の直接の残作業: 対象3ノードの固有教材をUIへ接続し、対象ノードごとの教材・確認テスト・誤答ノードID対応をLinear KAI-15の受入条件に沿って確認する。KAI-15はIn Progressで完了ではない。
+- 予備試行準備上の外部依存: KAI-12確定後のKAI-16等による保存・同意・評価ログ実装、および3〜5名程度の予備試行。これらはKAI-15の直接スコープとは区別する。KAI-24の技術的統合検証とKAI-25の対象3ノード実践課題はmain反映・再検証済みであり、KAI-25はDoneである。
 - 受入条件: 得点、合否、誤答、対象ノード、問題集合版、受験回数を取得できる。予備試行後に難易度、正答率、識別性、許容解を再確認する。
 - 注意: KAI-21以前の固定3問、70%以上表示、固定HTMLクイズは研究仕様として確定したものではない。KAI-21では対象3ノードに限り、型付きデータとKAI-22の`score >= passScore`判定へ接続した。
 
