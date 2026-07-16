@@ -199,6 +199,7 @@ export default function App() {
     case 'learning':
       return (
         <LearningModule
+          key={progress.currentNodeId}
           onComplete={handleLearningComplete}
           onDashboard={handleDashboard}
           currentNodeId={progress.currentNodeId}
