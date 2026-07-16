@@ -204,7 +204,6 @@ export default function App() {
           onDashboard={handleDashboard}
           currentNodeId={progress.currentNodeId}
           currentNodeName={progress.currentNodeName}
-          completedNodeIds={progress.completedNodeIds}
         />
       )
       

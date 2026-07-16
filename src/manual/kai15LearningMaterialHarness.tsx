@@ -59,7 +59,6 @@ function Kai15LearningMaterialHarness() {
           key={`learning-${nodeId}`}
           currentNodeId={nodeId}
           currentNodeName={nodeName}
-          completedNodeIds={[]}
           onComplete={() => {
             setLastEvent(`onComplete nodeId=${nodeId}`)
             setPhase('quiz')

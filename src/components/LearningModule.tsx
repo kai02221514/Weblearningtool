@@ -16,7 +16,6 @@ import type {
   LearningMaterialSection,
 } from '../features/material/types'
 import { Alert, AlertDescription } from './ui/alert'
-import { Badge } from './ui/badge'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Progress } from './ui/progress'
@@ -27,7 +26,6 @@ interface LearningModuleProps {
   onDashboard: () => void
   currentNodeId: string
   currentNodeName: string
-  completedNodeIds: string[]
 }
 
 type LearningPhase = 'introduction' | 'input'
@@ -230,11 +228,6 @@ export function LearningModule({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <Badge variant="outline">{material.reviewStatus}</Badge>
-              <p className="leading-7 text-muted-foreground">{material.statusNote}</p>
-              <div className="rounded-lg bg-slate-50 p-4 text-sm text-muted-foreground">
-                参照元: {material.sourceDocumentPath} {material.sourceSection}
-              </div>
               <div className="text-center">
                 <Button onClick={handlePhaseComplete} size="lg">
                   <BookOpen className="mr-2 h-4 w-4" />
