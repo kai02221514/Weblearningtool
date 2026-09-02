@@ -9,7 +9,15 @@ import {
   getPilotLearningMaterials,
   resolvePilotLearningMaterial,
 } from './pilotMaterials'
-import { PILOT_MATERIAL_NODE_IDS } from './types'
+import {
+  PILOT_MATERIAL_NODE_IDS,
+  type LearningMaterialDefinition,
+} from './types'
+
+interface DisplayToken {
+  kind: 'text' | 'code'
+  value: string
+}
 
 const expectedSectionTitlesByNodeId = {
   'html-010': [
@@ -57,6 +65,18 @@ function normalizeDisplayText(value: string): string {
     .trim()
 }
 
+function normalizeCodeText(value: string): string {
+  return value.replace(/\r\n?/g, '\n')
+}
+
+function textToken(value: string): DisplayToken {
+  return { kind: 'text', value: normalizeDisplayText(value) }
+}
+
+function codeToken(value: string): DisplayToken {
+  return { kind: 'code', value: normalizeCodeText(value) }
+}
+
 function getSourceSection(nodeId: (typeof PILOT_MATERIAL_NODE_IDS)[number]): string {
   const startHeading = sourceSectionHeadingByNodeId[nodeId]
   const start = sourceDocument.indexOf(startHeading)
@@ -68,14 +88,14 @@ function getSourceSection(nodeId: (typeof PILOT_MATERIAL_NODE_IDS)[number]): str
 
 function getSourceDisplayTokens(
   nodeId: (typeof PILOT_MATERIAL_NODE_IDS)[number],
-): string[] {
-  const tokens: string[] = []
+): DisplayToken[] {
+  const tokens: DisplayToken[] = []
   let paragraphLines: string[] = []
   let codeLines: string[] | null = null
 
   const flushParagraph = () => {
     if (paragraphLines.length === 0) return
-    tokens.push(normalizeDisplayText(paragraphLines.join(' ')))
+    tokens.push(textToken(paragraphLines.join(' ')))
     paragraphLines = []
   }
 
@@ -85,7 +105,7 @@ function getSourceDisplayTokens(
       if (codeLines === null) {
         codeLines = []
       } else {
-        tokens.push(normalizeDisplayText(codeLines.join('\n')))
+        tokens.push(codeToken(codeLines.join('\n')))
         codeLines = null
       }
       continue
@@ -99,14 +119,14 @@ function getSourceDisplayTokens(
     const heading = line.match(/^#{2,3}\s+(.+)$/)
     if (heading) {
       flushParagraph()
-      tokens.push(normalizeDisplayText(heading[1]))
+      tokens.push(textToken(heading[1]))
       continue
     }
 
     const listItem = line.match(/^\s*(?:[-*]|\d+\.)\s+(.+)$/)
     if (listItem) {
       flushParagraph()
-      tokens.push(normalizeDisplayText(listItem[1]))
+      tokens.push(textToken(listItem[1]))
       continue
     }
 
@@ -121,7 +141,7 @@ function getSourceDisplayTokens(
         ...line
           .slice(1, -1)
           .split('|')
-          .map(cell => normalizeDisplayText(cell)),
+          .map(textToken),
       )
       continue
     }
@@ -139,35 +159,59 @@ function getSourceDisplayTokens(
   const material = resolvePilotLearningMaterial(nodeId)
   if (!material) throw new Error(`Missing pilot material: ${nodeId}`)
 
-  return tokens[0] === normalizeDisplayText(material.sections[0].title)
+  return tokens[0]?.kind === 'text'
+    && tokens[0].value === normalizeDisplayText(material.sections[0].title)
     ? tokens
     : tokens.slice(1)
 }
 
-function getMaterialDisplayTokens(
-  nodeId: (typeof PILOT_MATERIAL_NODE_IDS)[number],
-): string[] {
-  const material = resolvePilotLearningMaterial(nodeId)
-  if (!material) throw new Error(`Missing pilot material: ${nodeId}`)
-
+function getMaterialDisplayTokens(material: LearningMaterialDefinition): DisplayToken[] {
   return material.sections.flatMap(section => [
-    normalizeDisplayText(section.title),
+    textToken(section.title),
     ...section.blocks.flatMap(block => {
-      if (block.kind === 'paragraph' || block.kind === 'code') {
-        return [normalizeDisplayText(block.content)]
-      }
-      if (block.kind === 'list') return block.items.map(normalizeDisplayText)
-      return [...block.headers, ...block.rows.flat()].map(normalizeDisplayText)
+      if (block.kind === 'paragraph') return [textToken(block.content)]
+      if (block.kind === 'code') return [codeToken(block.content)]
+      if (block.kind === 'list') return block.items.map(textToken)
+      return [...block.headers, ...block.rows.flat()].map(textToken)
     }),
   ])
 }
 
-function removeFirstTokenSequence(tokens: string[], deleted: string[]): string[] {
+function removeFirstTokenSequence(
+  tokens: DisplayToken[],
+  deleted: DisplayToken[],
+): DisplayToken[] {
   const start = tokens.findIndex((_, index) => (
-    deleted.every((token, offset) => tokens[index + offset] === token)
+    deleted.every((token, offset) => (
+      tokens[index + offset]?.kind === token.kind
+      && tokens[index + offset]?.value === token.value
+    ))
   ))
-  if (start < 0) throw new Error(`Missing deletion fixture: ${deleted.join(' / ')}`)
+  if (start < 0) {
+    throw new Error(`Missing deletion fixture: ${deleted.map(token => token.value).join(' / ')}`)
+  }
   return [...tokens.slice(0, start), ...tokens.slice(start + deleted.length)]
+}
+
+function changeFirstCodeIndentation(
+  material: LearningMaterialDefinition,
+): LearningMaterialDefinition {
+  let changed = false
+  const sections = material.sections.map(section => ({
+    ...section,
+    blocks: section.blocks.map(block => {
+      if (changed || block.kind !== 'code') return block
+
+      const content = block.content.replace('\n  ', '\n')
+      if (content === block.content) {
+        throw new Error(`Missing indented code fixture: ${material.nodeId}`)
+      }
+      changed = true
+      return { ...block, content }
+    }),
+  }))
+
+  return { ...material, sections }
 }
 
 function getMaterialText(nodeId: (typeof PILOT_MATERIAL_NODE_IDS)[number]): string {
@@ -220,10 +264,19 @@ describe('pilot learning material catalog', () => {
 
   it('matches every displayed value to the corresponding reviewed source section in order', () => {
     for (const material of getPilotLearningMaterials()) {
-      expect(getMaterialDisplayTokens(material.nodeId)).toEqual(
+      expect(getMaterialDisplayTokens(material)).toEqual(
         getSourceDisplayTokens(material.nodeId),
       )
     }
+  })
+
+  it('detects code indentation changes that alter the reviewed source', () => {
+    const material = resolvePilotLearningMaterial('html-010')
+    if (!material) throw new Error('Missing pilot material: html-010')
+
+    expect(getMaterialDisplayTokens(changeFirstCodeIndentation(material))).not.toEqual(
+      getSourceDisplayTokens(material.nodeId),
+    )
   })
 
   it('detects deleted paragraphs, list items, code blocks, and table rows', () => {
@@ -231,27 +284,33 @@ describe('pilot learning material catalog', () => {
       {
         nodeId: 'html-010' as const,
         deleted: [
-          'Webページの元になるHTMLファイルには、共通の骨格がある。次のコードは、この単元で覚える最小のHTML文書である。',
+          textToken('Webページの元になるHTMLファイルには、共通の骨格がある。次のコードは、この単元で覚える最小のHTML文書である。'),
         ],
       },
       {
         nodeId: 'html-010' as const,
-        deleted: ['最初の行に <!DOCTYPE html> を書く。'],
+        deleted: [textToken('最初の行に <!DOCTYPE html> を書く。')],
       },
       {
         nodeId: 'html-021' as const,
-        deleted: ['<p><strong>重要</strong>なお知らせです。</p>'],
+        deleted: [codeToken('<p><strong>重要</strong>なお知らせです。</p>')],
       },
       {
         nodeId: 'css-011' as const,
-        deleted: ['セレクタ', 'p', 'どのHTML要素に適用するかを指定する'],
+        deleted: [
+          textToken('セレクタ'),
+          textToken('p'),
+          textToken('どのHTML要素に適用するかを指定する'),
+        ],
       },
     ]
 
     for (const { nodeId, deleted } of deletionCases) {
       const sourceTokens = getSourceDisplayTokens(nodeId)
-      const materialTokens = getMaterialDisplayTokens(nodeId)
-      expect(removeFirstTokenSequence(materialTokens, deleted.map(normalizeDisplayText))).not.toEqual(
+      const material = resolvePilotLearningMaterial(nodeId)
+      if (!material) throw new Error(`Missing pilot material: ${nodeId}`)
+      const materialTokens = getMaterialDisplayTokens(material)
+      expect(removeFirstTokenSequence(materialTokens, deleted)).not.toEqual(
         sourceTokens,
       )
     }
