@@ -1,11 +1,12 @@
 # 実装状態
 
-- 最新確認日: 2026-07-16
+- 最新確認日: 2026-09-02
 - 対象: `kai02221514/Weblearningtool`
 - GitHub取得時点（2026-07-02）の`main`: `1a8efb5aa28a9ef08042a9e275cc171dccf8b6a2`
-- 最新確認時点の`main`: `7029c8d236b20d09c05fdc38ed7501cbb690d1d5`
-- 実装状態の最新有効基準コミット: `7029c8d236b20d09c05fdc38ed7501cbb690d1d5`
-- 最新検証対象: KAI-15教材接続作業ブランチ（Draft PRレビュー段階、`main`未反映）
+- 最新確認時点の`main`: `bb8b172a3726a5a2612edaac2436fdc9518a1631`
+- 実装状態の最新有効基準コミット: `bb8b172a3726a5a2612edaac2436fdc9518a1631`
+- 最新検証対象: KAI-15教材接続のmerge commit（PR #24、`main`反映・再検証済み）
+- KAI-15対象PR: PR #24（最終head `6d3f6e4cfd270e38526a295208970ea70cb4ecdc`、2026-09-02T10:31:21Zにmerge commit `bb8b172a3726a5a2612edaac2436fdc9518a1631`として`main`へ反映）
 - 追加確認日: 2026-07-05
 - KAI-20作業開始時点の`main`: `233f9ac6152bc587643134f67bcfeea50be69d37`
 - KAI-21作業開始時点の`main`: `461dea5e7eca532eb077f0998a4b680945ba74c8`
@@ -83,7 +84,7 @@
 - KAI-21 Quiz UI接続: `src/components/Quiz.tsx` は `progress.currentNodeId` から渡されたノードIDを使い、`src/features/quiz/` の型付きクイズカタログを表示する。回答はquestionId単位で保持し、単一選択はchoice ID、短いコード補完は文字列として `QuizSubmission` へ変換したうえで、KAI-22の `gradeQuizSubmission` へ採点を委譲する。未対応ノードは固定問題へフォールバックせず、未対応状態を表示する。
 - KAI-24統合検証: `src/features/quiz/pilotQuizIntegration.test.ts` に、対象3ノードについてUI回答状態、提出変換、採点、D-020境界値、試行追加、再受験可否、合格後試行拒否を横断する統合テストを追加した。これは検証証跡であり、問題内容、許容解、合格基準、再受験規則、保存仕様は変更していない。
 - KAI-25実践課題: `src/features/practice/`に対象3ノード固有の課題定義とUI非依存の限定判定関数を追加した。課題は研究者レビュー済みの`docs/content/pilot-material-draft.md`と対象9問の概念・用語の範囲内に限定する。見た目・意味の妥当性は表示確認とし、AI評価や高精度HTML/CSS解析は行わない。想定エラーはKAI-14の既存MVP 8件・MVP外6件の境界を再利用し、対応IDがないDOCTYPE等の配置誤りは新規IDを作らず`unsupported`として保持する。
-- KAI-15教材接続: `docs/content/pilot-material-draft.md`の対象3ノード教材案を`src/features/material/`の型付きデータへ分離し、`currentNodeId`から`LearningModule`へ接続した。教材、確認テスト、実践課題は同じ正規MVPノードIDを使用する。未対応ノードは固定HTML教材や別ノード教材へフォールバックせず、学習完了コールバックを実行できない。`App`ではノードIDを`LearningModule`のkeyに使い、ノード切替時にフェーズ、タブ、スライド位置を初期化する。原稿参照元、原稿節、レビュー状態、状態注記は型付き教材データに追跡情報として保持するが、通常の学習画面には表示しない。これはDraft PRレビュー段階の実装状態であり、`main`反映、教材の指導教員承認、本実験用教材の最終確定、予備試行実施を意味しない。
+- KAI-15教材接続: `docs/content/pilot-material-draft.md`の対象3ノード教材案を`src/features/material/`の型付きデータへ分離し、`currentNodeId`から`LearningModule`へ接続した。教材、確認テスト、実践課題は同じ正規MVPノードIDを使用する。未対応ノードは固定HTML教材や別ノード教材へフォールバックせず、学習完了コールバックを実行できない。`App`ではノードIDを`LearningModule`のkeyに使い、ノード切替時にフェーズ、タブ、スライド位置を初期化する。原稿参照元、原稿節、レビュー状態、状態注記は型付き教材データに追跡情報として保持するが、通常の学習画面には表示しない。PR #24をmerge commit `bb8b172a3726a5a2612edaac2436fdc9518a1631`として`main`へ反映し、同一SHAで再検証済みである。対象は予備試行用3ノードに限定され、教材の指導教員承認、本実験用教材の最終確定、予備試行実施を意味しない。
 
 ## 2026-07-03手動確認
 
@@ -130,7 +131,7 @@
 
 ## 未実装
 
-- MVP 12ノード全体の固有教材UI接続（KAI-15のDraft PRでは予備試行対象3ノードだけを扱う）
+- MVP 12ノード全体の固有教材UI接続（KAI-15のPR #24では予備試行対象3ノードだけを扱う）
 - MVP 12ノード全体のノード対応済み確認テストデータ `quiz-{nodeId}`（予備試行用3ノード9問の型付きデータ化のみ追加済み）
 - MVP 12ノード全体の再受験処理・試行履歴管理（KAI-23で予備試行用3ノードのメモリ内制御のみ追加済み）
 - MVP 12ノード全体の実践課題（KAI-25は予備試行対象3ノードだけを扱う）
@@ -156,8 +157,8 @@
 
 ## 検証状態
 
-- コード状態の最新対象コミット: `b134f8c6fe2612821fd2285899711806724fb27e`
-- 最新検証済み`main`: `b134f8c6fe2612821fd2285899711806724fb27e`
+- コード状態の最新対象コミット: `bb8b172a3726a5a2612edaac2436fdc9518a1631`
+- 最新検証済み`main`: `bb8b172a3726a5a2612edaac2436fdc9518a1631`
 - `npm run build`: [確認済み] 2026-07-02、Supabase接続復旧後に成功（Vite CJS deprecation warningあり）
 - Supabase Edge Function deploy: [確認済み] `make-server-f3d88633`が対象プロジェクトでACTIVEとして確認済み
 - Health endpoint: [確認済み] `https://znfwkrhquegvlcmugkoe.supabase.co/functions/v1/make-server-f3d88633/health` がHTTP 200を返すことを確認済み
@@ -181,7 +182,10 @@
 - KAI-25 main反映後検証: [確認済み] PR #22をmerge commit `b134f8c6fe2612821fd2285899711806724fb27e`としてmainへ反映後、同一SHAで`npm ci`、対象限定3ファイル18件、`npm run verify`（typecheck、lint、全10ファイル129件、build）、`git diff --check`に成功した。ブラウザでは3ノードの代表解、表示確認前後、誤受理境界、コード変更・初期状態復帰時の解除、CSS上書き境界、未対応`html-000`、console warning/error 0件、通常buildへのハーネス非混入を確認した。main pushのworkflow `Check` / job `check`はrun `29354376730`で`success`だった。KAI-25はLinear上Doneだが、保存、同意、評価ログ、研究データ利用、予備試行、KAI-15全体は未完了である。
 - KAI-15教材接続ローカル検証: [確認済み] 2026-07-16の監査修正後に、教材単体1ファイル6件、教材・クイズ・実践課題の対象限定9ファイル124件、`npm run typecheck`、`npm run lint`、全11ファイル135件、`npm run build`、`npm run verify`を実行し成功した。原稿と実装の表示対象内容を順序込みで照合し、段落、list item、code block、table rowの欠落が不一致になることもテストで確認した。非プロダクションハーネス`manual/kai-15/index.html`では、対象3ノードの固有教材と相互非混在、通常学習画面でのレビュー状態・状態注記・原稿パス・原稿節の非表示、未対応`html-000`の開始・完了導線なしと完了コールバック未実行、ノード切替後の導入フェーズ・スライド先頭・既定タブへの初期化、`html-010`の固有確認テストと固有実践課題への遷移を確認した。console warning/errorは0件で、通常buildには手動ハーネスが混入していない。
 - KAI-15監査修正前PR段階検証: [確認済み] PR head `6ce5dda42a2a6c49c6ce48e84bc0cb61876f15ec`に対し、ActionsがcheckoutしたPR merge-refは`b920b2558c0f0f8c517ee464eb0be27086535b87`だった。`pull_request`のworkflow `Check` / job `check` / run `29476756109`は`success`であり、PR head SHAとcheckout対象のmerge-ref SHAは別の証跡として扱う。
-- KAI-15監査修正後PR段階検証方針: 監査修正後の最新PR head SHA、Actions checkout PR merge-ref SHA、workflow、job、run ID、conclusion、annotationは、commitによる自己参照ループを避けるためPR #24本文とLinear KAI-15コメントを監査証跡とする。`main`反映後の最終SHAとmain push runは、main反映後の同期作業で本書へ固定する。現時点はDraft PR段階かつ`main`未反映であり、教材の指導教員承認、本実験用教材の最終確定、予備試行実施を意味しない。
+- KAI-15最終PR段階検証: [確認済み] PR #24の最終head `6d3f6e4cfd270e38526a295208970ea70cb4ecdc`に対する`pull_request` workflow `Check` / job `check` / run `33618388057`は`success`だった。Actions checkout対象PR merge-refは`0eb620ddc27e2b0ee99c1ac94b1ddfa6fa6b36b8`であり、PR headとmerge-refを区別して記録する。CIでは全12ファイル142件、typecheck、lint、buildが成功した。annotationは`actions/checkout@v4`と`actions/setup-node@v4`に対するNode.js 20 deprecation警告1件だった。
+- KAI-15原稿・キー操作検証: [確認済み] 教材原稿一致テストは本文トークンとコードトークンを区別し、原稿全体のCRLF/CRを解析前にLFへ正規化する一方、コード内部の改行、連続空白、インデントを保持する。LF版とCRLF版の同一性、コードインデント変更、段落、list item、code block、table rowの欠落を負例込みで検証する。対話要素またはその子要素では教材のグローバルショートカットを抑止し、非対話要素では左矢印、右矢印、Enterによる既存操作を維持することを単体テストで確認した。研究者本人は2026-09-02に、最終head `6d3f6e4cfd270e38526a295208970ea70cb4ecdc`を対象として、実ブラウザで通常ボタンのEnter既定動作を確認済みと明示した。この手動確認は明示された範囲に限定し、自動テストと混同しない。
+- KAI-15 main反映後ローカル検証: [確認済み] PR #24を2026-09-02T10:31:21Zにmerge commit方式で`main`へ反映した。merge commit `bb8b172a3726a5a2612edaac2436fdc9518a1631`と同一のローカル`main`上で、教材・確認テスト・実践課題の対象限定10ファイル131件、`npm run verify`（typecheck、lint、全12ファイル142件、build 1718 modules transformed）、`git diff --check`に成功した。
+- KAI-15 main push CI: [確認済み] merge commit `bb8b172a3726a5a2612edaac2436fdc9518a1631`を対象とする`push` workflow `Check` / job `check` / run `33619901600`（job `100214272558`）は`success`だった。全12ファイル142件、typecheck、lint、build 1718 modules transformedが成功した。annotationはNode.js 20 deprecation警告1件で、install logにはSupabase関連依存のNode 22以上要件、Recharts 2.15.4 deprecated、7 vulnerabilities（moderate 1、high 6）が表示された。依存・Node版は本作業の対象外として更新していない。
 - セッション復元: [未確認] リロード後の認証状態復元は確認していない
 - プロフィール保存: [未確認] 実際の保存成功は確認していない
 
@@ -192,7 +196,7 @@
 1. OQ-004、OQ-005、OQ-006は初期仕様として解消済みである。
 2. 研究判断ゲートとしてKAI-12 / OQ-009を解消し、研究データ管理、同意、保存、削除、アクセス権限、評価ログを確定する。
 3. KAI-13はLinear上Backlogであり、独立実装候補として扱う場合もCI必須化タイミングを確認した範囲だけ進める。
-4. KAI-14はDoneでPR #20がmainへ反映済みである。KAI-25はDoneでPR #22がmainへ反映済み・main再検証済みである。ただしKAI-15全体、MVP 12ノード全体、個別ルートモデルは完了していない。
+4. KAI-14はDoneでPR #20、KAI-25はDoneでPR #22、KAI-15の対象3ノード教材接続はPR #24としてmainへ反映・再検証済みである。ただしKAI-15全体、MVP 12ノード全体、個別ルートモデルは完了していない。
 5. 予備試行は関連準備と研究者判断を確認した後に実施する。
 
 [注意] Phase 3は仕様確定作業であり、未確定の診断重み、ルート生成優先順位、確認テスト閾値、保存項目を実装上の既定値で補完してはならない。
