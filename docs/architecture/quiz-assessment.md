@@ -95,7 +95,7 @@
 | 再受験 | KAI-23により、対象3ノードのQuiz UIでは不合格後にメモリ内の新しい試行として再受験できる。 | `attemptNumber`と全試行はコンポーネント状態内で区別する。永続的な履歴保存はKAI-12確定後の対象である。 | `KAI-11`, `KAI-12`, `KAI-23` |
 | 合格後の扱い | KAI-23により、合格後は同一ノード・同一クイズの再受験導線を出さず、試行追加も拒否する。合格時のみ`onComplete(percentage)`が呼ばれる。 | 受験履歴保存、永続化する`incorrectQuestionIds`、保存対象の`questionSetVersion`はKAI-12以降の対象である。 | `KAI-11`, `KAI-12`, `KAI-21`, `KAI-23` |
 | 不合格時の扱い | 不合格時は親へ結果を通知しない。 | ルート生成へ不合格結果を渡せない。 | `KAI-10`, `KAI-11` |
-| 誤答対応 | 結果画面で各問の解説は表示される。 | 誤答IDと復習ノードの対応、復習導線、問題版管理が存在しない。 | `KAI-11`, `KAI-15` |
+| 誤答対応 | 対象3ノードの問題データは`mainReviewNodeId`、`relatedPrerequisiteNodeIds`、`questionSetVersion`を持ち、採点結果とKAI-23のメモリ内試行結果は`nodeId`、`incorrectQuestionIds`、`questionSetVersion`を保持する。結果画面では各問の解説を表示する。 | 静的な復習ノード対応と結果項目は存在するが、それらを使った実行時の復習推薦生成・表示・遷移は未実装である。受験履歴としての永続化はKAI-12確定後の対象である。 | `KAI-11`, `KAI-12`, `KAI-15`, `KAI-21`, `KAI-23` |
 | 版管理 | 型付きクイズデータ、結果画面、KAI-23のメモリ内試行結果は`questionSetVersion`を持つ。 | 受験履歴として版情報を永続保存する処理はKAI-12確定後の対象である。 | `KAI-11`, `KAI-12`, `KAI-21`, `KAI-23` |
 | 保存 | `Progress.quizScores`は数値配列である。 | 受験履歴、合否、誤答、対象ノード、時刻、版情報は保持しない。 | `KAI-12` |
 | ルート接続 | Dashboardの推薦は固定的で、確認テスト結果に依存しない。 | `quizResults[].passed`へ接続する実装はない。 | `KAI-10`, `KAI-11`, `KAI-12` |
