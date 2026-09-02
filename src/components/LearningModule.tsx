@@ -11,6 +11,10 @@ import {
 import {
   resolvePilotLearningMaterial,
 } from '../features/material/pilotMaterials'
+import {
+  getLearningShortcutAction,
+  isInteractiveLearningShortcutTarget,
+} from '../features/material/learningKeyboard'
 import type {
   LearningMaterialBlock,
   LearningMaterialSection,
@@ -126,32 +130,27 @@ export function LearningModule({
     if (!material || currentPhase !== 'input' || activeTab !== 'slides') return
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (
-        event.target instanceof HTMLTextAreaElement
-        || event.target instanceof HTMLInputElement
-        || event.target instanceof HTMLSelectElement
-      ) {
-        return
-      }
+      const action = getLearningShortcutAction({
+        key: event.key,
+        slideIndex,
+        sectionCount: material.sections.length,
+        isInteractiveTarget: isInteractiveLearningShortcutTarget(event.target),
+      })
 
-      if (event.key === 'ArrowLeft') {
+      if (action === 'previous') {
         setSlideIndex(current => Math.max(0, current - 1))
         event.preventDefault()
         return
       }
 
-      if (event.key === 'ArrowRight') {
+      if (action === 'next') {
         setSlideIndex(current => Math.min(material.sections.length - 1, current + 1))
         event.preventDefault()
         return
       }
 
-      if (event.key === 'Enter') {
-        if (slideIndex === material.sections.length - 1) {
-          handlePhaseComplete()
-        } else {
-          setSlideIndex(current => current + 1)
-        }
+      if (action === 'complete') {
+        handlePhaseComplete()
         event.preventDefault()
       }
     }
