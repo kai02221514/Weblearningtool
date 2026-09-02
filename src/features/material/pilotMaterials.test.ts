@@ -65,7 +65,7 @@ function normalizeDisplayText(value: string): string {
     .trim()
 }
 
-function normalizeCodeText(value: string): string {
+function normalizeSourceLineEndings(value: string): string {
   return value.replace(/\r\n?/g, '\n')
 }
 
@@ -74,21 +74,29 @@ function textToken(value: string): DisplayToken {
 }
 
 function codeToken(value: string): DisplayToken {
-  return { kind: 'code', value: normalizeCodeText(value) }
+  return { kind: 'code', value }
 }
 
-function getSourceSection(nodeId: (typeof PILOT_MATERIAL_NODE_IDS)[number]): string {
+function getSourceSection(
+  normalizedSourceDocument: string,
+  nodeId: (typeof PILOT_MATERIAL_NODE_IDS)[number],
+): string {
   const startHeading = sourceSectionHeadingByNodeId[nodeId]
-  const start = sourceDocument.indexOf(startHeading)
+  const start = normalizedSourceDocument.indexOf(startHeading)
   if (start < 0) throw new Error(`Missing source heading: ${startHeading}`)
 
-  const nextSection = sourceDocument.indexOf('\n## ', start + startHeading.length)
-  return sourceDocument.slice(start, nextSection < 0 ? undefined : nextSection)
+  const nextSection = normalizedSourceDocument.indexOf(
+    '\n## ',
+    start + startHeading.length,
+  )
+  return normalizedSourceDocument.slice(start, nextSection < 0 ? undefined : nextSection)
 }
 
 function getSourceDisplayTokens(
+  source: string,
   nodeId: (typeof PILOT_MATERIAL_NODE_IDS)[number],
 ): DisplayToken[] {
+  const normalizedSourceDocument = normalizeSourceLineEndings(source)
   const tokens: DisplayToken[] = []
   let paragraphLines: string[] = []
   let codeLines: string[] | null = null
@@ -99,7 +107,7 @@ function getSourceDisplayTokens(
     paragraphLines = []
   }
 
-  for (const line of getSourceSection(nodeId).split('\n')) {
+  for (const line of getSourceSection(normalizedSourceDocument, nodeId).split('\n')) {
     if (line.startsWith('```')) {
       flushParagraph()
       if (codeLines === null) {
@@ -265,7 +273,18 @@ describe('pilot learning material catalog', () => {
   it('matches every displayed value to the corresponding reviewed source section in order', () => {
     for (const material of getPilotLearningMaterials()) {
       expect(getMaterialDisplayTokens(material)).toEqual(
-        getSourceDisplayTokens(material.nodeId),
+        getSourceDisplayTokens(sourceDocument, material.nodeId),
+      )
+    }
+  })
+
+  it('produces identical display tokens from LF and CRLF source documents', () => {
+    const lfSourceDocument = normalizeSourceLineEndings(sourceDocument)
+    const crlfSourceDocument = lfSourceDocument.replaceAll('\n', '\r\n')
+
+    for (const nodeId of PILOT_MATERIAL_NODE_IDS) {
+      expect(getSourceDisplayTokens(crlfSourceDocument, nodeId)).toEqual(
+        getSourceDisplayTokens(lfSourceDocument, nodeId),
       )
     }
   })
@@ -275,7 +294,7 @@ describe('pilot learning material catalog', () => {
     if (!material) throw new Error('Missing pilot material: html-010')
 
     expect(getMaterialDisplayTokens(changeFirstCodeIndentation(material))).not.toEqual(
-      getSourceDisplayTokens(material.nodeId),
+      getSourceDisplayTokens(sourceDocument, material.nodeId),
     )
   })
 
@@ -306,7 +325,7 @@ describe('pilot learning material catalog', () => {
     ]
 
     for (const { nodeId, deleted } of deletionCases) {
-      const sourceTokens = getSourceDisplayTokens(nodeId)
+      const sourceTokens = getSourceDisplayTokens(sourceDocument, nodeId)
       const material = resolvePilotLearningMaterial(nodeId)
       if (!material) throw new Error(`Missing pilot material: ${nodeId}`)
       const materialTokens = getMaterialDisplayTokens(material)
