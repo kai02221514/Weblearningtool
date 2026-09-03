@@ -5,6 +5,7 @@ import { LearningModule } from '../components/LearningModule'
 import { PracticeChallenge } from '../components/PracticeChallenge'
 import { Quiz } from '../components/Quiz'
 import { getMvpLearningNodes } from '../domain/mvpScope'
+import type { QuizAttemptResult } from '../features/quiz/attempts'
 import '../index.css'
 
 const HARNESS_NODE_IDS = ['html-010', 'html-021', 'css-011', 'html-000'] as const
@@ -18,6 +19,7 @@ function Kai15LearningMaterialHarness() {
   const [nodeId, setNodeId] = useState<string>('html-010')
   const [phase, setPhase] = useState<HarnessPhase>('learning')
   const [lastEvent, setLastEvent] = useState('なし')
+  const [attemptHistory, setAttemptHistory] = useState<readonly QuizAttemptResult[]>([])
   const nodeName = learningNodeNameById.get(nodeId) ?? nodeId
 
   const resetNode = (nextNodeId: string) => {
@@ -76,6 +78,11 @@ function Kai15LearningMaterialHarness() {
             setLastEvent(`onComplete score=${score} nodeId=${nodeId}`)
             setPhase('practice')
           }}
+          onAttemptFinalized={(attempt) => {
+            setAttemptHistory(prev => [...prev, attempt])
+            setLastEvent(`attempt=${attempt.attemptId}`)
+          }}
+          attemptHistory={attemptHistory}
           onDashboard={() => setLastEvent('onDashboard')}
           onReturnToLearning={() => setPhase('learning')}
         />
