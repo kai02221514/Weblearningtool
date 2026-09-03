@@ -8,8 +8,8 @@
 - 最新検証対象: KAI-15教材接続のmerge commit（PR #24、`main`反映・再検証済み）
 - KAI-15対象PR: PR #24（最終head `6d3f6e4cfd270e38526a295208970ea70cb4ecdc`、2026-09-02T10:31:21Zにmerge commit `bb8b172a3726a5a2612edaac2436fdc9518a1631`として`main`へ反映）
 - KAI-26対象Issue / PR: Linear KAI-26（In Progress）/ PR #27（Draft/Open、branch `feat/kai-26-route-generator`）
-- KAI-26実装検証基準コミット: `589d1a0079c25d2e1ec18be40b9f69f5c559dbfc`（`main`未反映）
-- KAI-26 PR段階CI: workflow `Check`、run `33715818295`、`pull_request`、対象head `589d1a0079c25d2e1ec18be40b9f69f5c559dbfc`、`success`
+- KAI-26実装検証基準コミット: `4ce0c43befc9092947ea2323526dabf0e40fb365`（監査指摘修正後、`main`未反映）
+- KAI-26 PR段階CI: workflow `Check`、run `33717092878`、`pull_request`、対象head `4ce0c43befc9092947ea2323526dabf0e40fb365`、`success`
 - 追加確認日: 2026-07-05
 - KAI-20作業開始時点の`main`: `233f9ac6152bc587643134f67bcfeea50be69d37`
 - KAI-21作業開始時点の`main`: `461dea5e7eca532eb077f0998a4b680945ba74c8`
@@ -53,7 +53,7 @@
 - SRK区分と初回MVP適用範囲を含むエラーマッピングデータ
 - MVP 8エラーの正規ノード参照と、MVP外6エラーの実行可能参照からの明示的除外
 - エラーID集合、MVP区分、MVPノード参照、MVP外除外理由、ランタイム取得境界の参照整合性テスト
-- `route-spec/1.0`の入出力型、開始ノード決定、MVPルートカタログ境界
+- `route-spec/1.0`の入出力型、1〜12だけを表現する`MaxRecommendations`、開始ノード決定、MVPルートカタログ境界
 - 診断、進捗、確認テスト、エラー、振り返りを統合するUI非依存の純粋な`routeGenerator`
 - 6段階優先順位、決定的同点処理、再帰的前提挿入・トポロジカル順序、復習解除、入力警告、カタログ異常停止の単体テスト
 - 初期アンケートのスコアリングとレベル判定
@@ -162,7 +162,7 @@
 
 ## 検証状態
 
-- コード状態の最新対象コミット: `589d1a0079c25d2e1ec18be40b9f69f5c559dbfc`（KAI-26 / Draft PR #27、`main`未反映）
+- コード状態の最新対象コミット: `4ce0c43befc9092947ea2323526dabf0e40fb365`（KAI-26監査指摘修正後 / Draft PR #27、`main`未反映）
 - 最新検証済み`main`: `bb8b172a3726a5a2612edaac2436fdc9518a1631`
 - `npm run build`: [確認済み] 2026-07-02、Supabase接続復旧後に成功（Vite CJS deprecation warningあり）
 - Supabase Edge Function deploy: [確認済み] `make-server-f3d88633`が対象プロジェクトでACTIVEとして確認済み
@@ -191,8 +191,8 @@
 - KAI-15原稿・キー操作検証: [確認済み] 教材原稿一致テストは本文トークンとコードトークンを区別し、原稿全体のCRLF/CRを解析前にLFへ正規化する一方、コード内部の改行、連続空白、インデントを保持する。LF版とCRLF版の同一性、コードインデント変更、段落、list item、code block、table rowの欠落を負例込みで検証する。対話要素またはその子要素では教材のグローバルショートカットを抑止し、非対話要素では左矢印、右矢印、Enterによる既存操作を維持することを単体テストで確認した。研究者本人は2026-09-02に、最終head `6d3f6e4cfd270e38526a295208970ea70cb4ecdc`を対象として、実ブラウザで通常ボタンのEnter既定動作を確認済みと明示した。この手動確認は明示された範囲に限定し、自動テストと混同しない。
 - KAI-15 main反映後ローカル検証: [確認済み] PR #24を2026-09-02T10:31:21Zにmerge commit方式で`main`へ反映した。merge commit `bb8b172a3726a5a2612edaac2436fdc9518a1631`と同一のローカル`main`上で、教材・確認テスト・実践課題の対象限定10ファイル131件、`npm run verify`（typecheck、lint、全12ファイル142件、build 1718 modules transformed）、`git diff --check`に成功した。
 - KAI-15 main push CI: [確認済み] merge commit `bb8b172a3726a5a2612edaac2436fdc9518a1631`を対象とする`push` workflow `Check` / job `check` / run `33619901600`（job `100214272558`）は`success`だった。全12ファイル142件、typecheck、lint、build 1718 modules transformedが成功した。annotationはNode.js 20 deprecation警告1件で、install logにはSupabase関連依存のNode 22以上要件、Recharts 2.15.4 deprecated、7 vulnerabilities（moderate 1、high 6）が表示された。依存・Node版は本作業の対象外として更新していない。
-- KAI-26ローカル検証: [確認済み／Draft PR] 2026-09-03に対象限定2ファイル27件、`npm run verify`（typecheck、lint、全14ファイル169件、build 1718 modules transformed）、`git diff --check`に成功した。診断4規則、P1〜P6、同点処理、前提挿入・順序、復習解除、未知ID、異常カタログ、版情報、決定性を検証した。UI、永続化、評価ログ、`generatedAt`、`routeId`は対象外である。
-- KAI-26 PR段階検証: [確認済み／Draft PR] PR #27の実装head `589d1a0079c25d2e1ec18be40b9f69f5c559dbfc`に対する`pull_request` workflow `Check` / run `33715818295`は`success`だった。文書更新後の最終PR headに対するCIはPR #27を正とする。
+- KAI-26ローカル検証: [確認済み／Draft PR] 2026-09-03の監査指摘修正後、対象限定2ファイル30件、`npm run verify`（typecheck、lint、全14ファイル172件、build 1718 modules transformed）、`git diff --check`に成功した。診断4規則、P1〜P6、同点処理、前提挿入・順序、復習解除、未知ID、異常カタログ、版情報、決定性に加え、`maxRecommendations`の1〜12型境界と、未完了前提のroute内存在・先行順序を分離して検証した。UI、永続化、評価ログ、`generatedAt`、`routeId`は対象外である。
+- KAI-26 PR段階検証: [確認済み／Draft PR] PR #27の監査指摘修正head `4ce0c43befc9092947ea2323526dabf0e40fb365`に対する`pull_request` workflow `Check` / run `33717092878`は`success`だった。文書更新後の最終PR headに対するCIはPR #27を正とする。
 - セッション復元: [未確認] リロード後の認証状態復元は確認していない
 - プロフィール保存: [未確認] 実際の保存成功は確認していない
 
