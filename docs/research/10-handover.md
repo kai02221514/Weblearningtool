@@ -22,7 +22,7 @@
 - KAI-26完了証跡同期PR #28: merged。最終head `56ad79d82ff5cc4026dbe0c5519c8299cd041291`、2026-09-03T13:39:07Z、merge commit `3ca325b2c2738db0869d6b8e391ed09e91a13eeb`
 - KAI-26完了証跡同期Actions: PR head run `33758471060`（`pull_request`、対象head `56ad79d82ff5cc4026dbe0c5519c8299cd041291`）とmain push run `33762334541`（`push`、対象SHA `3ca325b2c2738db0869d6b8e391ed09e91a13eeb`）はいずれも`success`
 - KAI-27 Linear: In Progress。診断・進捗・確認テストに限定したメモリ内UI接続の独立Issue
-- KAI-27 Draft PR #30: branch `feat/kai-27-route-generator-dashboard-integration`、開始base `c14c36acc192c115690691d496772ebba8afff3e`、実装commit `97a2df0`
+- KAI-27 Draft PR #30: branch `feat/kai-27-route-generator-dashboard-integration`、開始base `c14c36acc192c115690691d496772ebba8afff3e`、実装commit `97a2df0`、監査指摘対応commit `aafd9b142e13777eae5d48c43e1bdf14a4d4c788`
 - KAI-25作業開始時点の`main`: `1b99f49fb8d8377cc951de363d58589ad21463cc`
 - KAI-25 PR #22: merged。PR head `cd56ce91e54f450dc41de661f476d0c3f7e4b68f`、merge commit `b134f8c6fe2612821fd2285899711806724fb27e`
 - KAI-25 main push Actions: workflow `Check` / job `check`、run `29354376730`、`success`
@@ -32,7 +32,7 @@
 ## 現在地
 
 - 正式RQと主張範囲: D-021により、システムレベルで回答する正式な主RQと、予備試行または本評価で扱う将来評価の副次RQを確定した。中間発表時点の主張可能範囲・主張禁止範囲も確定したが、新しい評価結果または学習効果の主張は追加していない。OQ-001は解消済みである。
-- 状態: Phase 2およびPhase 2.5正式完了。Phase 3のKAI-9/KAI-10判断はPR #1で`main`へ反映済み、Linear上もDone。KAI-11/OQ-006は研究者採否と指導教員確認を経て初期仕様確定として解消済みであり、D-018を正式追加済み。KAI-15はIn Progressで、予備試行用3ノード9問と教材案は研究者レビュー済み・予備試行前である。KAI-20〜KAI-23で型付きデータ、採点・正規化、対象3ノードのQuiz UI接続、メモリ内再受験制御・試行結果モデルを追加済みである。対象3ノード固有教材の型付きデータ化と`LearningModule`接続はPR #24のmerge commit `bb8b172a3726a5a2612edaac2436fdc9518a1631`で`main`へ反映し、ローカル再検証とmain push CIに成功した。KAI-14はDoneでPR #20が`main`へ反映済み、KAI-24はDoneでPR #17/#18が`main`へ反映済みである。KAI-12はIn Reviewで指導教員確認待ち、PR #19はDraft/Openで未マージである。KAI-25はDoneでPR #22が`main`へ反映済みである。KAI-26の純粋な`routeGenerator`はPR #27で`main`へ反映済みである。KAI-27 / Draft PR #30では、診断K群3項目、完了・仮定・進行中状態、確定済み確認テスト試行をブラウザ内メモリで接続し、Dashboard固定推薦を生成順の上位3件へ置換した。追加6件を含む全178件、`npm run verify`、`git diff --check`に成功した。保存、同意、評価ログ、実践課題エラー履歴、振り返り、参加者評価は未接続で、KAI-15全体も完了ではない。
+- 状態: Phase 2およびPhase 2.5正式完了。Phase 3のKAI-9/KAI-10判断はPR #1で`main`へ反映済み、Linear上もDone。KAI-11/OQ-006は研究者採否と指導教員確認を経て初期仕様確定として解消済みであり、D-018を正式追加済み。KAI-15はIn Progressで、予備試行用3ノード9問と教材案は研究者レビュー済み・予備試行前である。KAI-20〜KAI-23で型付きデータ、採点・正規化、対象3ノードのQuiz UI接続、メモリ内再受験制御・試行結果モデルを追加済みである。対象3ノード固有教材の型付きデータ化と`LearningModule`接続はPR #24のmerge commit `bb8b172a3726a5a2612edaac2436fdc9518a1631`で`main`へ反映し、ローカル再検証とmain push CIに成功した。KAI-14はDoneでPR #20が`main`へ反映済み、KAI-24はDoneでPR #17/#18が`main`へ反映済みである。KAI-12はIn Reviewで指導教員確認待ち、PR #19はDraft/Openで未マージである。KAI-25はDoneでPR #22が`main`へ反映済みである。KAI-26の純粋な`routeGenerator`はPR #27で`main`へ反映済みである。KAI-27 / Draft PR #30では、診断K群3項目、完了・仮定・進行中状態、確定済み確認テスト試行をブラウザ内メモリで接続し、Dashboard固定推薦を生成順の上位3件へ置換した。監査指摘対応では同一試行通知と完了通知を冪等化し、未知IDの警告文言を中立化した。実Dashboard描画を含む全16ファイル186件、`npm run verify`、`git diff --check`に成功した。専用手動ハーネスは追加済みだが、作業環境のブラウザアクセス制限により操作とconsole確認は未確認である。保存、同意、評価ログ、実践課題エラー履歴、振り返り、参加者評価は未接続で、KAI-15全体も完了ではない。
 - 次Phase: Phase 3残仕様確定とPhase 5予備試行用実装準備
 - Phase 2独立再監査: 完了。記録は`docs/archive/audit-2026-07-02/phase2-independent-review.md`。
 - Linear移管: 完了。保存先はLinear `Kai02221514` / `WebLearningTool`。
@@ -43,7 +43,7 @@
   3. `KAI-12`: In Review。指導教員確認待ちで、PR #19は未マージ。
   4. `KAI-25`: Done。PR #22はmain反映済み・main再検証済み。
   5. `KAI-26`: Done。PR #27の実装・受入確認、PR #28の完了証跡同期、完了コメント記録まで完了しており、再オープンは不要。
-  6. `KAI-27`: In Progress。Draft PR #30で第1段階UI接続を実装・自動検証済み。ChatGPT監査と認証後Dashboardの手動確認待ち。
+  6. `KAI-27`: In Progress。Draft PR #30で第1段階UI接続と監査指摘対応を実装・自動描画検証済み。専用手動ハーネスのブラウザ操作・console確認とChatGPT再監査待ち。
   7. `KAI-13`: Backlog。独立候補だが、CI必須化タイミングは確認対象。
   8. 保存、同意、評価ログ、研究データ利用、予備試行: 未実施。
 - 補足: KAI-12とKAI-15は一部並行可能だが、研究データ保存・評価ログ・同意に関わる実装はKAI-12確定前に独自補完しない。
@@ -52,9 +52,9 @@
 - KAI-9の診断規則はDG-08を除き確定。DG-08は診断必須化、誘導タイミング、診断完了状態保存に関わるためOQ-009/KAI-12へ移管した。
 - KAI-10は内容確定。RT-02はルート生成結果の版情報必須化と`generatedAt`の保存・評価ログ記録層への分離、RT-07は原因単位の復習解除へ修正済み。
 - GitHub/Linear同期状況（2026-09-03確認）: PR `#1`（`docs/phase3-route-spec-proposal` -> `main`）はmerged。merge commitは`1a6216b01e9d49315f9bee84e67c93b449b44432`。PR #24はmerge commit `bb8b172a3726a5a2612edaac2436fdc9518a1631`として`main`へ反映・再検証済みである。PR #27は最終head `3f1dc06628e25511f7ee31ece0a3f6d609c868a2`をmerge commit `c47c807214803e2cf4f117bccf7b4e6ac245f3d7`として`main`へ反映し、PR段階CIとmain push CIに成功した。PR #28は最終head `56ad79d82ff5cc4026dbe0c5519c8299cd041291`をmerge commit `3ca325b2c2738db0869d6b8e391ed09e91a13eeb`として`main`へ反映し、PR段階CIとmain push CIに成功した。PR #30はKAI-27のDraft/Openである。Linear `KAI-15`と`KAI-27`は`In Progress`、`KAI-9`/`KAI-10`/`KAI-11`/`KAI-26`は`Done`であり、KAI-26の完了コメントも記録済みである。
-- 未完了事項: KAI-27 / Draft PR #30のChatGPT監査と認証後Dashboard手動確認、MVP 12ノード全体の教材整備、予備試行、本実験用教材・問題の最終化、OQ-009、実践課題エラー履歴・振り返りのルート入力接続、同意・永続化・評価ログ、研究データ出力、`generatedAt`、`routeId`、全63ノード対応、参加者評価、テスト基盤の継続整備、P-06/P-07/P-09の保留判断。
+- 未完了事項: KAI-27 / Draft PR #30のChatGPT再監査と専用手動ハーネスのブラウザ操作・console確認、MVP 12ノード全体の教材整備、予備試行、本実験用教材・問題の最終化、OQ-009、実践課題エラー履歴・振り返りのルート入力接続、同意・永続化・評価ログ、研究データ出力、`generatedAt`、`routeId`、全63ノード対応、参加者評価、テスト基盤の継続整備、P-06/P-07/P-09の保留判断。
 - 次の最小作業:
-  1. KAI-27 / Draft PR #30について、K群入力境界、イベント境界、生成順、構造化理由、未接続範囲をChatGPTで監査し、可能なら実認証後のDashboard操作を確認する。Ready化・merge・Done化はこの作業では行わない。
+  1. KAI-27 / Draft PR #30について、監査指摘対応後のK群入力境界、イベント境界、同一通知の冪等性、生成順、構造化理由、未接続範囲をChatGPTで再監査する。可能な環境で`http://127.0.0.1:3000/manual/kai-27/`を操作し、console error/warning件数を確認する。Ready化・merge・Done化は別判断とする。
   2. 研究判断ゲートとしてKAI-12 / OQ-009を確定する。保存・同意・評価ログ実装は確定前に開始しない。
   3. Linear上BacklogのKAI-13は並行可能な独立候補だが、CI必須化タイミングを確認した範囲だけ進める。
   4. KAI-15は対象3ノード教材接続をmain反映済みだがIn Progressを維持し、MVP 12ノード全体の教材整備、本実験用教材・問題の最終化、予備試行は確定済みのゲートに従って別作業として進める。
