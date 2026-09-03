@@ -13,6 +13,9 @@
 - KAI-26 main push CI: workflow `Check`、run `33757559017`、`push`、対象SHA `c47c807214803e2cf4f117bccf7b4e6ac245f3d7`、`success`
 - KAI-26完了証跡同期PR: PR #28（merged）。最終head `56ad79d82ff5cc4026dbe0c5519c8299cd041291`を2026-09-03T13:39:07Zにmerge commit `3ca325b2c2738db0869d6b8e391ed09e91a13eeb`として`main`へ反映
 - KAI-26完了証跡同期CI: PR head run `33758471060`と、merge commit対象のmain push run `33762334541`はいずれも`success`
+- KAI-27対象Issue / Draft PR: Linear KAI-27（In Progress）/ PR #30（Draft、branch `feat/kai-27-route-generator-dashboard-integration`）
+- KAI-27開始base: `c14c36acc192c115690691d496772ebba8afff3e`（PR #29 merge commit）
+- KAI-27実装commit: `97a2df0`。診断・進捗・確認テストに限定したブラウザ内メモリ接続であり、保存・評価ログを含まない
 - 追加確認日: 2026-07-05
 - KAI-20作業開始時点の`main`: `233f9ac6152bc587643134f67bcfeea50be69d37`
 - KAI-21作業開始時点の`main`: `461dea5e7eca532eb077f0998a4b680945ba74c8`
@@ -58,6 +61,8 @@
 - エラーID集合、MVP区分、MVPノード参照、MVP外除外理由、ランタイム取得境界の参照整合性テスト
 - `route-spec/1.0`の入出力型、1〜12だけを表現する`MaxRecommendations`、開始ノード決定、MVPルートカタログ境界
 - 診断、進捗、確認テスト、エラー、振り返りを統合するUI非依存の純粋な`routeGenerator`
+- 診断K群3項目、完了・仮定・進行中状態、確定済み`QuizAttemptResult`を`RouteGenerationInput`へ変換するUI非依存の実行時adapter
+- `routeGenerator`の生成順を維持した上位3件と、構造化理由・evidence・status・warningsのDashboard表示
 - 6段階優先順位、決定的同点処理、再帰的前提挿入・トポロジカル順序、復習解除、入力警告、カタログ異常停止の単体テスト
 - 初期アンケートのスコアリングとレベル判定
 - 予備試行用3ノードのノード別確認テスト表示と採点接続
@@ -78,12 +83,13 @@
 
 ## 部分実装
 
-- 推奨ノード表示: Dashboardは `recommendedStartNodeIds` の固定値（現状 `html-010`）を表示する。正規IDと前提判定は使うが、診断結果に基づく統合ルート生成結果ではない。
-- ルート生成: [実装済み／main反映・検証済み] KAI-26 / PR #27で、MVP 12ノード限定・UI非依存の純粋な`routeGenerator`、順序、P1〜P6、決定的同点処理、前提補完、理由情報、版管理、異常系を実装した。`MaxRecommendations`は整数1〜12に限定し、代表3シナリオ、決定性、MVP集合内整合性、前提関係、優先順位、同点処理、推薦理由契約を検証済みである。Dashboardと実行時フローには未接続であり、固定推薦表示は維持される。
+- 推奨ノード表示: [Draft PRで実装・自動検証済み] KAI-27 / PR #30で固定`recommendedStartNodeIds`を推薦元から除去し、`routeGenerator`が返す生成順の上位3件をDashboardへ表示する。各候補で順序、ノード名、決定的な日本語理由、`reasonCode`、`evidence.kind`、`evidence.refId`を表示し、`active`、`completed`、`insufficient-input`、`error`とwarningsを明示する。
+- ルート生成: [実装済み／main反映・検証済み] KAI-26 / PR #27で、MVP 12ノード限定・UI非依存の純粋な`routeGenerator`、順序、P1〜P6、決定的同点処理、前提補完、理由情報、版管理、異常系を実装した。KAI-27 / Draft PR #30では、その生成器を診断確定・再回答、ノード完了、確認テスト結果確定のメモリ内イベントへ接続した。
 - エラー検出: 8エラー中、閉じタグ、入れ子、必須属性、見出し、CSS構文の一部を検出。セレクタ不一致、ボックスモデル、リソースパスは未実装。
 - エラーマッピング: MVP 8エラーは正規MVPノードだけを実行可能な`nodeRefs`として保持する。MVP外6エラーは将来候補として定義を保持するが、`nodeRefs`を空配列とし、初回MVP対象外理由を必須化した。ランタイムのMVP推薦取得関数はMVP外エラーを返さない。これは新規エラー検出の実装を意味しない。
-- 進捗: `completedNodeIds` に統一したが、デモ初期値・メモリ保持である。
-- 診断: `routeGenerator`内部の開始ノード決定規則は実装済みだが、既存の診断画面・保存状態・Dashboardには接続されていない。既存UIのレベル判定を正規ルート入力として扱ってはならない。
+- 進捗: [Draft PRで実装・自動検証済み] KAI-27でルートへ影響する初期デモ値を除去し、空の`completedNodeIds`・`assumedNodeIds`と`inProgressNodeId: null`で開始する。ノード完了は完了集合を単調更新して再生成する。学習開始は進行中状態だけを更新し、それ自体やDashboard表示だけでは再生成しない。状態はメモリ保持のみである。
+- 診断: [Draft PRで実装・自動検証済み] SignupSurveyのK群3項目だけを`decideStartNode`へ渡し、診断なしは`diagnosis: null`としてDG-RULE-4へフォールバックする。重み付き`levelScore`とlevelラベルはルート判断へ使用しない。Dashboardから任意に回答・再回答できるが、診断必須化・完了状態保存は実装していない。
+- 確認テスト入力: [Draft PRで実装・自動検証済み] `QuizAttemptResult`を親のメモリへ通知し、確定済みの`quizId`、`nodeId`、`passed`、0〜100点、`attemptNumber`、`submittedAt`を`QuizResult`へ変換する。親側で合否や試行番号を推測しない。不合格確定時に再生成する。
 - プロファイル保存: 保存用エンドポイントは存在するが、サインアップ後の初期アンケートフローから実保存されることを確認できていない。
 - Supabase接続: 旧Project Reference IDがフロントエンド設定に残っていたため、現在の接続先は `VITE_SUPABASE_URL` と `VITE_SUPABASE_PUBLISHABLE_KEY` で指定する構成へ変更した。Publishable keyは `apikey` ヘッダーで送信し、ユーザーJWTのみ `Authorization: Bearer` で送信する。Supabaseプロジェクトへの接続先修正は完了し、サインインの実環境成功を確認済みである。
 - Edge Function: 旧 `src/supabase/functions/server` 配置から `supabase/functions/make-server-f3d88633` へ移行した。内部Honoルートは `/health`、`/signup`、`/signin`、`/profile` とし、Function名の二重化を避ける。対象プロジェクトへデプロイ済みで、認証APIへ到達できる状態を確認済みである。
@@ -144,7 +150,6 @@
 - MVP 12ノード全体のノード対応済み確認テストデータ `quiz-{nodeId}`（予備試行用3ノード9問の型付きデータ化のみ追加済み）
 - MVP 12ノード全体の再受験処理・試行履歴管理（KAI-23で予備試行用3ノードのメモリ内制御のみ追加済み）
 - MVP 12ノード全体の実践課題（KAI-25は予備試行対象3ノードだけを扱う）
-- `routeGenerator`のDashboard・実行時フロー接続と固定推薦の置換
 - 学習進捗、テスト、実践、エラー、振り返り、ルート履歴の永続化・復元
 - サインアップ後の自動セッション作成
 - 初期アンケート完了時の `saveProfile` 接続
@@ -152,7 +157,8 @@
 - 評価用事前・事後アンケートまたは外部フォームとの運用接続
 - 評価に必要なログ取得・分析可能形式での出力
 - 比較条件を含む評価フロー
-- `routeGenerator`のUI接続、永続化、評価ログまで含む統合テスト
+- 実践課題エラー履歴と正規`struggledNodeIds`による振り返りの実行時接続
+- `routeGenerator`入力・出力の永続化と評価ログを含む統合テスト
 
 ## モック・研究上の注意
 
@@ -198,7 +204,10 @@
 - KAI-26受入確認: [確認済み] MVP 12ノード限定・UI非依存の純粋な`routeGenerator`について、`MaxRecommendations`の整数1〜12型境界、代表3シナリオ、同一入力と入力配列順変更時の決定性、P1〜P6、全順序の同点処理、未完了前提のroute内存在と先行順序、構造化された推薦理由、版情報、復習・異常系を検証し、KAI-26の受入条件を満たすことを確認した。
 - KAI-26 CI: [確認済み] 最終PR head `3f1dc06628e25511f7ee31ece0a3f6d609c868a2`に対する`pull_request` workflow `Check` / run `33717266789`と、merge commit `c47c807214803e2cf4f117bccf7b4e6ac245f3d7`に対する`push` workflow `Check` / run `33757559017`はいずれも`success`だった。
 - KAI-26完了証跡同期: [確認済み] PR #28の最終head `56ad79d82ff5cc4026dbe0c5519c8299cd041291`を2026-09-03T13:39:07Zにmerge commit `3ca325b2c2738db0869d6b8e391ed09e91a13eeb`として`main`へ反映した。PR headの`pull_request` workflow `Check` / run `33758471060`と、merge commit対象の`push` workflow `Check` / run `33762334541`はいずれも`success`だった。Linear KAI-26には完了コメントを記録済みで、状態はDoneである。
-- KAI-26対象外維持: [未実装] Dashboard・実行時フロー接続と固定推薦置換、永続化、同意、評価ログ、研究データ出力、`generatedAt`、`routeId`、全63ノード対応、参加者評価は実装・検証していない。
+- KAI-26対象外の後続状況: Dashboard・実行時フロー接続と固定推薦置換はKAI-27 / Draft PR #30で実装・自動検証済み。永続化、同意、評価ログ、研究データ出力、`generatedAt`、`routeId`、全63ノード対応、参加者評価は引き続き未実装である。
+- KAI-27自動検証: [確認済み] 実装commit `97a2df0`で、routeGenerator対象2ファイル30件、全15ファイル178件、`npm run verify`（typecheck、lint、全178件、build 1723 modules transformed）、`git diff --check`に成功した。追加した実行時adapter・表示modelテストは1ファイル6件である。
+- KAI-27ブラウザ確認: [部分確認済み] ローカル開発サーバー起動、ログイン画面表示、console error/warningなしを確認した。実認証情報を使用していないため、認証後Dashboardでの未診断、K群回答差、不合格後、完了後の一連の操作は未確認である。
+- KAI-27対象外維持: [未接続] 実践課題エラー履歴、振り返り、保存、同意、評価ログ、研究データ出力、`generatedAt`、`routeId`、全63ノード対応、参加者評価は含めていない。
 - セッション復元: [未確認] リロード後の認証状態復元は確認していない
 - プロフィール保存: [未確認] 実際の保存成功は確認していない
 
@@ -207,10 +216,10 @@
 ## 次の最小作業単位
 
 1. OQ-004、OQ-005、OQ-006は初期仕様として解消済みである。
-2. KAI-26の純粋な`routeGenerator`はPR #27で`main`へ反映・検証済みである。次の実装候補となるDashboard・実行時フロー接続と固定推薦置換は独立Issueとして定義し、永続化、同意、評価ログへスコープを拡張しない。
+2. KAI-26の純粋な`routeGenerator`はPR #27で`main`へ反映・検証済みである。診断・進捗・確認テストに限定したDashboard・実行時フロー接続はKAI-27 / Draft PR #30で実装・自動検証済みであり、ChatGPT監査と実認証後の手動確認を待つ。
 3. 研究判断ゲートとしてKAI-12 / OQ-009を解消し、研究データ管理、同意、保存、削除、アクセス権限、評価ログを確定する。
 4. KAI-13はLinear上Backlogであり、独立実装候補として扱う場合もCI必須化タイミングを確認した範囲だけ進める。
-5. KAI-14はDoneでPR #20、KAI-25はDoneでPR #22、KAI-15の対象3ノード教材接続はPR #24としてmainへ反映・再検証済みである。ただしKAI-15全体、MVP 12ノード全体、個別ルートのUI接続は完了していない。
+5. KAI-14はDoneでPR #20、KAI-25はDoneでPR #22、KAI-15の対象3ノード教材接続はPR #24としてmainへ反映・再検証済みである。ただしKAI-15全体、MVP 12ノード全体、実践課題エラー履歴・振り返り・永続化を含む全入力のルート接続は完了していない。
 6. 予備試行は関連準備と研究者判断を確認した後に実施する。
 
 [注意] Phase 3は仕様確定作業であり、未確定の診断重み、ルート生成優先順位、確認テスト閾値、保存項目を実装上の既定値で補完してはならない。
