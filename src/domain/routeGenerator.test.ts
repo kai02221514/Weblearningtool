@@ -454,8 +454,12 @@ describe('routeGenerator prerequisites, review, and invariants', () => {
     expect(bothResolved.route.some(item => item.nodeId === 'html-021')).toBe(false)
   })
 
-  it('keeps every output in the MVP set, unique, ordered, and prerequisite-safe', () => {
+  it('includes every unmet prerequisite before its dependent route item', () => {
     const input = inputFor({
+      progress: {
+        completedNodeIds: [],
+        assumedNodeIds: [],
+      },
       errorHistory: [{
         errorId: 'E_LAYOUT_BOX_MODEL_MISUNDERSTANDING',
         occurrenceCount: 1,
@@ -474,12 +478,16 @@ describe('routeGenerator prerequisites, review, and invariants', () => {
       result.route.map((_, index) => index + 1)
     )
     for (const item of result.route) {
+      const dependentIndex = routeNodeIds.findIndex(
+        nodeId => nodeId === item.nodeId
+      )
       const prerequisites = catalog.get(item.nodeId)?.prerequisites ?? []
       for (const prerequisiteId of prerequisites) {
         const prerequisiteIndex = routeNodeIds.findIndex(
           nodeId => nodeId === prerequisiteId
         )
-        expect(prerequisiteIndex).toBeLessThan(item.order - 1)
+        expect(prerequisiteIndex).toBeGreaterThanOrEqual(0)
+        expect(prerequisiteIndex).toBeLessThan(dependentIndex)
       }
     }
   })
@@ -595,6 +603,19 @@ describe('routeGenerator output contract', () => {
     expect(result.route).toHaveLength(MVP_NODE_IDS.length)
     expect(result.presentedCount).toBe(2)
   })
+
+  it.each([
+    [1, 1],
+    [12, 12],
+  ] as const)(
+    'applies the maxRecommendations boundary %i without truncating the route',
+    (maxRecommendations, expectedPresentedCount) => {
+      const result = routeGenerator(inputFor({ maxRecommendations }))
+
+      expect(result.route).toHaveLength(MVP_NODE_IDS.length)
+      expect(result.presentedCount).toBe(expectedPresentedCount)
+    },
+  )
 
   it('returns deterministic specification, catalog, and reference-data versions', () => {
     const result = routeGenerator(inputFor())

@@ -51,6 +51,20 @@ export interface RouteCatalog {
   }[]
 }
 
+export type MaxRecommendations =
+  | 1
+  | 2
+  | 3
+  | 4
+  | 5
+  | 6
+  | 7
+  | 8
+  | 9
+  | 10
+  | 11
+  | 12
+
 export interface QuizResult {
   quizId: string
   nodeId: string
@@ -84,7 +98,7 @@ export interface RouteGenerationInput {
   quizResults: QuizResult[]
   errorHistory: ErrorHistoryEntry[]
   reflections: ReflectionEntry[]
-  maxRecommendations: number
+  maxRecommendations: MaxRecommendations
 }
 
 export type RecommendationReasonCode =
