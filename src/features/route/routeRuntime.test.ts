@@ -4,6 +4,7 @@ import {
   applyDiagnosis,
   completeRouteNode,
   createInitialRouteRuntimeState,
+  pickRouteDiagnosisAnswers,
   recordQuizAttempt,
   startRouteNode,
   toRouteQuizResult,
@@ -15,20 +16,23 @@ import {
   getRouteStatusMessage,
 } from './routePresentation'
 
-function failedHtml010Attempt(): QuizAttemptResult {
+function html010Attempt(
+  attemptNumber: number,
+  passed: boolean,
+): QuizAttemptResult {
   return {
-    attemptId: 'quiz-html-010-attempt-1',
+    attemptId: `quiz-html-010-attempt-${attemptNumber}`,
     quizId: 'quiz-html-010',
     nodeId: 'html-010',
     questionSetVersion: 'quiz-html-010/v1.0',
-    attemptNumber: 1,
+    attemptNumber,
     answers: [],
-    score: 1,
+    score: passed ? 2 : 1,
     maxScore: 3,
     passScore: 2,
-    passed: false,
-    startedAt: '2026-09-03T10:00:00.000Z',
-    submittedAt: '2026-09-03T10:05:00.000Z',
+    passed,
+    startedAt: `2026-09-03T10:${attemptNumber}0:00.000Z`,
+    submittedAt: `2026-09-03T10:${attemptNumber}5:00.000Z`,
     correctQuestionIds: [],
     incorrectQuestionIds: [],
     questionResults: [],
@@ -37,7 +41,7 @@ function failedHtml010Attempt(): QuizAttemptResult {
 }
 
 describe('route runtime integration', () => {
-  it('starts without demo progress and falls back to html-000 with a warning', () => {
+  it('starts without demo progress and presents the generated top three from html-000', () => {
     const state = createInitialRouteRuntimeState()
 
     expect(state.progress).toEqual({
@@ -45,40 +49,85 @@ describe('route runtime integration', () => {
       assumedNodeIds: [],
       inProgressNodeId: null,
     })
+    expect(state.processedQuizAttemptIds).toEqual([])
     expect('recommendedStartNodeIds' in state.progress).toBe(false)
     expect(state.result.status).toBe('insufficient-input')
     expect(state.result.route[0]?.nodeId).toBe('html-000')
+    expect(state.result.presentedCount).toBe(3)
     expect(state.result.warnings).toContain('DIAGNOSIS_MISSING')
   })
 
-  it('uses only K-group answers and retains the DG-RULE-3 assumption', () => {
-    const state = applyDiagnosis(createInitialRouteRuntimeState(), {
+  it.each([
+    [{ programming_experience: 'no' }, 'DG-RULE-1'],
+    [{
+      programming_experience: 'yes',
+      rule_confidence: 'low',
+      knowledge_concept: 'visual_only',
+    }, 'DG-RULE-2'],
+  ])('applies %s as %s and starts at html-000', (answers, ruleId) => {
+    const state = applyDiagnosis(createInitialRouteRuntimeState(), answers)
+
+    expect(state.diagnosis?.matchedRuleId).toBe(ruleId)
+    expect(state.diagnosis?.startNodeId).toBe('html-000')
+    expect(state.progress.assumedNodeIds).toEqual([])
+    expect(state.result.route[0]?.nodeId).toBe('html-000')
+  })
+
+  it('uses only K-group answers and replaces assumptions immediately on re-answer', () => {
+    const surveyData = {
       programming_experience: 'yes',
       rule_confidence: 'partial',
       knowledge_concept: 'somewhat',
-    })
+      levelScore: 999,
+      level: 'advanced',
+      occupation: 'engineer',
+    }
+    const rule3 = applyDiagnosis(
+      createInitialRouteRuntimeState(),
+      pickRouteDiagnosisAnswers(surveyData),
+    )
 
-    expect(state.diagnosis?.matchedRuleId).toBe('DG-RULE-3')
-    expect(state.diagnosis?.startNodeId).toBe('html-010')
-    expect(state.progress.assumedNodeIds).toEqual(['html-000'])
-    expect(state.result.route[0]?.nodeId).toBe('html-010')
+    expect(rule3.diagnosis?.usedAnswers.map(answer => answer.questionId)).toEqual([
+      'programming_experience',
+      'rule_confidence',
+      'knowledge_concept',
+    ])
+    expect(rule3.diagnosis?.matchedRuleId).toBe('DG-RULE-3')
+    expect(rule3.diagnosis?.startNodeId).toBe('html-010')
+    expect(rule3.progress.assumedNodeIds).toEqual(['html-000'])
+    expect(rule3.result.route[0]?.nodeId).toBe('html-010')
+
+    const reAnswered = applyDiagnosis(rule3, {
+      programming_experience: 'no',
+    })
+    expect(reAnswered.diagnosis?.matchedRuleId).toBe('DG-RULE-1')
+    expect(reAnswered.progress.assumedNodeIds).toEqual([])
+    expect(reAnswered.result.route[0]?.nodeId).toBe('html-000')
   })
 
-  it('does not regenerate for learning start or dashboard display, but does after completion', () => {
+  it('only updates in-progress state on learning start and regenerates once on completion', () => {
     const initial = createInitialRouteRuntimeState()
     const started = startRouteNode(initial, 'html-000')
 
+    expect(started.progress.inProgressNodeId).toBe('html-000')
     expect(started.result).toBe(initial.result)
+    expect(getPresentedRecommendations(started.result)).toEqual(
+      getPresentedRecommendations(initial.result),
+    )
 
     const completed = completeRouteNode(started, 'html-000')
     expect(completed.progress.completedNodeIds).toEqual(['html-000'])
     expect(completed.progress.inProgressNodeId).toBeNull()
     expect(completed.result).not.toBe(initial.result)
     expect(completed.result.route.some(item => item.nodeId === 'html-000')).toBe(false)
+
+    const duplicate = completeRouteNode(completed, 'html-000')
+    expect(duplicate).toBe(completed)
+    expect(duplicate.progress.completedNodeIds).toEqual(['html-000'])
   })
 
-  it('converts a finalized quiz attempt and regenerates a failed review with prerequisites', () => {
-    const attempt = failedHtml010Attempt()
+  it('maps a failed quiz, includes its prerequisite, and ignores the same attempt notification', () => {
+    const attempt = html010Attempt(1, false)
     const quizResult = toRouteQuizResult(attempt)
 
     expect(quizResult).toEqual({
@@ -87,7 +136,7 @@ describe('route runtime integration', () => {
       passed: false,
       score: 33,
       attempt: 1,
-      takenAt: '2026-09-03T10:05:00.000Z',
+      takenAt: '2026-09-03T10:15:00.000Z',
     })
 
     const updated = recordQuizAttempt(createInitialRouteRuntimeState(), attempt)
@@ -104,6 +153,25 @@ describe('route runtime integration', () => {
             refId: 'quiz-html-010',
           }),
         }),
+      ]))
+
+    const duplicate = recordQuizAttempt(updated, attempt)
+    expect(duplicate).toBe(updated)
+    expect(duplicate.quizResults).toHaveLength(1)
+    expect(duplicate.processedQuizAttemptIds).toEqual([attempt.attemptId])
+  })
+
+  it('clears the failed-quiz recommendation when a later retry passes', () => {
+    const failed = recordQuizAttempt(
+      createInitialRouteRuntimeState(),
+      html010Attempt(1, false),
+    )
+    const passed = recordQuizAttempt(failed, html010Attempt(2, true))
+
+    expect(passed.quizResults).toHaveLength(2)
+    expect(passed.result.route.flatMap(item => item.reasons))
+      .not.toEqual(expect.arrayContaining([
+        expect.objectContaining({ reasonCode: 'QUIZ_FAILED' }),
       ]))
   })
 })
@@ -124,7 +192,7 @@ describe('route presentation', () => {
     }))
   })
 
-  it('formats reasons, evidence, warnings, and every result status deterministically', () => {
+  it('formats reasons, warnings, and every result status deterministically', () => {
     const message = formatRecommendationReason({
       reasonCode: 'QUIZ_FAILED',
       evidence: { kind: 'quiz', refId: 'quiz-html-010' },
@@ -139,5 +207,15 @@ describe('route presentation', () => {
         '診断・進捗入力がまだないため、安全側の入口から候補を生成しています。',
         '推薦の生成中にエラーが発生しました。',
       ])
+  })
+
+  it.each([
+    'UNKNOWN_ID:node-outside-mvp',
+    'UNKNOWN_ID:quiz-outside-mvp',
+    'UNKNOWN_ID:error-outside-mvp',
+  ] as const)('uses neutral wording for %s', warning => {
+    const message = formatRouteWarning(warning)
+    expect(message).toContain('不明なID')
+    expect(message).not.toContain('ノードID')
   })
 })

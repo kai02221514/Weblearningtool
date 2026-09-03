@@ -183,7 +183,10 @@ export function Dashboard({
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* routeGeneratorが返した生成順を保つ上位3件 */}
-                <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-green-50 border-2 border-blue-200 rounded-lg">
+                <div
+                  className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-green-50 border-2 border-blue-200 rounded-lg"
+                  data-testid="route-recommendation-panel"
+                >
                   <div className="flex flex-wrap items-center gap-2 mb-3">
                     <Lightbulb className="w-5 h-5 text-blue-600" />
                     <h3 className="font-semibold text-blue-900">現在のおすすめルート</h3>
@@ -192,7 +195,7 @@ export function Dashboard({
                     </Badge>
                   </div>
 
-                  <p className={`text-sm mb-3 ${
+                  <p data-testid="route-status" className={`text-sm mb-3 ${
                     routeResult.status === 'error' ? 'text-red-800' :
                     routeResult.status === 'completed' ? 'text-green-800' :
                     routeResult.status === 'insufficient-input' ? 'text-amber-800' :
@@ -202,7 +205,7 @@ export function Dashboard({
                   </p>
 
                   {routeResult.warnings.length > 0 && (
-                    <div className="space-y-1 mb-3" role="status">
+                    <div className="space-y-1 mb-3" role="status" data-testid="route-warnings">
                       {routeResult.warnings.map(warning => (
                         <div key={warning} className="flex items-start gap-2 text-sm text-amber-800">
                           <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
@@ -213,10 +216,11 @@ export function Dashboard({
                   )}
 
                   {recommendations.length > 0 && (
-                    <div className="space-y-3">
+                    <div className="space-y-3" data-testid="route-recommendation-list">
                       {recommendations.map((recommendation, index) => (
                         <div
                           key={recommendation.node.id}
+                          data-testid={`route-recommendation-${recommendation.node.id}`}
                           className={`p-3 bg-white rounded-lg border-2 ${
                             index === 0 ? 'border-blue-400 shadow-md' : 'border-gray-200'
                           }`}

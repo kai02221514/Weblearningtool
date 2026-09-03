@@ -43,7 +43,7 @@ export function formatRecommendationReason(reason: RecommendationReason): string
 
 export function formatRouteWarning(warning: RouteGenerationWarning): string {
   if (warning.startsWith('UNKNOWN_ID:')) {
-    return `不明なノードIDを除外しました: ${warning.slice('UNKNOWN_ID:'.length)}`
+    return `入力に含まれる不明なIDを除外しました: ${warning.slice('UNKNOWN_ID:'.length)}`
   }
   return warningLabels[warning]
 }

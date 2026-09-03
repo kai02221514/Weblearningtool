@@ -15,6 +15,7 @@ import {
   applyDiagnosis,
   completeRouteNode,
   createInitialRouteRuntimeState,
+  pickRouteDiagnosisAnswers,
   recordQuizAttempt,
   startRouteNode,
 } from './features/route/routeRuntime'
@@ -78,11 +79,7 @@ export default function App() {
   }
 
   const handleSurveyComplete = (surveyData: SurveyData) => {
-    setRouteState(prev => applyDiagnosis(prev, {
-      programming_experience: surveyData.programming_experience,
-      rule_confidence: surveyData.rule_confidence,
-      knowledge_concept: surveyData.knowledge_concept,
-    }))
+    setRouteState(prev => applyDiagnosis(prev, pickRouteDiagnosisAnswers(surveyData)))
     if (userData) {
       setUserData({
         ...userData,

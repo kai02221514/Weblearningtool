@@ -20,7 +20,14 @@ export interface RouteRuntimeState {
   diagnosis: StartNodeDecision | null
   progress: RouteProgressState
   quizResults: QuizResult[]
+  processedQuizAttemptIds: string[]
   result: RouteGenerationResult
+}
+
+export interface RouteDiagnosisSource {
+  programming_experience?: string | null
+  rule_confidence?: string | null
+  knowledge_concept?: string | null
 }
 
 function generate(
@@ -52,7 +59,18 @@ export function createInitialRouteRuntimeState(): RouteRuntimeState {
     diagnosis: null,
     progress,
     quizResults: [],
+    processedQuizAttemptIds: [],
     result: generate(null, progress, []),
+  }
+}
+
+export function pickRouteDiagnosisAnswers(
+  source: RouteDiagnosisSource,
+): DiagnosisAnswers {
+  return {
+    programming_experience: source.programming_experience,
+    rule_confidence: source.rule_confidence,
+    knowledge_concept: source.knowledge_concept,
   }
 }
 
@@ -91,11 +109,11 @@ export function completeRouteNode(
   state: RouteRuntimeState,
   nodeId: string,
 ): RouteRuntimeState {
+  if (state.progress.completedNodeIds.includes(nodeId)) return state
+
   const progress = {
     ...state.progress,
-    completedNodeIds: state.progress.completedNodeIds.includes(nodeId)
-      ? state.progress.completedNodeIds
-      : [...state.progress.completedNodeIds, nodeId],
+    completedNodeIds: [...state.progress.completedNodeIds, nodeId],
     inProgressNodeId: null,
   }
 
@@ -121,6 +139,8 @@ export function recordQuizAttempt(
   state: RouteRuntimeState,
   attempt: QuizAttemptResult,
 ): RouteRuntimeState {
+  if (state.processedQuizAttemptIds.includes(attempt.attemptId)) return state
+
   const quizResult = toRouteQuizResult(attempt)
   const quizResults = [
     ...state.quizResults.filter(existing => !(
@@ -132,6 +152,7 @@ export function recordQuizAttempt(
   return {
     ...state,
     quizResults,
+    processedQuizAttemptIds: [...state.processedQuizAttemptIds, attempt.attemptId],
     result: generate(state.diagnosis, state.progress, quizResults),
   }
 }
