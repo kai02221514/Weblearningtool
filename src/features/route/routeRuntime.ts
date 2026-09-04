@@ -109,11 +109,17 @@ export function completeRouteNode(
   state: RouteRuntimeState,
   nodeId: string,
 ): RouteRuntimeState {
-  if (state.progress.completedNodeIds.includes(nodeId)) return state
+  const alreadyCompleted = state.progress.completedNodeIds.includes(nodeId)
+  const isReviewCompletion = alreadyCompleted
+    && state.progress.inProgressNodeId === nodeId
+
+  if (alreadyCompleted && !isReviewCompletion) return state
 
   const progress = {
     ...state.progress,
-    completedNodeIds: [...state.progress.completedNodeIds, nodeId],
+    completedNodeIds: alreadyCompleted
+      ? state.progress.completedNodeIds
+      : [...state.progress.completedNodeIds, nodeId],
     inProgressNodeId: null,
   }
 

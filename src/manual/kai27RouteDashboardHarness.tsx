@@ -5,6 +5,7 @@ import { Dashboard } from '../components/Dashboard'
 import { MVP_NODE_IDS } from '../domain/mvpScope'
 import type { RouteGenerationResult } from '../domain/routeGeneration'
 import type { QuizAttemptResult } from '../features/quiz/attempts'
+import { html010Quiz } from '../features/quiz/data/html-010'
 import {
   applyDiagnosis,
   completeRouteNode,
@@ -18,14 +19,14 @@ import '../index.css'
 function quizAttempt(attemptNumber: number, passed: boolean): QuizAttemptResult {
   return {
     attemptId: `kai-27-html-010-attempt-${attemptNumber}`,
-    quizId: 'quiz-html-010',
-    nodeId: 'html-010',
-    questionSetVersion: 'quiz-html-010/v1.0',
+    quizId: html010Quiz.quizId,
+    nodeId: html010Quiz.nodeId,
+    questionSetVersion: html010Quiz.questionSetVersion,
     attemptNumber,
     answers: [],
-    score: passed ? 2 : 1,
-    maxScore: 3,
-    passScore: 2,
+    score: passed ? html010Quiz.passScore : html010Quiz.passScore - 1,
+    maxScore: html010Quiz.maxScore,
+    passScore: html010Quiz.passScore,
     passed,
     startedAt: `2026-09-03T11:${attemptNumber}0:00.000Z`,
     submittedAt: `2026-09-03T11:${attemptNumber}5:00.000Z`,
@@ -123,6 +124,14 @@ function Kai27RouteDashboardHarness() {
               'html-000完了',
               state => completeRouteNode(state, 'html-000'),
             )}>html-000完了</button>
+            <button className="rounded border bg-white px-3 py-1 text-sm" onClick={() => update(
+              'html-000復習開始',
+              state => startRouteNode(state, 'html-000'),
+            )}>html-000復習開始</button>
+            <button className="rounded border bg-white px-3 py-1 text-sm" onClick={() => update(
+              'html-000復習完了',
+              state => completeRouteNode(state, 'html-000'),
+            )}>html-000復習完了</button>
             <button className="rounded border bg-white px-3 py-1 text-sm" onClick={() => update(
               '全ノード完了',
               completedState,

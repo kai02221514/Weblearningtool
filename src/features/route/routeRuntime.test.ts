@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
+import { getMvpLearningNodes, MVP_NODE_IDS } from '../../domain/mvpScope'
 import type { QuizAttemptResult } from '../quiz/attempts'
+import { html010Quiz } from '../quiz/data/html-010'
 import {
   applyDiagnosis,
   completeRouteNode,
@@ -22,14 +24,14 @@ function html010Attempt(
 ): QuizAttemptResult {
   return {
     attemptId: `quiz-html-010-attempt-${attemptNumber}`,
-    quizId: 'quiz-html-010',
-    nodeId: 'html-010',
-    questionSetVersion: 'quiz-html-010/v1.0',
+    quizId: html010Quiz.quizId,
+    nodeId: html010Quiz.nodeId,
+    questionSetVersion: html010Quiz.questionSetVersion,
     attemptNumber,
     answers: [],
-    score: passed ? 2 : 1,
-    maxScore: 3,
-    passScore: 2,
+    score: passed ? html010Quiz.passScore : html010Quiz.passScore - 1,
+    maxScore: html010Quiz.maxScore,
+    passScore: html010Quiz.passScore,
     passed,
     startedAt: `2026-09-03T10:${attemptNumber}0:00.000Z`,
     submittedAt: `2026-09-03T10:${attemptNumber}5:00.000Z`,
@@ -105,7 +107,7 @@ describe('route runtime integration', () => {
     expect(reAnswered.result.route[0]?.nodeId).toBe('html-000')
   })
 
-  it('only updates in-progress state on learning start and regenerates once on completion', () => {
+  it('completes an in-progress node, clears it, and regenerates the route', () => {
     const initial = createInitialRouteRuntimeState()
     const started = startRouteNode(initial, 'html-000')
 
@@ -120,10 +122,62 @@ describe('route runtime integration', () => {
     expect(completed.progress.inProgressNodeId).toBeNull()
     expect(completed.result).not.toBe(initial.result)
     expect(completed.result.route.some(item => item.nodeId === 'html-000')).toBe(false)
+  })
+
+  it('ignores a duplicate completion notification when the completed node was not restarted', () => {
+    const started = startRouteNode(createInitialRouteRuntimeState(), 'html-000')
+    const completed = completeRouteNode(started, 'html-000')
 
     const duplicate = completeRouteNode(completed, 'html-000')
     expect(duplicate).toBe(completed)
     expect(duplicate.progress.completedNodeIds).toEqual(['html-000'])
+    expect(duplicate.result).toBe(completed.result)
+  })
+
+  it('regenerates deterministically when a completed node is restarted and completed as review', () => {
+    const initiallyCompleted = completeRouteNode(
+      startRouteNode(createInitialRouteRuntimeState(), 'html-000'),
+      'html-000',
+    )
+    const reviewStarted = startRouteNode(initiallyCompleted, 'html-000')
+
+    expect(reviewStarted.progress.inProgressNodeId).toBe('html-000')
+    expect(reviewStarted.result).toBe(initiallyCompleted.result)
+
+    const reviewCompleted = completeRouteNode(reviewStarted, 'html-000')
+    const routePosition = new Map<string, number>(
+      reviewCompleted.result.route.map((item, index) => [item.nodeId, index]),
+    )
+    const nodeById = new Map(getMvpLearningNodes().map(node => [node.id, node]))
+
+    expect(reviewCompleted).not.toBe(reviewStarted)
+    expect(reviewCompleted.progress.completedNodeIds).toEqual(['html-000'])
+    expect(new Set(reviewCompleted.progress.completedNodeIds).size).toBe(1)
+    expect(reviewCompleted.progress.inProgressNodeId).toBeNull()
+    expect(reviewCompleted.result).not.toBe(reviewStarted.result)
+    expect(reviewCompleted.result).toEqual(initiallyCompleted.result)
+    expect(reviewCompleted.result.route.map(item => item.order)).toEqual(
+      reviewCompleted.result.route.map((_, index) => index + 1),
+    )
+
+    for (const item of reviewCompleted.result.route) {
+      expect(MVP_NODE_IDS).toContain(item.nodeId)
+      expect(item.reasons.length).toBeGreaterThan(0)
+      expect(item.reasons).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          reasonCode: expect.any(String),
+          evidence: expect.objectContaining({
+            kind: expect.any(String),
+            refId: expect.any(String),
+          }),
+        }),
+      ]))
+
+      for (const prerequisiteId of nodeById.get(item.nodeId)?.prerequisites ?? []) {
+        if (reviewCompleted.progress.completedNodeIds.includes(prerequisiteId)) continue
+        expect(routePosition.get(prerequisiteId)).toBeLessThan(routePosition.get(item.nodeId)!)
+      }
+    }
   })
 
   it('maps a failed quiz, includes its prerequisite, and ignores the same attempt notification', () => {
