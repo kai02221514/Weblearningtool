@@ -1,6 +1,6 @@
 # 実装状態
 
-- 最新確認日: 2026-09-03
+- 最新確認日: 2026-09-04
 - 対象: `kai02221514/Weblearningtool`
 - GitHub取得時点（2026-07-02）の`main`: `1a8efb5aa28a9ef08042a9e275cc171dccf8b6a2`
 - PR #28によるKAI-26完了証跡反映時の`main`: `3ca325b2c2738db0869d6b8e391ed09e91a13eeb`
@@ -84,7 +84,7 @@
 
 ## 部分実装
 
-- 推奨ノード表示: [Draft PRで実装・自動描画検証済み／ブラウザ操作未確認] KAI-27 / PR #30で固定`recommendedStartNodeIds`を推薦元から除去し、`routeGenerator`が返す生成順の上位3件をDashboardへ表示する。実Dashboardのサーバー描画テストで、各候補の順序、ノード名、決定的な日本語理由、`reasonCode`、`evidence.kind`、`evidence.refId`と、`active`、`completed`、`insufficient-input`、`error`、warningsの表示境界を確認した。ローカルブラウザ操作とconsole確認は未確認である。
+- 推奨ノード表示: [Draft PRで実装・自動描画検証済み／専用ハーネス手動確認済み] KAI-27 / PR #30で固定`recommendedStartNodeIds`を推薦元から除去し、`routeGenerator`が返す生成順の上位3件をDashboardへ表示する。実Dashboardのサーバー描画テストで、各候補の順序、ノード名、決定的な日本語理由、`reasonCode`、`evidence.kind`、`evidence.refId`と、`active`、`completed`、`insufficient-input`、`error`、warningsの表示境界を確認した。KAI-27専用ハーネスでも同じ表示境界をローカルブラウザで確認した。認証後の本番相当フローは未確認である。
 - ルート生成: [実装済み／main反映・検証済み] KAI-26 / PR #27で、MVP 12ノード限定・UI非依存の純粋な`routeGenerator`、順序、P1〜P6、決定的同点処理、前提補完、理由情報、版管理、異常系を実装した。KAI-27 / Draft PR #30では、その生成器を診断確定・再回答、ノード完了、確認テスト結果確定のメモリ内イベントへ接続した。
 - エラー検出: 8エラー中、閉じタグ、入れ子、必須属性、見出し、CSS構文の一部を検出。セレクタ不一致、ボックスモデル、リソースパスは未実装。
 - エラーマッピング: MVP 8エラーは正規MVPノードだけを実行可能な`nodeRefs`として保持する。MVP外6エラーは将来候補として定義を保持するが、`nodeRefs`を空配列とし、初回MVP対象外理由を必須化した。ランタイムのMVP推薦取得関数はMVP外エラーを返さない。これは新規エラー検出の実装を意味しない。
@@ -207,8 +207,7 @@
 - KAI-26完了証跡同期: [確認済み] PR #28の最終head `56ad79d82ff5cc4026dbe0c5519c8299cd041291`を2026-09-03T13:39:07Zにmerge commit `3ca325b2c2738db0869d6b8e391ed09e91a13eeb`として`main`へ反映した。PR headの`pull_request` workflow `Check` / run `33758471060`と、merge commit対象の`push` workflow `Check` / run `33762334541`はいずれも`success`だった。Linear KAI-26には完了コメントを記録済みで、状態はDoneである。
 - KAI-26対象外の後続状況: Dashboard・実行時フロー接続と固定推薦置換はKAI-27 / Draft PR #30で実装・自動検証済み。永続化、同意、評価ログ、研究データ出力、`generatedAt`、`routeId`、全63ノード対応、参加者評価は引き続き未実装である。
 - KAI-27監査指摘対応の自動検証: [確認済み] 対象commit `aafd9b142e13777eae5d48c43e1bdf14a4d4c788`で、routeGenerator関連3ファイル42件、実Dashboard描画と実行時adapterの2ファイル14件、全16ファイル186件、`npm run verify`（typecheck、lint、全186件、build 1723 modules transformed）、`git diff --check`に成功した。未診断、DG-RULE-1/2/3、K群限定、再回答、学習開始時の非再生成、完了時の再生成と重複排除、確認テスト変換、不合格と前提補完、再受験合格による解除、同一試行通知の重複排除、Dashboardの上位3件・理由・evidence・全status・warnings、未知nodeId/quizId/errorIdの中立な警告文言を自動検証した。
-- KAI-27手動確認ハーネス: [コード存在確認済み／ブラウザ操作未確認] `manual/kai-27/`から実Dashboardと実行時adapterを使用し、初期状態、DG-RULE-1/2/3と再回答、学習開始、不合格・同一通知再送・合格再試行、ノード完了、completed、errorをページ内メモリだけで再現できる。URLは`http://127.0.0.1:3000/manual/kai-27/`である。認証、保存、外部通信は使用せず、通常entryから参照されない。`npm run build`成果物にハーネス固有entry・表示文・試行IDが含まれないことを確認した。
-- KAI-27ブラウザ確認: [未確認] この作業環境のブラウザアクセス制限により、上記ローカルURLへの遷移が開始時点で拒否された。したがって、ハーネス上の操作結果とconsole error/warning件数は未確認である。以前のログイン画面表示とconsole error/warningなしの確認は、Dashboardハーネスの確認証拠として扱わない。
+- KAI-27手動確認ハーネス: [確認済み] 2026-09-04にhead `4b5dc35802ae2f6972dc43a34cab8c6faa317d86`を対象として、`http://127.0.0.1:3000/manual/kai-27/`をローカルブラウザで操作した。初期状態の`insufficient-input`・`html-000`・`DIAGNOSIS_MISSING`・生成順の上位3件、DG-RULE-1/2の`html-000`、DG-RULE-3の`html-010`と`html-000` assumed、再回答、Dashboardからの学習開始時に推薦内容を再生成しないこと、不合格時の`QUIZ_FAILED`と前提補完、同一通知再送時の件数不変、合格再試行時の不合格由来推薦解除、ノード完了後の再生成、`completed`、`error`と警告表示を確認した。一連の操作後のconsole error/warningは0件だった。認証、保存、外部通信は使用しておらず、認証後の本番相当フローは未確認である。ハーネスは通常entryから参照されず、`npm run build`成果物にハーネス固有entry・表示文・試行IDが含まれないことを確認した。
 - KAI-27対象外維持: [未接続] 実践課題エラー履歴、振り返り、保存、同意、評価ログ、研究データ出力、`generatedAt`、`routeId`、全63ノード対応、参加者評価は含めていない。
 - セッション復元: [未確認] リロード後の認証状態復元は確認していない
 - プロフィール保存: [未確認] 実際の保存成功は確認していない
@@ -218,7 +217,7 @@
 ## 次の最小作業単位
 
 1. OQ-004、OQ-005、OQ-006は初期仕様として解消済みである。
-2. KAI-26の純粋な`routeGenerator`はPR #27で`main`へ反映・検証済みである。診断・進捗・確認テストに限定したDashboard・実行時フロー接続はKAI-27 / Draft PR #30で実装・自動描画検証済みである。KAI-27専用ハーネスのブラウザ操作とconsole確認、ChatGPT再監査を待つ。
+2. KAI-26の純粋な`routeGenerator`はPR #27で`main`へ反映・検証済みである。診断・進捗・確認テストに限定したDashboard・実行時フロー接続はKAI-27 / Draft PR #30で実装し、自動描画検証と専用ハーネスのブラウザ操作・console確認を完了した。ChatGPT再監査を待つ。
 3. 研究判断ゲートとしてKAI-12 / OQ-009を解消し、研究データ管理、同意、保存、削除、アクセス権限、評価ログを確定する。
 4. KAI-13はLinear上Backlogであり、独立実装候補として扱う場合もCI必須化タイミングを確認した範囲だけ進める。
 5. KAI-14はDoneでPR #20、KAI-25はDoneでPR #22、KAI-15の対象3ノード教材接続はPR #24としてmainへ反映・再検証済みである。ただしKAI-15全体、MVP 12ノード全体、実践課題エラー履歴・振り返り・永続化を含む全入力のルート接続は完了していない。
