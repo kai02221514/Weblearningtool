@@ -13,9 +13,11 @@
 - KAI-26 main push CI: workflow `Check`、run `33757559017`、`push`、対象SHA `c47c807214803e2cf4f117bccf7b4e6ac245f3d7`、`success`
 - KAI-26完了証跡同期PR: PR #28（merged）。最終head `56ad79d82ff5cc4026dbe0c5519c8299cd041291`を2026-09-03T13:39:07Zにmerge commit `3ca325b2c2738db0869d6b8e391ed09e91a13eeb`として`main`へ反映
 - KAI-26完了証跡同期CI: PR head run `33758471060`と、merge commit対象のmain push run `33762334541`はいずれも`success`
-- KAI-27対象Issue / Draft PR: Linear KAI-27（In Progress）/ PR #30（Draft、branch `feat/kai-27-route-generator-dashboard-integration`）
+- KAI-27対象Issue / 実装PR: Linear KAI-27（Done、完了コメント記録済み）/ PR #30（merged、branch `feat/kai-27-route-generator-dashboard-integration`）
 - KAI-27開始base: `c14c36acc192c115690691d496772ebba8afff3e`（PR #29 merge commit）
-- KAI-27実装commit: `97a2df0`。監査指摘対応commit: `aafd9b142e13777eae5d48c43e1bdf14a4d4c788`。完了イベント境界の追加対応commit: `ca121d43bfbe58ed5dfcee1f9517e166af658115`。診断・進捗・確認テストに限定したブラウザ内メモリ接続であり、保存・評価ログを含まない
+- KAI-27実装commit: `97a2df0`。監査指摘対応commit: `aafd9b142e13777eae5d48c43e1bdf14a4d4c788`。完了イベント境界の追加対応commit: `ca121d43bfbe58ed5dfcee1f9517e166af658115`。最終head `3e74f087f206fc35948e0756428554349171da68`を2026-09-04T06:11:28Zにmerge commit `101ac22f3cb645aa0727c66a6447aeb97d98accf`として`main`へ反映した。診断・進捗・確認テストに限定したブラウザ内メモリ接続であり、保存・評価ログを含まない
+- KAI-27 PR段階CI: workflow `Check`、run `33840997363`、`pull_request`、対象head `3e74f087f206fc35948e0756428554349171da68`、`success`
+- KAI-27 main push CI: workflow `Check`、run `33843351139`、`push`、対象SHA `101ac22f3cb645aa0727c66a6447aeb97d98accf`、`success`
 - 追加確認日: 2026-07-05
 - KAI-20作業開始時点の`main`: `233f9ac6152bc587643134f67bcfeea50be69d37`
 - KAI-21作業開始時点の`main`: `461dea5e7eca532eb077f0998a4b680945ba74c8`
@@ -84,13 +86,13 @@
 
 ## 部分実装
 
-- 推奨ノード表示: [Draft PRで実装・自動描画検証済み／専用ハーネス手動確認済み] KAI-27 / PR #30で固定`recommendedStartNodeIds`を推薦元から除去し、`routeGenerator`が返す生成順の上位3件をDashboardへ表示する。実Dashboardのサーバー描画テストで、各候補の順序、ノード名、決定的な日本語理由、`reasonCode`、`evidence.kind`、`evidence.refId`と、`active`、`completed`、`insufficient-input`、`error`、warningsの表示境界を確認した。KAI-27専用ハーネスでも同じ表示境界をローカルブラウザで確認した。認証後の本番相当フローは未確認である。
-- ルート生成: [実装済み／main反映・検証済み] KAI-26 / PR #27で、MVP 12ノード限定・UI非依存の純粋な`routeGenerator`、順序、P1〜P6、決定的同点処理、前提補完、理由情報、版管理、異常系を実装した。KAI-27 / Draft PR #30では、その生成器を診断確定・再回答、ノード完了、確認テスト結果確定のメモリ内イベントへ接続した。
+- 推奨ノード表示: [実装済み／main反映・自動描画検証済み／専用ハーネス手動確認済み] KAI-27 / PR #30で固定`recommendedStartNodeIds`を推薦元から除去し、`routeGenerator`が返す生成順の上位3件をDashboardへ表示する。実Dashboardのサーバー描画テストで、各候補の順序、ノード名、決定的な日本語理由、`reasonCode`、`evidence.kind`、`evidence.refId`と、`active`、`completed`、`insufficient-input`、`error`、warningsの表示境界を確認した。KAI-27専用ハーネスでも同じ表示境界をローカルブラウザで確認した。認証後の本番相当フローは未確認である。
+- ルート生成: [実装済み／main反映・検証済み] KAI-26 / PR #27で、MVP 12ノード限定・UI非依存の純粋な`routeGenerator`、順序、P1〜P6、決定的同点処理、前提補完、理由情報、版管理、異常系を実装した。KAI-27 / PR #30では、その生成器を診断確定・再回答、ノード完了、確認テスト結果確定のメモリ内イベントへ接続し、`main`へ反映した。
 - エラー検出: 8エラー中、閉じタグ、入れ子、必須属性、見出し、CSS構文の一部を検出。セレクタ不一致、ボックスモデル、リソースパスは未実装。
 - エラーマッピング: MVP 8エラーは正規MVPノードだけを実行可能な`nodeRefs`として保持する。MVP外6エラーは将来候補として定義を保持するが、`nodeRefs`を空配列とし、初回MVP対象外理由を必須化した。ランタイムのMVP推薦取得関数はMVP外エラーを返さない。これは新規エラー検出の実装を意味しない。
-- 進捗: [Draft PRで実装・自動検証済み] KAI-27でルートへ影響する初期デモ値を除去し、空の`completedNodeIds`・`assumedNodeIds`と`inProgressNodeId: null`で開始する。未完了ノードの完了は完了集合を重複なく更新して再生成する。完了済みノードを再開していない単純な重複完了通知は同一state・同一生成結果を返す一方、完了済みノードを復習として再開した後の完了は完了集合を重複させず`inProgressNodeId`を`null`へ戻して決定的に再生成する。学習開始は進行中状態だけを更新し、それ自体やDashboard表示だけでは再生成しない。状態はメモリ保持のみである。
-- 診断: [Draft PRで実装・自動検証済み] SignupSurveyのK群3項目だけを`decideStartNode`へ渡し、診断なしは`diagnosis: null`としてDG-RULE-4へフォールバックする。重み付き`levelScore`とlevelラベルはルート判断へ使用しない。Dashboardから任意に回答・再回答できるが、診断必須化・完了状態保存は実装していない。
-- 確認テスト入力: [Draft PRで実装・自動検証済み] `QuizAttemptResult`を親のメモリへ通知し、確定済みの`quizId`、`nodeId`、`passed`、0〜100点、`attemptNumber`、`submittedAt`を`QuizResult`へ変換する。親側で合否や試行番号を推測しない。同一`attemptId`通知を重複反映せず、不合格確定時に再生成し、後続の合格試行で最新結果に基づき不合格由来の推薦を解除する。
+- 進捗: [実装済み／main反映・自動検証済み] KAI-27でルートへ影響する初期デモ値を除去し、空の`completedNodeIds`・`assumedNodeIds`と`inProgressNodeId: null`で開始する。未完了ノードの完了は完了集合を重複なく更新して再生成する。完了済みノードを再開していない単純な重複完了通知は同一state・同一生成結果を返す一方、完了済みノードを復習として再開した後の完了は完了集合を重複させず`inProgressNodeId`を`null`へ戻して決定的に再生成する。学習開始は進行中状態だけを更新し、それ自体やDashboard表示だけでは再生成しない。状態はメモリ保持のみである。
+- 診断: [実装済み／main反映・自動検証済み] SignupSurveyのK群3項目だけを`decideStartNode`へ渡し、診断なしは`diagnosis: null`としてDG-RULE-4へフォールバックする。重み付き`levelScore`とlevelラベルはルート判断へ使用しない。Dashboardから任意に回答・再回答できるが、診断必須化・完了状態保存は実装していない。
+- 確認テスト入力: [実装済み／main反映・自動検証済み] `QuizAttemptResult`を親のメモリへ通知し、確定済みの`quizId`、`nodeId`、`passed`、0〜100点、`attemptNumber`、`submittedAt`を`QuizResult`へ変換する。親側で合否や試行番号を推測しない。同一`attemptId`通知を重複反映せず、不合格確定時に再生成し、後続の合格試行で最新結果に基づき不合格由来の推薦を解除する。
 - プロファイル保存: 保存用エンドポイントは存在するが、サインアップ後の初期アンケートフローから実保存されることを確認できていない。
 - Supabase接続: 旧Project Reference IDがフロントエンド設定に残っていたため、現在の接続先は `VITE_SUPABASE_URL` と `VITE_SUPABASE_PUBLISHABLE_KEY` で指定する構成へ変更した。Publishable keyは `apikey` ヘッダーで送信し、ユーザーJWTのみ `Authorization: Bearer` で送信する。Supabaseプロジェクトへの接続先修正は完了し、サインインの実環境成功を確認済みである。
 - Edge Function: 旧 `src/supabase/functions/server` 配置から `supabase/functions/make-server-f3d88633` へ移行した。内部Honoルートは `/health`、`/signup`、`/signin`、`/profile` とし、Function名の二重化を避ける。対象プロジェクトへデプロイ済みで、認証APIへ到達できる状態を確認済みである。
@@ -205,10 +207,11 @@
 - KAI-26受入確認: [確認済み] MVP 12ノード限定・UI非依存の純粋な`routeGenerator`について、`MaxRecommendations`の整数1〜12型境界、代表3シナリオ、同一入力と入力配列順変更時の決定性、P1〜P6、全順序の同点処理、未完了前提のroute内存在と先行順序、構造化された推薦理由、版情報、復習・異常系を検証し、KAI-26の受入条件を満たすことを確認した。
 - KAI-26 CI: [確認済み] 最終PR head `3f1dc06628e25511f7ee31ece0a3f6d609c868a2`に対する`pull_request` workflow `Check` / run `33717266789`と、merge commit `c47c807214803e2cf4f117bccf7b4e6ac245f3d7`に対する`push` workflow `Check` / run `33757559017`はいずれも`success`だった。
 - KAI-26完了証跡同期: [確認済み] PR #28の最終head `56ad79d82ff5cc4026dbe0c5519c8299cd041291`を2026-09-03T13:39:07Zにmerge commit `3ca325b2c2738db0869d6b8e391ed09e91a13eeb`として`main`へ反映した。PR headの`pull_request` workflow `Check` / run `33758471060`と、merge commit対象の`push` workflow `Check` / run `33762334541`はいずれも`success`だった。Linear KAI-26には完了コメントを記録済みで、状態はDoneである。
-- KAI-26対象外の後続状況: Dashboard・実行時フロー接続と固定推薦置換はKAI-27 / Draft PR #30で実装・自動検証済み。永続化、同意、評価ログ、研究データ出力、`generatedAt`、`routeId`、全63ノード対応、参加者評価は引き続き未実装である。
+- KAI-26対象外の後続状況: Dashboard・実行時フロー接続と固定推薦置換はKAI-27 / PR #30で実装・自動検証し、`main`へ反映済みである。永続化、同意、評価ログ、研究データ出力、`generatedAt`、`routeId`、全63ノード対応、参加者評価は引き続き未実装である。
 - KAI-27監査指摘対応の自動検証: [確認済み] 対象commit `aafd9b142e13777eae5d48c43e1bdf14a4d4c788`で、routeGenerator関連3ファイル42件、実Dashboard描画と実行時adapterの2ファイル14件、全16ファイル186件、`npm run verify`（typecheck、lint、全186件、build 1723 modules transformed）、`git diff --check`に成功した。未診断、DG-RULE-1/2/3、K群限定、再回答、学習開始時の非再生成、完了時の再生成と重複排除、確認テスト変換、不合格と前提補完、再受験合格による解除、同一試行通知の重複排除、Dashboardの上位3件・理由・evidence・全status・warnings、未知nodeId/quizId/errorIdの中立な警告文言を自動検証した。
 - KAI-27手動確認ハーネス: [確認済み] 2026-09-04にhead `4b5dc35802ae2f6972dc43a34cab8c6faa317d86`を対象として、`http://127.0.0.1:3000/manual/kai-27/`をローカルブラウザで操作した。初期状態の`insufficient-input`・`html-000`・`DIAGNOSIS_MISSING`・生成順の上位3件、DG-RULE-1/2の`html-000`、DG-RULE-3の`html-010`と`html-000` assumed、再回答、Dashboardからの学習開始時に推薦内容を再生成しないこと、不合格時の`QUIZ_FAILED`と前提補完、同一通知再送時の件数不変、合格再試行時の不合格由来推薦解除、ノード完了後の再生成、`completed`、`error`と警告表示を確認した。一連の操作後のconsole error/warningは0件だった。認証、保存、外部通信は使用しておらず、認証後の本番相当フローは未確認である。ハーネスは通常entryから参照されず、`npm run build`成果物にハーネス固有entry・表示文・試行IDが含まれないことを確認した。
 - KAI-27完了イベント境界の追加検証: [確認済み] 対象commit `ca121d43bfbe58ed5dfcee1f9517e166af658115`で、routeGenerator関連3ファイル44件、全16ファイル188件、`npm run verify`（typecheck、lint、全188件、build 1723 modules transformed）、`git diff --check`に成功した。完了済みノードを再開していない単純重複完了は同一state・同一生成結果を維持し、復習開始後の完了は完了IDを一意に保ったまま進行中状態を解除し、MVPノード限定・前提順序・構造化理由を維持して決定的に再生成することを検証した。テストと手動ハーネスの確認テスト試行値は、型付きクイズデータの実値`questionSetVersion: v0.2`等を直接参照する。2026-09-04に同commitとなる作業内容を`http://127.0.0.1:3000/manual/kai-27/`で操作し、`html-000`通常完了、復習開始、復習完了、単純重複通知の順に、完了IDが1件のまま、復習開始時だけ`inProgress: html-000`、復習完了後は`inProgress: なし`、推薦順が`html-010`、`html-020`、`html-021`で安定することを確認した。console error/warningは0件で、本番buildへのハーネス固有文字列の混入もなかった。認証後の本番相当フローは引き続き未確認である。
+- KAI-27完了証跡: [確認済み] PR #30の最終head `3e74f087f206fc35948e0756428554349171da68`に対する`pull_request` workflow `Check` / run `33840997363`と、merge commit `101ac22f3cb645aa0727c66a6447aeb97d98accf`に対する`push` workflow `Check` / run `33843351139`はいずれも`success`だった。PRは2026-09-04T06:11:28Zにmergedとなり、Linear KAI-27は変更前のIn ReviewからDoneへ遷移した。LinearにはPR URL、最終head、merge commit、PR CI、main CI、対象外・未確認事項を含む完了コメントを記録済みである。
 - KAI-27対象外維持: [未接続] 実践課題エラー履歴、振り返り、保存、同意、評価ログ、研究データ出力、`generatedAt`、`routeId`、全63ノード対応、参加者評価は含めていない。
 - セッション復元: [未確認] リロード後の認証状態復元は確認していない
 - プロフィール保存: [未確認] 実際の保存成功は確認していない
@@ -218,10 +221,9 @@
 ## 次の最小作業単位
 
 1. OQ-004、OQ-005、OQ-006は初期仕様として解消済みである。
-2. KAI-26の純粋な`routeGenerator`はPR #27で`main`へ反映・検証済みである。診断・進捗・確認テストに限定したDashboard・実行時フロー接続はKAI-27 / Draft PR #30で実装し、自動描画検証と専用ハーネスのブラウザ操作・console確認を完了した。ChatGPT再監査を待つ。
-3. 研究判断ゲートとしてKAI-12 / OQ-009を解消し、研究データ管理、同意、保存、削除、アクセス権限、評価ログを確定する。
-4. KAI-13はLinear上Backlogであり、独立実装候補として扱う場合もCI必須化タイミングを確認した範囲だけ進める。
-5. KAI-14はDoneでPR #20、KAI-25はDoneでPR #22、KAI-15の対象3ノード教材接続はPR #24としてmainへ反映・再検証済みである。ただしKAI-15全体、MVP 12ノード全体、実践課題エラー履歴・振り返り・永続化を含む全入力のルート接続は完了していない。
-6. 予備試行は関連準備と研究者判断を確認した後に実施する。
+2. 研究判断ゲートとしてKAI-12 / OQ-009を解消し、研究データ管理、同意、保存、削除、アクセス権限、評価ログを確定する。
+3. KAI-13はLinear上Backlogであり、独立実装候補として扱う場合もCI必須化タイミングを確認した範囲だけ進める。
+4. KAI-14はDoneでPR #20、KAI-25はDoneでPR #22、KAI-15の対象3ノード教材接続はPR #24としてmainへ反映・再検証済みである。ただしKAI-15全体、MVP 12ノード全体、実践課題エラー履歴・振り返り・永続化を含む全入力のルート接続は完了していない。
+5. 予備試行は関連準備と研究者判断を確認した後に実施する。
 
 [注意] Phase 3は仕様確定作業であり、未確定の診断重み、ルート生成優先順位、確認テスト閾値、保存項目を実装上の既定値で補完してはならない。
