@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { createRoot } from 'react-dom/client'
 
 import { Quiz } from '../components/Quiz'
+import type { QuizAttemptResult } from '../features/quiz/attempts'
 import '../index.css'
 
 const HARNESS_NODE_IDS = ['html-010', 'html-021', 'css-011', 'html-000'] as const
@@ -9,6 +10,7 @@ const HARNESS_NODE_IDS = ['html-010', 'html-021', 'css-011', 'html-000'] as cons
 function Kai24QuizHarness() {
   const [nodeId, setNodeId] = useState<string>('html-010')
   const [lastEvent, setLastEvent] = useState('なし')
+  const [attemptHistory, setAttemptHistory] = useState<readonly QuizAttemptResult[]>([])
 
   return (
     <>
@@ -42,6 +44,11 @@ function Kai24QuizHarness() {
         nodeId={nodeId}
         nodeName={nodeId}
         onComplete={(score) => setLastEvent(`onComplete score=${score}`)}
+        onAttemptFinalized={(attempt) => {
+          setAttemptHistory(prev => [...prev, attempt])
+          setLastEvent(`attempt=${attempt.attemptId}`)
+        }}
+        attemptHistory={attemptHistory}
         onDashboard={() => setLastEvent('onDashboard')}
         onReturnToLearning={() => setLastEvent('onReturnToLearning')}
       />

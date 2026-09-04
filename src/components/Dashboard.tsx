@@ -6,41 +6,53 @@ import { Avatar, AvatarFallback } from './ui/avatar'
 import { 
   BookOpen, 
   CheckCircle, 
-  Clock, 
   Trophy, 
   TrendingUp, 
   Target,
   PlayCircle,
-  Award,
-  Users,
   MessageCircle,
   AlertCircle,
   ArrowRight,
   Lightbulb
 } from 'lucide-react'
 import { getMvpLearningNodes } from '../domain/mvpScope'
-import { useEffect } from 'react'
+import type { RouteGenerationResult } from '../domain/routeGeneration'
+import {
+  formatRouteWarning,
+  getPresentedRecommendations,
+  getRouteStatusMessage,
+} from '../features/route/routePresentation'
 
 interface DashboardProps {
   onStartLearning: (module: string) => void
   onViewCompletion: () => void
   onViewReflections: () => void
-  userData: any
+  onTakeSurvey: () => void
+  userData: { name?: string } | null
   progress: {
     completedNodeIds: string[]
     totalNodes: number
     currentStreak: number
     totalHours: number
     quizScores: number[]
-    reflections: any[]
-    recommendedStartNodeIds: string[]
+    reflections: unknown[]
+    assumedNodeIds: string[]
     inProgressNodeId: string | null
   }
+  routeResult: RouteGenerationResult
 }
 
 const learningNodesArray = getMvpLearningNodes()
 
-export function Dashboard({ onStartLearning, onViewCompletion, onViewReflections, userData, progress }: DashboardProps) {
+export function Dashboard({
+  onStartLearning,
+  onViewCompletion,
+  onViewReflections,
+  onTakeSurvey,
+  userData,
+  progress,
+  routeResult,
+}: DashboardProps) {
   const overallProgress = (progress.completedNodeIds.length / progress.totalNodes) * 100
   const averageQuizScore = progress.quizScores.length > 0 
     ? Math.round(progress.quizScores.reduce((a, b) => a + b, 0) / progress.quizScores.length)
@@ -63,13 +75,6 @@ export function Dashboard({ onStartLearning, onViewCompletion, onViewReflections
     }
   }
 
-  // 推奨ノードの取得
-  const getRecommendedNodes = () => {
-    return learningNodesArray.filter(node => 
-      progress.recommendedStartNodeIds.includes(node.id)
-    )
-  }
-
   // 前提条件のチェック
   const checkPrerequisites = (nodeId: string) => {
     const node = learningNodesArray.find(n => n.id === nodeId)
@@ -78,6 +83,7 @@ export function Dashboard({ onStartLearning, onViewCompletion, onViewReflections
     const prerequisites = node.prerequisites || []
     const unmetNodes = prerequisites.filter(
       prereq => !progress.completedNodeIds.includes(prereq)
+        && !progress.assumedNodeIds.includes(prereq)
     )
     
     return {
@@ -88,7 +94,8 @@ export function Dashboard({ onStartLearning, onViewCompletion, onViewReflections
     }
   }
 
-  const recommendedNodes = getRecommendedNodes()
+  const recommendations = getPresentedRecommendations(routeResult)
+  const recommendedNodeIds = new Set(recommendations.map(item => item.node.id))
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -108,6 +115,10 @@ export function Dashboard({ onStartLearning, onViewCompletion, onViewReflections
               </div>
             </div>
             <div className="flex gap-2">
+              <Button onClick={onTakeSurvey} variant="outline">
+                <Target className="w-4 h-4 mr-2" />
+                診断に回答・再回答
+              </Button>
               <Button onClick={onViewReflections} variant="outline">
                 <MessageCircle className="w-4 h-4 mr-2" />
                 学習の振り返り
@@ -171,110 +182,90 @@ export function Dashboard({ onStartLearning, onViewCompletion, onViewReflections
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* 推奨ルートセクション */}
-                {recommendedNodes.length > 0 && (
-                  <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-green-50 border-2 border-blue-200 rounded-lg">
-                    <div className="flex flex-wrap items-center gap-2 mb-3">
-                      <Lightbulb className="w-5 h-5 text-blue-600" />
-                      <h3 className="font-semibold text-blue-900">現在のおすすめルート</h3>
-                      <Badge variant="outline" className="bg-white text-blue-700 border-blue-300">
-                        開発中の固定ルート
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      現在は開発中の固定ルートを表示しています。診断結果に基づく個別ルート生成は未実装です。
-                    </p>
-                    <div className="space-y-3">
-                      {recommendedNodes.map((node, index) => {
-                        const prereqCheck = checkPrerequisites(node.id)
-                        const isNext = index === 0
-                        
-                        return (
-                          <div
-                            key={node.id}
-                            className={`p-3 bg-white rounded-lg border-2 ${
-                              isNext ? 'border-blue-400 shadow-md' : 'border-gray-200'
-                            }`}
-                          >
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  {isNext && (
-                                    <Badge className="bg-blue-600 text-white">固定ルートの開始単元</Badge>
-                                  )}
-                                  <h4 className="font-medium">{node.title}</h4>
-                                </div>
-                                <div className="flex items-center gap-2 mt-1">
-                                  <Badge variant="outline" className="text-xs">
-                                    {node.category}
-                                  </Badge>
-                                  <Badge 
-                                    variant="outline" 
-                                    className={`text-xs ${
-                                      node.difficulty === 'beginner' ? 'text-green-600' :
-                                      node.difficulty === 'intermediate' ? 'text-yellow-600' :
-                                      'text-red-600'
-                                    }`}
-                                  >
-                                    {node.difficulty === 'beginner' ? '初級' :
-                                     node.difficulty === 'intermediate' ? '中級' : '上級'}
-                                  </Badge>
-                                </div>
-                                
-                                {/* 前提条件の警告 */}
-                                {!prereqCheck.met && (
-                                  <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded flex items-start gap-2">
-                                    <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
-                                    <div className="text-xs">
-                                      <div className="font-medium text-yellow-800 mb-1">前提未完了</div>
-                                      <div className="text-yellow-700">
-                                        先に以下を完了してください：
-                                        {prereqCheck.unmetNodes.map((prereqTitle, idx) => (
-                                          <span key={idx}>
-                                            {idx > 0 && '、'}
-                                            <button
-                                              onClick={() => {
-                                                const prereqNode = learningNodesArray.find(n => n.title === prereqTitle)
-                                                if (prereqNode) onStartLearning(prereqNode.id)
-                                              }}
-                                              className="underline hover:text-yellow-900"
-                                            >
-                                              {prereqTitle}
-                                            </button>
-                                          </span>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                              
-                              <Button
-                                onClick={() => onStartLearning(node.id)}
-                                disabled={!prereqCheck.met}
-                                size="sm"
-                                variant={isNext ? 'default' : 'outline'}
-                              >
-                                {isNext && <ArrowRight className="w-4 h-4 mr-1" />}
-                                開始
-                              </Button>
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
+                {/* routeGeneratorが返した生成順を保つ上位3件 */}
+                <div
+                  className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-green-50 border-2 border-blue-200 rounded-lg"
+                  data-testid="route-recommendation-panel"
+                >
+                  <div className="flex flex-wrap items-center gap-2 mb-3">
+                    <Lightbulb className="w-5 h-5 text-blue-600" />
+                    <h3 className="font-semibold text-blue-900">現在のおすすめルート</h3>
+                    <Badge variant="outline" className="bg-white text-blue-700 border-blue-300">
+                      上位{routeResult.presentedCount}件
+                    </Badge>
                   </div>
-                )}
+
+                  <p data-testid="route-status" className={`text-sm mb-3 ${
+                    routeResult.status === 'error' ? 'text-red-800' :
+                    routeResult.status === 'completed' ? 'text-green-800' :
+                    routeResult.status === 'insufficient-input' ? 'text-amber-800' :
+                    'text-muted-foreground'
+                  }`}>
+                    {getRouteStatusMessage(routeResult.status)}
+                  </p>
+
+                  {routeResult.warnings.length > 0 && (
+                    <div className="space-y-1 mb-3" role="status" data-testid="route-warnings">
+                      {routeResult.warnings.map(warning => (
+                        <div key={warning} className="flex items-start gap-2 text-sm text-amber-800">
+                          <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                          <span>{formatRouteWarning(warning)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {recommendations.length > 0 && (
+                    <div className="space-y-3" data-testid="route-recommendation-list">
+                      {recommendations.map((recommendation, index) => (
+                        <div
+                          key={recommendation.node.id}
+                          data-testid={`route-recommendation-${recommendation.node.id}`}
+                          className={`p-3 bg-white rounded-lg border-2 ${
+                            index === 0 ? 'border-blue-400 shadow-md' : 'border-gray-200'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                              <div className="flex flex-wrap items-center gap-2 mb-2">
+                                <Badge className="bg-blue-600 text-white">{recommendation.order}番目</Badge>
+                                <h4 className="font-medium">{recommendation.node.title}</h4>
+                              </div>
+                              <div className="space-y-2">
+                                {recommendation.reasons.map(reason => (
+                                  <div key={`${reason.reasonCode}:${reason.evidenceKind}:${reason.evidenceRefId}`} className="text-sm">
+                                    <p>{reason.message}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {reason.reasonCode} / evidence: {reason.evidenceKind} / {reason.evidenceRefId}
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                            <Button
+                              onClick={() => onStartLearning(recommendation.node.id)}
+                              size="sm"
+                              variant={index === 0 ? 'default' : 'outline'}
+                            >
+                              {index === 0 && <ArrowRight className="w-4 h-4 mr-1" />}
+                              開始
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
                 {/* 全学習モジュール一覧 */}
                 {(() => {
                   // ノードをステータスで分類
-                  const availableNodes: any[] = []
-                  const lockedNodes: any[] = []
+                  const availableNodes: Array<{ node: typeof learningNodesArray[number], status: string, prereqCheck: ReturnType<typeof checkPrerequisites> }> = []
+                  const lockedNodes: Array<{ node: typeof learningNodesArray[number], status: string, prereqCheck: ReturnType<typeof checkPrerequisites> }> = []
                   
                   learningNodesArray.forEach((node) => {
                     const isCompleted = (progress.completedNodeIds || []).includes(node.id)
-                    const isRecommended = (progress.recommendedStartNodeIds || []).includes(node.id)
+                    const isRecommended = recommendedNodeIds.has(node.id)
                     const prereqCheck = checkPrerequisites(node.id)
                     const status = isCompleted ? 'completed' : 
                                   isRecommended ? 'current' : 

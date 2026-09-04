@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Auth } from './components/Auth'
-import { SignupSurvey } from './components/SignupSurvey'
+import { SignupSurvey, type SurveyData } from './components/SignupSurvey'
 import { Tutorial } from './components/Tutorial'
 import { LearningModule } from './components/LearningModule'
 import { Quiz } from './components/Quiz'
@@ -10,6 +10,15 @@ import { Completion } from './components/Completion'
 import { LearningReflections } from './components/LearningReflections'
 import { LearningReflectionForm } from './components/LearningReflectionForm'
 import { getMvpLearningNodes, MVP_NODE_IDS } from './domain/mvpScope'
+import type { QuizAttemptResult } from './features/quiz/attempts'
+import {
+  applyDiagnosis,
+  completeRouteNode,
+  createInitialRouteRuntimeState,
+  pickRouteDiagnosisAnswers,
+  recordQuizAttempt,
+  startRouteNode,
+} from './features/route/routeRuntime'
 
 const learningNodes = getMvpLearningNodes()
 
@@ -25,12 +34,6 @@ interface UserData {
   pace?: string
   level?: 'beginner' | 'intermediate' | 'advanced'
   levelScore?: number
-}
-
-interface ErrorHistoryItem {
-  errorId: string
-  count: number
-  lastOccurred: string
 }
 
 interface ReflectionData {
@@ -52,29 +55,22 @@ interface Progress {
   currentNodeId: string
   currentNodeName: string
   reflections: ReflectionData[]
-  // 新しく追加するフィールド
-  recommendedStartNodeIds: string[]
-  inProgressNodeId: string | null
-  errorHistory: ErrorHistoryItem[]
-  detectedErrors: string[] // 最後の実践課題で検出されたエラーID
 }
 
 export default function App() {
   const [phase, setPhase] = useState<Phase>('auth')
   const [userData, setUserData] = useState<UserData | null>(null)
+  const [routeState, setRouteState] = useState(createInitialRouteRuntimeState)
+  const [quizAttemptHistory, setQuizAttemptHistory] = useState<readonly QuizAttemptResult[]>([])
   const [progress, setProgress] = useState<Progress>({
-    completedNodeIds: ['html-000'],
+    completedNodeIds: [],
     totalNodes: MVP_NODE_IDS.length,
-    currentStreak: 3,
-    totalHours: 8,
-    quizScores: [85, 92, 78],
-    currentNodeId: 'html-010',
-    currentNodeName: 'HTML基本骨格(doctype / html / head / body)',
+    currentStreak: 0,
+    totalHours: 0,
+    quizScores: [],
+    currentNodeId: 'html-000',
+    currentNodeName: 'HTML入門（タグと要素）',
     reflections: [],
-    recommendedStartNodeIds: ['html-010'],
-    inProgressNodeId: 'html-010',
-    errorHistory: [],
-    detectedErrors: []
   })
 
   const handleSigninSuccess = (email: string, name: string, accessToken: string, userId: string) => {
@@ -82,18 +78,19 @@ export default function App() {
     setPhase('dashboard')
   }
 
-  const handleSurveyComplete = (surveyData: any) => {
+  const handleSurveyComplete = (surveyData: SurveyData) => {
+    setRouteState(prev => applyDiagnosis(prev, pickRouteDiagnosisAnswers(surveyData)))
     if (userData) {
       setUserData({
         ...userData,
-        age: surveyData.age,
-        occupation: surveyData.occupation,
-        pace: surveyData.pace,
-        level: surveyData.level,
+        age: surveyData.age === undefined ? undefined : String(surveyData.age),
+        occupation: surveyData.occupation === undefined ? undefined : String(surveyData.occupation),
+        pace: surveyData.pace === undefined ? undefined : String(surveyData.pace),
+        level: surveyData.level || undefined,
         levelScore: surveyData.levelScore
       })
     }
-    setPhase('tutorial')
+    setPhase('dashboard')
   }
 
   const handleTutorialComplete = () => {
@@ -108,8 +105,8 @@ export default function App() {
       ...prev,
       currentNodeId: node.id,
       currentNodeName: node.title,
-      inProgressNodeId: node.id,
     }))
+    setRouteState(prev => startRouteNode(prev, node.id))
     setPhase('learning')
   }
 
@@ -125,16 +122,23 @@ export default function App() {
     setPhase('practice')
   }
 
+  const handleQuizAttemptFinalized = (attempt: QuizAttemptResult) => {
+    setQuizAttemptHistory(prev => prev.some(item => item.attemptId === attempt.attemptId)
+      ? prev
+      : [...prev, attempt])
+    setRouteState(prev => recordQuizAttempt(prev, attempt))
+  }
+
   const handlePracticeComplete = () => {
     setProgress(prev => ({
       ...prev,
       completedNodeIds: prev.completedNodeIds.includes(prev.currentNodeId)
         ? prev.completedNodeIds
         : [...prev.completedNodeIds, prev.currentNodeId],
-      inProgressNodeId: null,
       totalHours: prev.totalHours + 2,
       currentStreak: prev.currentStreak + 1
     }))
+    setRouteState(prev => completeRouteNode(prev, progress.currentNodeId))
     setPhase('reflection')
   }
 
@@ -160,6 +164,10 @@ export default function App() {
 
   const handleViewReflections = () => {
     setPhase('reflections')
+  }
+
+  const handleTakeSurvey = () => {
+    setPhase('survey')
   }
 
   // レンダリング
@@ -191,8 +199,15 @@ export default function App() {
           onStartLearning={handleStartLearning}
           onViewCompletion={handleViewCompletion}
           onViewReflections={handleViewReflections}
+          onTakeSurvey={handleTakeSurvey}
           userData={userData}
-          progress={progress}
+          progress={{
+            ...progress,
+            completedNodeIds: routeState.progress.completedNodeIds,
+            assumedNodeIds: routeState.progress.assumedNodeIds,
+            inProgressNodeId: routeState.progress.inProgressNodeId,
+          }}
+          routeResult={routeState.result}
         />
       )
       
@@ -213,6 +228,8 @@ export default function App() {
           nodeId={progress.currentNodeId}
           nodeName={progress.currentNodeName}
           onComplete={handleQuizComplete}
+          onAttemptFinalized={handleQuizAttemptFinalized}
+          attemptHistory={quizAttemptHistory}
           onDashboard={handleDashboard}
           onReturnToLearning={handleReturnToLearning}
         />
