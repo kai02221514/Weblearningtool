@@ -8,7 +8,7 @@ import { Lock, Mail, User, AlertCircle } from 'lucide-react'
 import { signup, signin } from '../utils/auth'
 
 interface AuthProps {
-  onSigninSuccess: (email: string, name: string, accessToken: string, userId: string) => void
+  onSigninSuccess: (email: string, name: string, accessToken: string, userId: string) => Promise<void>
 }
 
 export function Auth({ onSigninSuccess }: AuthProps) {
@@ -54,7 +54,7 @@ export function Auth({ onSigninSuccess }: AuthProps) {
         }
 
         const result = await signin({ email, password })
-        onSigninSuccess(email, result.name, result.accessToken, result.userId)
+        await onSigninSuccess(email, result.name, result.accessToken, result.userId)
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'エラーが発生しました。もう一度お試しください。')

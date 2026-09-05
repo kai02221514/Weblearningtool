@@ -6,6 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Alert, AlertDescription } from './ui/alert'
 import { BookOpen, ArrowRight, AlertCircle } from 'lucide-react'
 import { questionConfig as questionConfigData } from '../data/questionConfig'
+import {
+  validateDiagnosisAnswers,
+  type DiagnosisAnswers,
+} from '../../supabase/functions/_shared/diagnosis'
+import { saveDiagnosis } from '../utils/auth'
 
 type Level = 'beginner' | 'intermediate' | 'advanced' | ''
 type QuestionId = string
@@ -35,22 +40,19 @@ export interface SurveyData {
 
 interface SignupSurveyProps {
   userName: string
-  userEmail: string
-  userId: string
-  onComplete: (surveyData: SurveyData) => void
+  accessToken: string
+  onComplete: (answers: DiagnosisAnswers) => void
 }
 
 const questionConfig: Question[] = questionConfigData
 
 const conditionalQuestionIds = new Set([
   'skill_errors',
-  'rule_confidence',
-  'knowledge_concept',
   'error_handling',
   'learning_anxiety'
 ])
 
-export function SignupSurvey({ userName, userEmail, userId, onComplete }: SignupSurveyProps) {
+export function SignupSurvey({ userName, accessToken, onComplete }: SignupSurveyProps) {
   const [formData, setFormData] = useState<SurveyData>({
     levelScore: 0,
     level: ''
@@ -90,26 +92,31 @@ const determineLevel = (score: number): SurveyData['level'] => {
       return Boolean(formData[question.id])
     })
 
-    if (isFormComplete) {
-      setIsLoading(true)
-      const totalScore = calculateScore()
-      const level = determineLevel(totalScore)
-      const submissionData = {
-        ...formData,
-        levelScore: totalScore,
-        level
-      }
-      
-      try {
-        // Note: For signup flow, we don't have accessToken yet
-        // The profile will be saved with a temporary token or after signin
-        // For now, we'll just complete the survey and move to tutorial
-        setFormData(submissionData)
-        onComplete(submissionData)
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : 'アンケートの処理に失敗しました')
-        setIsLoading(false)
-      }
+    if (!isFormComplete) {
+      setError('すべての必須項目に回答してください')
+      return
+    }
+
+    const validation = validateDiagnosisAnswers({
+      programming_experience: formData.programming_experience,
+      rule_confidence: formData.rule_confidence,
+      knowledge_concept: formData.knowledge_concept,
+    })
+
+    if (!validation.success) {
+      setError('診断に必要な3項目へ回答してください')
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      const saved = await saveDiagnosis(validation.data, accessToken)
+      onComplete(saved.answers)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '診断の保存に失敗しました')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -139,7 +146,7 @@ const determineLevel = (score: number): SurveyData['level'] => {
                     value={String(formData[question.id] ?? '')}
                     onValueChange={(value) => setFormData(prev => ({ ...prev, [question.id]: value }))}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger id={question.id}>
                       <SelectValue placeholder={question.placeholder} />
                     </SelectTrigger>
                     <SelectContent>

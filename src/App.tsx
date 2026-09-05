@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Auth } from './components/Auth'
-import { SignupSurvey, type SurveyData } from './components/SignupSurvey'
+import { SignupSurvey } from './components/SignupSurvey'
 import { Tutorial } from './components/Tutorial'
 import { LearningModule } from './components/LearningModule'
 import { Quiz } from './components/Quiz'
@@ -19,10 +19,14 @@ import {
   recordQuizAttempt,
   startRouteNode,
 } from './features/route/routeRuntime'
+import type { DiagnosisAnswers } from '../supabase/functions/_shared/diagnosis'
+import { getDiagnosis } from './utils/auth'
+import { Alert, AlertDescription } from './components/ui/alert'
+import { Button } from './components/ui/button'
 
 const learningNodes = getMvpLearningNodes()
 
-type Phase = 'auth' | 'survey' | 'tutorial' | 'dashboard' | 'learning' | 'quiz' | 'practice' | 'reflection' | 'completion' | 'reflections'
+type Phase = 'auth' | 'diagnosis-loading' | 'diagnosis-error' | 'survey' | 'tutorial' | 'dashboard' | 'learning' | 'quiz' | 'practice' | 'reflection' | 'completion' | 'reflections'
 
 interface UserData {
   name: string
@@ -62,6 +66,7 @@ export default function App() {
   const [userData, setUserData] = useState<UserData | null>(null)
   const [routeState, setRouteState] = useState(createInitialRouteRuntimeState)
   const [quizAttemptHistory, setQuizAttemptHistory] = useState<readonly QuizAttemptResult[]>([])
+  const [diagnosisError, setDiagnosisError] = useState('')
   const [progress, setProgress] = useState<Progress>({
     completedNodeIds: [],
     totalNodes: MVP_NODE_IDS.length,
@@ -73,23 +78,32 @@ export default function App() {
     reflections: [],
   })
 
-  const handleSigninSuccess = (email: string, name: string, accessToken: string, userId: string) => {
-    setUserData({ email, name, userId, accessToken })
-    setPhase('dashboard')
+  const resolveDiagnosis = async (accessToken: string) => {
+    setDiagnosisError('')
+    setPhase('diagnosis-loading')
+
+    try {
+      const result = await getDiagnosis(accessToken)
+      if (result.status === 'complete') {
+        setRouteState(prev => applyDiagnosis(prev, result.diagnosis.answers))
+        setPhase('dashboard')
+        return
+      }
+
+      setPhase('survey')
+    } catch (error: unknown) {
+      setDiagnosisError(error instanceof Error ? error.message : '診断状態の取得に失敗しました')
+      setPhase('diagnosis-error')
+    }
   }
 
-  const handleSurveyComplete = (surveyData: SurveyData) => {
-    setRouteState(prev => applyDiagnosis(prev, pickRouteDiagnosisAnswers(surveyData)))
-    if (userData) {
-      setUserData({
-        ...userData,
-        age: surveyData.age === undefined ? undefined : String(surveyData.age),
-        occupation: surveyData.occupation === undefined ? undefined : String(surveyData.occupation),
-        pace: surveyData.pace === undefined ? undefined : String(surveyData.pace),
-        level: surveyData.level || undefined,
-        levelScore: surveyData.levelScore
-      })
-    }
+  const handleSigninSuccess = async (email: string, name: string, accessToken: string, userId: string) => {
+    setUserData({ email, name, userId, accessToken })
+    await resolveDiagnosis(accessToken)
+  }
+
+  const handleSurveyComplete = (answers: DiagnosisAnswers) => {
+    setRouteState(prev => applyDiagnosis(prev, pickRouteDiagnosisAnswers(answers)))
     setPhase('dashboard')
   }
 
@@ -174,14 +188,39 @@ export default function App() {
   switch (phase) {
     case 'auth':
       return <Auth onSigninSuccess={handleSigninSuccess} />
+
+    case 'diagnosis-loading':
+      return (
+        <div className="min-h-screen flex items-center justify-center p-4">
+          <p>診断状態を確認しています...</p>
+        </div>
+      )
+
+    case 'diagnosis-error':
+      return (
+        <div className="min-h-screen flex items-center justify-center p-4">
+          <div className="max-w-md w-full space-y-4">
+            <Alert variant="destructive">
+              <AlertDescription>{diagnosisError}</AlertDescription>
+            </Alert>
+            <Button
+              className="w-full"
+              onClick={() => {
+                if (userData?.accessToken) void resolveDiagnosis(userData.accessToken)
+              }}
+            >
+              もう一度確認する
+            </Button>
+          </div>
+        </div>
+      )
       
     case 'survey':
       return (
         <SignupSurvey 
           onComplete={handleSurveyComplete}
           userName={userData?.name || 'ユーザー'}
-          userEmail={userData?.email || ''}
-          userId={userData?.userId || ''}
+          accessToken={userData?.accessToken || ''}
         />
       )
       
