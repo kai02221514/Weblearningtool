@@ -146,7 +146,7 @@ const determineLevel = (score: number): SurveyData['level'] => {
                     value={String(formData[question.id] ?? '')}
                     onValueChange={(value) => setFormData(prev => ({ ...prev, [question.id]: value }))}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger id={question.id}>
                       <SelectValue placeholder={question.placeholder} />
                     </SelectTrigger>
                     <SelectContent>
