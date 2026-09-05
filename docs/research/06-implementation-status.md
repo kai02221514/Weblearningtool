@@ -18,7 +18,7 @@
 - KAI-27実装commit: `97a2df0`。監査指摘対応commit: `aafd9b142e13777eae5d48c43e1bdf14a4d4c788`。完了イベント境界の追加対応commit: `ca121d43bfbe58ed5dfcee1f9517e166af658115`。最終head `3e74f087f206fc35948e0756428554349171da68`を2026-09-04T06:11:28Zにmerge commit `101ac22f3cb645aa0727c66a6447aeb97d98accf`として`main`へ反映した。診断・進捗・確認テストに限定したブラウザ内メモリ接続であり、保存・評価ログを含まない
 - KAI-27 PR段階CI: workflow `Check`、run `33840997363`、`pull_request`、対象head `3e74f087f206fc35948e0756428554349171da68`、`success`
 - KAI-27 main push CI: workflow `Check`、run `33843351139`、`push`、対象SHA `101ac22f3cb645aa0727c66a6447aeb97d98accf`、`success`
-- KAI-28対象Issue / Draft PR / 作業branch: Linear KAI-28（In Review）/ PR #34 / `feat/kai-28-diagnosis-persistence`。PR #19のmerge commit `006a89ff1fea60e2d1b62ab4033ea726d4568709`を含む`main`から開始した。K群3項目の本人単位保存・復元、保存成功ゲート、失敗時再試行、版互換性、RLSを実装し、合成データ専用ローカルSupabaseで検証済み。remote Supabaseへのdeploy・変更は未実施
+- KAI-28対象Issue / Draft PR / 作業branch: Linear KAI-28（In Review）/ PR #34 / `feat/kai-28-diagnosis-persistence`。PR #19のmerge commit `006a89ff1fea60e2d1b62ab4033ea726d4568709`を含む`main`から開始した。K群3項目の本人単位保存・復元、保存成功ゲート、失敗時再試行、版互換性、RLSを実装し、合成データ専用ローカルSupabaseで検証済み。2026-09-06の監査指摘に対し、認証後の診断導線を横断するUI統合テストと、固定版CLIでローカルSupabaseを検証する独立workflow `Supabase Diagnosis`を追加した。remote Supabaseへのdeploy・変更は未実施
 - 追加確認日: 2026-07-05
 - KAI-20作業開始時点の`main`: `233f9ac6152bc587643134f67bcfeea50be69d37`
 - KAI-21作業開始時点の`main`: `461dea5e7eca532eb077f0998a4b680945ba74c8`
@@ -221,8 +221,9 @@
 - KAI-27完了証跡: [確認済み] PR #30の最終head `3e74f087f206fc35948e0756428554349171da68`に対する`pull_request` workflow `Check` / run `33840997363`と、merge commit `101ac22f3cb645aa0727c66a6447aeb97d98accf`に対する`push` workflow `Check` / run `33843351139`はいずれも`success`だった。PRは2026-09-04T06:11:28Zにmergedとなり、Linear KAI-27は変更前のIn ReviewからDoneへ遷移した。LinearにはPR URL、最終head、merge commit、PR CI、main CI、対象外・未確認事項を含む完了コメントを記録済みである。
 - KAI-27対象外維持: [未接続] 実践課題エラー履歴、振り返り、保存、同意、評価ログ、研究データ出力、`generatedAt`、`routeId`、全63ノード対応、参加者評価は含めていない。
 - KAI-28ローカルDB検証: [確認済み] Supabase CLI 2.65.5と別ポートの専用local projectを使用し、`supabase db reset --local --no-seed`で空DBからmigrationを再現した。`supabase test db`は1 file / 24 testsで成功し、anon拒否、本人SELECT/INSERT/UPDATE、他人SELECT/INSERT/UPDATE拒否、authenticated DELETE拒否、upsert後も本人1行、K群・版・DB時刻更新を確認した。`supabase db lint --local --fail-on error`はschema error 0件だった
-- KAI-28 API・UI検証: [確認済み] 合成利用者A/Bだけを作成する`npm run test:diagnosis-api`で、未認証・不正token拒否、本人read/upsert、body/queryのowner指定拒否、strict validation、他人read/insert/update拒否、DELETE・anon拒否、再回答時の同一行更新、`diagnosis-k/v1`と両時刻更新、非互換版の`incomplete`応答を確認した。ローカルブラウザでは未診断時Survey、未経験時もK群3項目表示、保存障害時の全回答保持・Dashboard遷移拒否・再送可能化、復旧後の保存成功遷移、明示的再ログイン後のDG-RULE-1復元、非互換版の再診断を確認した
-- KAI-28アプリ回帰検証: [確認済み] `npm run verify`（typecheck、lint、全18 files / 205 tests、build 1724 modules transformed）と`git diff --check`に成功した。参加者データ・実在個人情報・remote Supabaseは使用していない。Draft PRは#34であり、GitHub Actionsの最新結果はPR上の状態を正とする
+- KAI-28 API・UI検証: [確認済み] 合成利用者A/Bだけを作成する`npm run test:diagnosis-api`で、未認証・不正token拒否、本人read/upsert、body/queryのowner指定拒否、strict validation、他人read/insert/update拒否、DELETE・anon拒否、再回答時の同一行更新、`diagnosis-k/v1`と両時刻更新、非互換版の`incomplete`応答を確認した。ローカルブラウザでは未診断時Survey、未経験時もK群3項目表示、保存障害時の全回答保持・Dashboard遷移拒否・再送可能化、復旧後の保存成功遷移、明示的再ログイン後のDG-RULE-1復元、非互換版の再診断を確認した。監査指摘対応のUI統合テストでは、取得中のDashboard非表示、recordなし・非互換版のSurvey遷移、取得失敗からの再試行・互換record復元、保存失敗時の回答保持と遷移拒否、同一回答での再送、保存成功応答のK群を既存routeGeneratorへ渡したDashboard表示を実コンポーネント境界で確認した
+- KAI-28アプリ回帰検証: [確認済み] 2026-09-06の監査指摘対応後に`npm run verify`（typecheck、lint、全19 files / 210 tests、build 1724 modules transformed）と`git diff --check`に成功した。参加者データ・実在個人情報・remote Supabaseは使用していない
+- KAI-28独立Supabase CI: [実装済み／PR段階結果はPRを正とする] workflow `Supabase Diagnosis`は`pull_request`と手動実行を入口とし、Node 20、`npm ci`、`supabase/setup-cli@v3`によるCLI 2.65.5固定、local start、migrationからのDB reset、pgTAP、DB lint、合成利用者A/Bの診断API統合テスト、常時stopを行う。remote project、GitHub Secrets、実在利用者データは使用しない。2026-09-06のローカル再検証ではDB resetのmigration適用後、端末上のサービス再起動ヘルス確認のみ一時的に502で時間切れとなったが、全コンテナの正常化を確認後、pgTAP 1 file / 24 tests、DB lint schema error 0件、診断API統合テストは成功した。Draft PRは#34であり、最終headとActions runはPR本文・Linearコメントで記録する
 - セッション復元: [未確認] リロード後の認証状態復元は確認していない
 - プロフィール保存: [未確認] 実際の保存成功は確認していない
 

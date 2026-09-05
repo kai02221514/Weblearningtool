@@ -34,7 +34,7 @@
 ## 現在地
 
 - 正式RQと主張範囲: D-021により、システムレベルで回答する正式な主RQと、予備試行または本評価で扱う将来評価の副次RQを確定した。中間発表時点の主張可能範囲・主張禁止範囲も確定したが、新しい評価結果または学習効果の主張は追加していない。OQ-001は解消済みである。
-- 状態: Phase 2およびPhase 2.5正式完了。KAI-12はIn Reviewを維持し、D-022を含むPR #19はmerge commit `006a89ff1fea60e2d1b62ab4033ea726d4568709`として`main`へ反映済みである。D-022だけを実装するKAI-28はDraft PR #34でIn Reviewであり、K群3項目の本人単位保存・復元、保存成功ゲート、失敗時回答保持・再試行、版互換性、本人限定RLSを実装して合成データ専用ローカルSupabaseとブラウザで検証済みである。remote deployとmain反映は未実施である。KAI-14/KAI-20〜KAI-27の既存完了状態は維持する。同意、保持・撤回・削除、研究者用取得・削除・export、評価ログ、診断以外の永続化、参加者評価は未接続・対象外である
+- 状態: Phase 2およびPhase 2.5正式完了。KAI-12はIn Reviewを維持し、D-022を含むPR #19はmerge commit `006a89ff1fea60e2d1b62ab4033ea726d4568709`として`main`へ反映済みである。D-022だけを実装するKAI-28はDraft PR #34でIn Reviewであり、K群3項目の本人単位保存・復元、保存成功ゲート、失敗時回答保持・再試行、版互換性、本人限定RLSを実装して合成データ専用ローカルSupabaseとブラウザで検証済みである。2026-09-06の監査指摘に対する認証後UI統合テストと独立workflow `Supabase Diagnosis`も追加済みで、全19 files / 210 testsの`npm run verify`に成功した。remote deployとmain反映は未実施である。KAI-14/KAI-20〜KAI-27の既存完了状態は維持する。同意、保持・撤回・削除、研究者用取得・削除・export、評価ログ、診断以外の永続化、参加者評価は未接続・対象外である
 - 次Phase: Phase 3残仕様確定とPhase 5予備試行用実装準備
 - Phase 2独立再監査: 完了。記録は`docs/archive/audit-2026-07-02/phase2-independent-review.md`。
 - Linear移管: 完了。保存先はLinear `Kai02221514` / `WebLearningTool`。
@@ -48,7 +48,7 @@
   6. `KAI-27`: Done。PR #30を`main`へ反映し、PR段階CI、main push CI、Linear完了コメントを確認済みである。再オープンは不要。
   7. `KAI-13`: Backlog。独立候補だが、CI必須化タイミングは確認対象。
   8. 保存、同意、評価ログ、研究データ利用、予備試行: 未実施。
-  9. `KAI-28`: In Review。D-022対象のTask AをDraft PR #34で実装・ローカル検証済み。remote deployとmain反映は未実施。
+  9. `KAI-28`: In Review。D-022対象のTask AをDraft PR #34で実装し、監査指摘対応のUI統合テストと独立Supabase CIを追加済み。remote deployとmain反映は未実施。
 - 補足: D-022の初回診断保存・復元はTask Aとして開始可能である。それ以外の研究データ保存・評価ログ・同意に関わる未確定事項を独自補完しない。
 - Phase 3の成果物候補: `docs/architecture/route-generation.md`、`docs/architecture/quiz-assessment.md`、`docs/research/01-confirmed-decisions.md`更新、`docs/research/02-open-questions.md`更新、`docs/research/09-decision-log.md`更新、Linear Issue更新。
 - Phase 3進行状況（2026-07-07）: KAI-9/KAI-10の研究者判断を`docs/architecture/route-generation.md`（`route-spec/1.0`、状態: 承認済み仕様）、`01-confirmed-decisions.md`、`02-open-questions.md`、`09-decision-log.md`へPR #1で反映済み。D-016でOQ-004は条件付き解消、D-017でOQ-005は解消した。KAI-11/OQ-006は`docs/architecture/quiz-assessment.md`の確認テスト規則を指導教員承認済み初期仕様として反映済みであり、D-018を正式追加済みである。KAI-11はLinear上Done。KAI-15では予備試行用3ノード9問と教材案が研究者レビュー済み・予備試行前になり、3ノード9問の型付きデータ化と構造検証テストを追加した。D-020で短いコード補完3問の許容解・正規化規則を確定し、KAI-22でUI非依存の採点・正規化純粋関数を追加した。KAI-21でQuiz UIを対象3ノードの型付きデータとKAI-22採点関数へ接続した。KAI-23でメモリ内の再受験制御と試行結果モデルを追加した。保存・同意・評価ログ・予備試行は未実施である。
@@ -57,7 +57,7 @@
 - GitHub/Linear同期状況（2026-09-06確認）: PR `#1`（`docs/phase3-route-spec-proposal` -> `main`）はmerged。merge commitは`1a6216b01e9d49315f9bee84e67c93b449b44432`。PR #24はmerge commit `bb8b172a3726a5a2612edaac2436fdc9518a1631`として`main`へ反映・再検証済みである。PR #27は最終head `3f1dc06628e25511f7ee31ece0a3f6d609c868a2`をmerge commit `c47c807214803e2cf4f117bccf7b4e6ac245f3d7`として`main`へ反映し、PR段階CIとmain push CIに成功した。PR #28は最終head `56ad79d82ff5cc4026dbe0c5519c8299cd041291`をmerge commit `3ca325b2c2738db0869d6b8e391ed09e91a13eeb`として`main`へ反映し、PR段階CIとmain push CIに成功した。PR #30は最終head `3e74f087f206fc35948e0756428554349171da68`をmerge commit `101ac22f3cb645aa0727c66a6447aeb97d98accf`として`main`へ反映し、PR段階CI run `33840997363`とmain push CI run `33843351139`に成功した。KAI-28はDraft PR #34でIn Reviewである。Linear `KAI-15`は`In Progress`、`KAI-27`は完了コメント記録済みの`Done`、`KAI-9`/`KAI-10`/`KAI-11`/`KAI-26`も`Done`である。
 - 未完了事項: KAI-28のPRレビュー・main反映、MVP 12ノード全体の教材整備、予備試行、本実験用教材・問題の最終化、OQ-009残余、実践課題エラー履歴・振り返りのルート入力接続、同意・診断以外の永続化・評価ログ、研究データ出力、`generatedAt`、`routeId`、全63ノード対応、参加者評価、テスト基盤の継続整備、P-06/P-07/P-09の保留判断。
 - 次の最小作業:
-  1. KAI-28 / Draft PR #34の実装差分とGitHub Actionsをレビューする。remote Supabaseへdeployせず、main反映はレビュー後に別判断とする。
+  1. KAI-28 / Draft PR #34の実装差分、認証後UI統合テスト、workflow `Check`と`Supabase Diagnosis`の結果をレビューする。remote Supabaseへdeployせず、main反映はレビュー後に別判断とする。
   2. Linear上BacklogのKAI-13は並行可能な独立候補だが、CI必須化タイミングを確認した範囲だけ進める。
   3. KAI-15は対象3ノード教材接続をmain反映済みだがIn Progressを維持し、MVP 12ノード全体の教材整備、本実験用教材・問題の最終化、予備試行は確定済みのゲートに従って別作業として進める。
   4. KAI-14、KAI-24、KAI-25、KAI-26、KAI-27はDoneでmain反映済みである。これらの完了処理は次の最小作業から除外する。
