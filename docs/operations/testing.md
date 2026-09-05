@@ -98,3 +98,21 @@ npm run check
 - PR段階runとの区別: run `29353631105`はPR #22のmerge-refを検証した`pull_request`段階の`Check/check`であり、上記main push run `29354376730`とは別証跡として扱う。
 - 未確認事項: なし（このmain反映後検証の受入項目に限る）。
 - 対象外: 保存、同意、評価ログ、研究データ利用、routeGenerator、予備試行、MVP 12ノード全体への展開、本実験用課題の最終化、OQ-007/OQ-009の研究判断。KAI-25の完了はKAI-15全体、個別ルートモデル、予備試行の完了を意味しない。
+
+## KAI-28 main反映後検証結果
+
+- 実行日: 2026-09-06
+- 対象PR: PR #34（`https://github.com/kai02221514/Weblearningtool/pull/34`、2026-09-05T16:36:45Zマージ）
+- PR境界: 最終headは`bfa3e239df6a7b9c00135dde773a0b74f20ad31b`、PR段階Actions checkout merge-refは`dfa490f64b96a4e98e290a6271ec956dcc341913`、merge commit / main検証対象SHAは`38782ebb55b0e37f98592d110b26d2afce20dd1d`である
+- PR段階Actions: `pull_request` workflow `Check` / run `33977438869`と`Supabase Diagnosis` / run `33977438906`はいずれも`success`だった。PR headとcheckout merge-refは別証跡として扱う
+- main同期: `origin/main`とローカル`main`がmerge commit `38782ebb55b0e37f98592d110b26d2afce20dd1d`で一致し、PR最終headを祖先として含むことを確認した
+- 検証環境: Node `v20.17.0`、npm `11.4.2`、Supabase CLI `2.65.5`
+- `npm ci`: 成功。444 packagesを導入した。Supabase client libraries 5件と`eslint-visitor-keys`の`EBADENGINE`、`whatwg-encoding`と`recharts@2.15.4`のdeprecated警告が出たが、後続検証は成功した。Node.js 22移行と依存関係の包括更新は本作業の対象外である
+- UI統合テスト: `npm run test -- src/App.test.tsx`で1 file / 5 testsが成功した。取得中のDashboard非表示、未診断・非互換時のSurvey誘導、取得再試行と互換record復元、保存失敗時の全回答保持・同一K群再送、保存成功応答をrouteGeneratorへ渡したDashboard表示を確認した
+- 全体検証: `npm run verify`がtypecheck、lint、全19 files / 210 tests、build 1724 modules transformedを実行し、すべて成功した。`git diff --check`も成功した
+- ローカルSupabase: main merge commitの隔離worktreeと別ポートの合成データ専用local projectを使用した。フル構成の初回`supabase db reset --local --no-seed`はmigration適用後、未使用Storageの再起動ヘルス確認で502となったため、この実行は失敗として記録する。診断APIに不要なサービスを除外して再実行した同コマンドは正常終了し、`supabase test db`は1 file / 24 tests、`supabase db lint --local --fail-on error`はschema error 0件、`npm run test:diagnosis-api`は合成利用者A/Bで成功し、最後に当該local projectを停止した
+- main push Actions: merge commitを対象とする`push` workflow `Check` / job `check` / run `33978411853`（`https://github.com/kai02221514/Weblearningtool/actions/runs/33978411853`）は`success`だった
+- main手動Supabase Actions: 同じmerge commitをmain refとして実行した`workflow_dispatch` workflow `Supabase Diagnosis` / job `diagnosis-integration` / run `33978478230`（`https://github.com/kai02221514/Weblearningtool/actions/runs/33978478230`）は`success`だった。フル構成でlocal start、DB reset、pgTAP、DB lint、合成利用者A/Bの診断API統合、常時stopを含む全stepが成功した
+- Actions警告: 2つのmainジョブはいずれも`actions/checkout@v4`と`actions/setup-node@v4`に対するNode.js 20非推奨annotation 1件があった。機能検証は成功しており、Node.js 22移行とActions major更新は別Issue候補として本作業では変更していない
+- 未確認事項: remote Supabaseへのmigration・Edge Function deploy・動作確認、browser reload時のsession自動復元、remote advisors、参加者データ・実在個人情報を用いた確認
+- 対象外: 同意、保持期間、撤回、削除、研究者用取得・削除・export、診断以外の永続化、評価ログ、回答履歴、S群・A群・`level`・`levelScore`の保存、KAI-12/KAI-16の完了、新しい研究判断
