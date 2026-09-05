@@ -1,6 +1,6 @@
 # 実装状態
 
-- 最新確認日: 2026-09-05
+- 最新確認日: 2026-09-06
 - 対象: `kai02221514/Weblearningtool`
 - GitHub取得時点（2026-07-02）の`main`: `1a8efb5aa28a9ef08042a9e275cc171dccf8b6a2`
 - PR #28によるKAI-26完了証跡反映時の`main`: `3ca325b2c2738db0869d6b8e391ed09e91a13eeb`
@@ -18,6 +18,7 @@
 - KAI-27実装commit: `97a2df0`。監査指摘対応commit: `aafd9b142e13777eae5d48c43e1bdf14a4d4c788`。完了イベント境界の追加対応commit: `ca121d43bfbe58ed5dfcee1f9517e166af658115`。最終head `3e74f087f206fc35948e0756428554349171da68`を2026-09-04T06:11:28Zにmerge commit `101ac22f3cb645aa0727c66a6447aeb97d98accf`として`main`へ反映した。診断・進捗・確認テストに限定したブラウザ内メモリ接続であり、保存・評価ログを含まない
 - KAI-27 PR段階CI: workflow `Check`、run `33840997363`、`pull_request`、対象head `3e74f087f206fc35948e0756428554349171da68`、`success`
 - KAI-27 main push CI: workflow `Check`、run `33843351139`、`push`、対象SHA `101ac22f3cb645aa0727c66a6447aeb97d98accf`、`success`
+- KAI-28対象Issue / Draft PR / 作業branch: Linear KAI-28（In Review）/ PR #34 / `feat/kai-28-diagnosis-persistence`。PR #19のmerge commit `006a89ff1fea60e2d1b62ab4033ea726d4568709`を含む`main`から開始した。K群3項目の本人単位保存・復元、保存成功ゲート、失敗時再試行、版互換性、RLSを実装し、合成データ専用ローカルSupabaseで検証済み。remote Supabaseへのdeploy・変更は未実施
 - 追加確認日: 2026-07-05
 - KAI-20作業開始時点の`main`: `233f9ac6152bc587643134f67bcfeea50be69d37`
 - KAI-21作業開始時点の`main`: `461dea5e7eca532eb077f0998a4b680945ba74c8`
@@ -91,11 +92,11 @@
 - エラー検出: 8エラー中、閉じタグ、入れ子、必須属性、見出し、CSS構文の一部を検出。セレクタ不一致、ボックスモデル、リソースパスは未実装。
 - エラーマッピング: MVP 8エラーは正規MVPノードだけを実行可能な`nodeRefs`として保持する。MVP外6エラーは将来候補として定義を保持するが、`nodeRefs`を空配列とし、初回MVP対象外理由を必須化した。ランタイムのMVP推薦取得関数はMVP外エラーを返さない。これは新規エラー検出の実装を意味しない。
 - 進捗: [実装済み／main反映・自動検証済み] KAI-27でルートへ影響する初期デモ値を除去し、空の`completedNodeIds`・`assumedNodeIds`と`inProgressNodeId: null`で開始する。未完了ノードの完了は完了集合を重複なく更新して再生成する。完了済みノードを再開していない単純な重複完了通知は同一state・同一生成結果を返す一方、完了済みノードを復習として再開した後の完了は完了集合を重複させず`inProgressNodeId`を`null`へ戻して決定的に再生成する。学習開始は進行中状態だけを更新し、それ自体やDashboard表示だけでは再生成しない。状態はメモリ保持のみである。
-- 診断: [実装済み／main反映・自動検証済み] SignupSurveyのK群3項目だけを`decideStartNode`へ渡し、診断なしは`diagnosis: null`としてDG-RULE-4へフォールバックする。重み付き`levelScore`とlevelラベルはルート判断へ使用しない。Dashboardから任意に回答・再回答できるが、診断必須化・完了状態保存は実装していない。
+- 診断: [KAI-28作業branchで実装・ローカル検証済み／main未反映] 認証後は診断状態解決中を経由し、互換な`diagnosis-k/v1`の完了済みrecordだけをK群3項目として`applyDiagnosis`へ復元する。recordなし・欠損・未知値・非互換版はSurveyへ誘導し、通信障害は再試行画面へ分離する。Surveyは未経験回答時もK群3項目を必須表示し、K群だけの保存成功後にDashboardへ進む。保存失敗時は回答を保持して再送できる。S群・A群、`level`、`levelScore`は診断API payloadへ含めない
 - 確認テスト入力: [実装済み／main反映・自動検証済み] `QuizAttemptResult`を親のメモリへ通知し、確定済みの`quizId`、`nodeId`、`passed`、0〜100点、`attemptNumber`、`submittedAt`を`QuizResult`へ変換する。親側で合否や試行番号を推測しない。同一`attemptId`通知を重複反映せず、不合格確定時に再生成し、後続の合格試行で最新結果に基づき不合格由来の推薦を解除する。
 - プロファイル保存: 保存用エンドポイントは存在するが、サインアップ後の初期アンケートフローから実保存されることを確認できていない。
 - Supabase接続: 旧Project Reference IDがフロントエンド設定に残っていたため、現在の接続先は `VITE_SUPABASE_URL` と `VITE_SUPABASE_PUBLISHABLE_KEY` で指定する構成へ変更した。Publishable keyは `apikey` ヘッダーで送信し、ユーザーJWTのみ `Authorization: Bearer` で送信する。Supabaseプロジェクトへの接続先修正は完了し、サインインの実環境成功を確認済みである。
-- Edge Function: 旧 `src/supabase/functions/server` 配置から `supabase/functions/make-server-f3d88633` へ移行した。内部Honoルートは `/health`、`/signup`、`/signin`、`/profile` とし、Function名の二重化を避ける。対象プロジェクトへデプロイ済みで、認証APIへ到達できる状態を確認済みである。
+- Edge Function: 旧 `src/supabase/functions/server` 配置から `supabase/functions/make-server-f3d88633` へ移行した。既存routeに加え、KAI-28作業branchでBearer tokenを`auth.getUser`により明示検証し、user-scoped clientでRLSを通す`GET /diagnosis`と`PUT /diagnosis`を追加した。service-role KV helperは診断recordへ使用しない。KAI-28分は合成データ専用ローカル環境だけで検証し、remoteへdeployしていない
 - サインアップ後セッション: `admin.createUser` はセッションを返さないため、サインアップ成功後は未認証のままアンケートへ進めず、ログイン画面へ戻してログインを促す。
 - 予備試行用確認テストデータ: `html-010`、`html-021`、`css-011` の3ノード9問を `src/features/quiz/` 配下の型付きデータへ変換し、ID、版、形式、出典参照、参照整合性の構造検証テストを追加した。
 - KAI-22採点・正規化: `src/features/quiz/grading.ts` に、短いコード補完回答の正規化、単一問題の採点、クイズ全体の採点、提出入力の実装上の検証を行う純粋関数を追加した。実行時のコード補完判定は各問題の`acceptedAnswers`と`answerNormalization`を使用し、`researchMetadata.acceptedAnswerDecision`は説明・追跡情報として扱う。
@@ -164,8 +165,7 @@
 - 比較条件を含む評価フロー
 - 実践課題エラー履歴と正規`struggledNodeIds`による振り返りの実行時接続
 - `routeGenerator`入力・出力の永続化と評価ログを含む統合テスト
-- 認証後の本番相当フローにおけるKAI-27のDashboard接続確認
-- 診断回答・プロフィールの保存と、認証セッションのリロード後復元
+- 診断以外のプロフィール保存と、ページ更新時の認証session自動復元
 - 参加者による利用評価
 
 ## モック・研究上の注意
@@ -220,6 +220,9 @@
 - KAI-27完了イベント境界の追加検証: [確認済み] 対象commit `ca121d43bfbe58ed5dfcee1f9517e166af658115`で、routeGenerator関連3ファイル44件、全16ファイル188件、`npm run verify`（typecheck、lint、全188件、build 1723 modules transformed）、`git diff --check`に成功した。完了済みノードを再開していない単純重複完了は同一state・同一生成結果を維持し、復習開始後の完了は完了IDを一意に保ったまま進行中状態を解除し、MVPノード限定・前提順序・構造化理由を維持して決定的に再生成することを検証した。テストと手動ハーネスの確認テスト試行値は、型付きクイズデータの実値`questionSetVersion: v0.2`等を直接参照する。2026-09-04に同commitとなる作業内容を`http://127.0.0.1:3000/manual/kai-27/`で操作し、`html-000`通常完了、復習開始、復習完了、単純重複通知の順に、完了IDが1件のまま、復習開始時だけ`inProgress: html-000`、復習完了後は`inProgress: なし`、推薦順が`html-010`、`html-020`、`html-021`で安定することを確認した。console error/warningは0件で、本番buildへのハーネス固有文字列の混入もなかった。認証後の本番相当フローは引き続き未確認である。
 - KAI-27完了証跡: [確認済み] PR #30の最終head `3e74f087f206fc35948e0756428554349171da68`に対する`pull_request` workflow `Check` / run `33840997363`と、merge commit `101ac22f3cb645aa0727c66a6447aeb97d98accf`に対する`push` workflow `Check` / run `33843351139`はいずれも`success`だった。PRは2026-09-04T06:11:28Zにmergedとなり、Linear KAI-27は変更前のIn ReviewからDoneへ遷移した。LinearにはPR URL、最終head、merge commit、PR CI、main CI、対象外・未確認事項を含む完了コメントを記録済みである。
 - KAI-27対象外維持: [未接続] 実践課題エラー履歴、振り返り、保存、同意、評価ログ、研究データ出力、`generatedAt`、`routeId`、全63ノード対応、参加者評価は含めていない。
+- KAI-28ローカルDB検証: [確認済み] Supabase CLI 2.65.5と別ポートの専用local projectを使用し、`supabase db reset --local --no-seed`で空DBからmigrationを再現した。`supabase test db`は1 file / 24 testsで成功し、anon拒否、本人SELECT/INSERT/UPDATE、他人SELECT/INSERT/UPDATE拒否、authenticated DELETE拒否、upsert後も本人1行、K群・版・DB時刻更新を確認した。`supabase db lint --local --fail-on error`はschema error 0件だった
+- KAI-28 API・UI検証: [確認済み] 合成利用者A/Bだけを作成する`npm run test:diagnosis-api`で、未認証・不正token拒否、本人read/upsert、body/queryのowner指定拒否、strict validation、他人read/insert/update拒否、DELETE・anon拒否、再回答時の同一行更新、`diagnosis-k/v1`と両時刻更新、非互換版の`incomplete`応答を確認した。ローカルブラウザでは未診断時Survey、未経験時もK群3項目表示、保存障害時の全回答保持・Dashboard遷移拒否・再送可能化、復旧後の保存成功遷移、明示的再ログイン後のDG-RULE-1復元、非互換版の再診断を確認した
+- KAI-28アプリ回帰検証: [確認済み] `npm run verify`（typecheck、lint、全18 files / 205 tests、build 1724 modules transformed）と`git diff --check`に成功した。参加者データ・実在個人情報・remote Supabaseは使用していない。Draft PRは#34であり、GitHub Actionsの最新結果はPR上の状態を正とする
 - セッション復元: [未確認] リロード後の認証状態復元は確認していない
 - プロフィール保存: [未確認] 実際の保存成功は確認していない
 
