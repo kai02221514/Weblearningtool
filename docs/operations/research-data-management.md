@@ -145,7 +145,7 @@ KAI-12／OQ-009について、研究者本人と指導教員が次の事項を�
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | 1. 認証・運用 | auth user ID、メール、表示名、セッション | Supabase Auth、登録画面 | ログイン、通常利用 | 通常利用に必須 | 原則不使用 | 高 | 高 | Auth領域 | 必要 | アカウント・運用記録 | 原則除外 | Auth user ID、メール、氏名相当の入力と`user:{id}`保存コードあり | 分析からの除外方法、通常利用との分離が未決 |
 | 2. 研究参加管理 | 研究用仮名ID、同意版、同意状態、同意・撤回日時 | 同意UI／研究者管理 | 適法・倫理的な参加管理 | 研究参加に必須 | 参加可否・欠損説明のみ | 対応表保持中は本人へ再対応可能 | 高 | 研究参加管理領域 | 必要 | 撤回・終了時 | 限定 | 未実装 | 同意版、再同意、撤回境界が未決 |
-| 3. 診断 | K群回答、完了状態、再回答。S/A群は初回保存対象外 | 初期アンケート | 開始判定。S/A群の将来利用は未確定 | D-022によりK群3項目は初回診断・保存とも必須。S/A群の将来利用は未確定 | K群は開始判定に使用。S/A群の研究分析利用は未確定 | 直接識別子なし／対応表で再対応可能 | 属性組合せで再識別 | 仮名化研究データ／アプリ状態 | 必要 | 対象 | 必要 | 9項目UIと旧重み計算がある。KAI-27でK群3項目を開始判定・ルート生成・Dashboardへメモリ内接続済み。KAI-28 / Draft PR #34でK群3項目の本人単位保存・復元を実装済み | DG-08とK群3項目の初回保存契約はD-022で確定。S/A群の将来利用、年齢・職業は未確定。KAI-28はmain未反映 |
+| 3. 診断 | K群回答、完了状態、再回答。S/A群は初回保存対象外 | 初期アンケート | 開始判定。S/A群の将来利用は未確定 | D-022によりK群3項目は初回診断・保存とも必須。S/A群の将来利用は未確定 | K群は開始判定に使用。S/A群の研究分析利用は未確定 | 直接識別子なし／対応表で再対応可能 | 属性組合せで再識別 | 仮名化研究データ／アプリ状態 | 必要 | 対象 | 必要 | 9項目UIと旧重み計算がある。KAI-27でK群3項目を開始判定・ルート生成・Dashboardへメモリ内接続済み。KAI-28 / PR #34でK群3項目の本人単位保存・復元をmainへ反映し、合成データ専用local projectで再検証済み | DG-08とK群3項目の初回保存契約はD-022で確定。S/A群の将来利用、年齢・職業は未確定。remote Supabaseへの反映・動作確認は未実施 |
 | 4. ルート入力スナップショット | diagnosis、completed/assumed/inProgress、quiz、error、reflection、catalog | route記録層 | 推薦の再現・監査 | 候補必須 | 利用候補 | 直接識別子なし／対応表で再対応可能 | 詳細履歴の組合せ | 仮名化研究データ | 必要 | 対象 | 必要 | KAI-26で純粋な`routeGenerator`を実装済み。KAI-27でK群・進捗・確認テストをメモリ内のルート入力としてDashboardへ接続済み。エラー・振り返り接続と永続化は未実装 | 入力スナップショットを全量保存するか参照IDで再構成するかは未確定 |
 | 5. ルート結果・理由・版 | 全順序、上位3件、reasonCode、evidence、3版、generatedAt、routeId候補 | route記録層 | 説明可能性・再現性 | 候補必須 | 利用候補 | 直接識別子なし／対応表で再対応可能 | 行動推測 | 仮名化研究データ | 必要 | 対象 | 必要 | KAI-26でルート生成結果・理由・3版を実装済み。KAI-27で生成順の上位3件をDashboardへ表示済み。結果保存、`generatedAt`、`routeId`は未実装 | `routeId`、全順序・上位3件の保存範囲、`generatedAt`の保存形式は未確定 |
 | 6. 学習進捗 | completed、inProgress、開始・完了イベント | アプリ | 学習状態、ルート入力 | 候補必須 | 補助指標候補 | 直接識別子なし／対応表で再対応可能 | 時系列で再識別 | アプリ状態／仮名化研究データ | 必要 | 対象 | 必要 | KAI-27でルートに影響するデモ初期値を除去し、完了・進行中状態をメモリ内のルート入力へ接続済み。永続化は未実装 | 実時間との区別、完了定義が未決 |
@@ -457,14 +457,14 @@ routeGenerator保存接続は、routeGenerator自体の実装と混ぜず、純�
 |---|---|---|
 | 認証ID | Supabase Authの`data.user.id`を返し、アプリstateの`userId`に保持 | 分析用研究IDではない |
 | 認証・プロフィール送信 | signupはemail/password/name、signinはemail/password、profileはage/occupation/pace/level/levelScoreをEdge Functionへ送るコードがある | profileは初期アンケートから呼ばれておらず、保存成功未確認 |
-| 初期アンケート | 9項目、条件表示、旧重み付きscoreとlevel判定。KAI-28 / Draft PR #34では未経験時もK群3項目を必須表示し、K群だけを保存する | S群・A群のUIと旧score表示は残るが診断APIへ送信・保存しない。KAI-28はmain未反映 |
+| 初期アンケート | 9項目、条件表示、旧重み付きscoreとlevel判定。KAI-28 / PR #34で未経験時もK群3項目を必須表示し、K群だけを保存する実装をmainへ反映した | S群・A群のUIと旧score表示は残るが診断APIへ送信・保存しない。remote Supabaseでは未確認 |
 | 進捗 | KAI-27で空の`completedNodeIds`・`assumedNodeIds`と`inProgressNodeId: null`から開始し、学習開始・完了をメモリ内のルート入力へ接続済み | 永続化なし。表示用の`currentNodeId`・`currentNodeName`は初期値を持つが、ルート生成入力とは区別する |
 | クイズ | 詳細な`QuizAttemptResult`にID、番号、回答、版、得点、合否、誤答、時刻、model versionがある | Quizコンポーネントのメモリ内stateのみ。再表示で初期化、保存なし |
 | 実践課題 | 入力コード、簡易SRK検出、正規errorIdから復習先を表示 | 完了callbackはデータを渡さず、提出コード・error・解消履歴を保存しない |
 | 振り返り | node、固定7概念、自由記述、日付、recommendationsをメモリ保持 | `quickTestResult=true`は仮値。概念が正規nodeIdでなく、永続化なし |
 | 事後アンケート | 該当機能を確認できない | 未実装 |
-| ルート生成 | KAI-26で純粋なrouteGenerator、KAI-27でK群3項目・進捗・確認テストとDashboard上位3件表示を接続済み。KAI-28 / Draft PR #34では認証後に保存済みK群を復元して同じ開始判定・ルート生成へ渡す | `generatedAt`、routeId、診断以外の保存は未実装。KAI-28はmain未反映 |
-| Supabase永続化 | KAI-28 / Draft PR #34で専用`user_diagnoses` table、K群制約、版・DB時刻、本人SELECT/INSERT/UPDATEのGRANT/RLS、本人単位upsertを実装し、合成データ専用ローカル環境で検証済み | remote deploy、研究者用取得・削除・export、診断履歴、進捗、試行、課題、エラー、振り返り、ルート、同意、評価ログは対象外・未実装。KAI-28はmain未反映 |
+| ルート生成 | KAI-26で純粋なrouteGenerator、KAI-27でK群3項目・進捗・確認テストとDashboard上位3件表示を接続済み。KAI-28 / PR #34で認証後に保存済みK群を復元して同じ開始判定・ルート生成へ渡す実装をmainへ反映・再検証した | `generatedAt`、routeId、診断以外の保存は未実装。remote Supabaseでは未確認 |
+| Supabase永続化 | KAI-28 / PR #34で専用`user_diagnoses` table、K群制約、版・DB時刻、本人SELECT/INSERT/UPDATEのGRANT/RLS、本人単位upsertをmainへ反映し、合成データ専用ローカル環境とmain refの独立CIで検証済み | remote deploy、研究者用取得・削除・export、診断履歴、進捗、試行、課題、エラー、振り返り、ルート、同意、評価ログは対象外・未実装 |
 
 ### 14.1 調査した主なコード箇所
 
