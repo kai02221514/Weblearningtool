@@ -3,6 +3,11 @@ import {
   SUPABASE_PUBLISHABLE_KEY,
   validateSupabaseConfig,
 } from '../config/supabase'
+import type {
+  DiagnosisAnswers,
+  DiagnosisReadResult,
+  StoredDiagnosis,
+} from '../../supabase/functions/_shared/diagnosis'
 
 export interface SignupData {
   email: string
@@ -135,4 +140,46 @@ export async function saveProfile(data: ProfileData, accessToken: string) {
     },
     body: JSON.stringify(data),
   }, 'プロファイルの保存に失敗しました')
+}
+
+function authenticatedHeaders(accessToken: string): HeadersInit {
+  return {
+    'Content-Type': 'application/json',
+    apikey: SUPABASE_PUBLISHABLE_KEY,
+    Authorization: `Bearer ${accessToken}`,
+  }
+}
+
+export function buildDiagnosisSavePayload(answers: DiagnosisAnswers) {
+  return {
+    answers: {
+      programming_experience: answers.programming_experience,
+      rule_confidence: answers.rule_confidence,
+      knowledge_concept: answers.knowledge_concept,
+    },
+  }
+}
+
+export async function getDiagnosis(accessToken: string): Promise<DiagnosisReadResult> {
+  return requestEdgeFunction<DiagnosisReadResult>('/diagnosis', {
+    method: 'GET',
+    headers: authenticatedHeaders(accessToken),
+  }, '診断状態の取得に失敗しました')
+}
+
+export async function saveDiagnosis(
+  answers: DiagnosisAnswers,
+  accessToken: string,
+): Promise<StoredDiagnosis> {
+  const result = await requestEdgeFunction<{
+    success: boolean
+    status: 'complete'
+    diagnosis: StoredDiagnosis
+  }>('/diagnosis', {
+    method: 'PUT',
+    headers: authenticatedHeaders(accessToken),
+    body: JSON.stringify(buildDiagnosisSavePayload(answers)),
+  }, '診断の保存に失敗しました')
+
+  return result.diagnosis
 }
