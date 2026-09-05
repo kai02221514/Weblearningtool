@@ -1,24 +1,22 @@
 import { useState } from 'react'
 import { createRoot } from 'react-dom/client'
 
-import { Quiz } from '../components/Quiz'
-import type { QuizAttemptResult } from '../features/quiz/attempts'
+import { PracticeChallenge } from '../components/PracticeChallenge'
 import '../index.css'
 
 const HARNESS_NODE_IDS = ['html-010', 'html-021', 'css-011', 'html-000'] as const
 
-function Kai24QuizHarness() {
+function Kai25PracticeHarness() {
   const [nodeId, setNodeId] = useState<string>('html-010')
   const [lastEvent, setLastEvent] = useState('なし')
-  const [attemptHistory, setAttemptHistory] = useState<readonly QuizAttemptResult[]>([])
 
   return (
     <>
       <aside className="border-b bg-amber-50 p-4">
         <div className="mx-auto max-w-4xl space-y-2">
-          <h1 className="font-semibold">KAI-24 Quiz UI 手動確認ハーネス</h1>
+          <h1 className="font-semibold">KAI-25 実践課題 手動確認ハーネス</h1>
           <p className="text-sm">
-            非プロダクションのローカル確認専用です。認証情報や回答を外部送信せず、状態はページ内メモリだけに保持します。
+            非プロダクションのローカル確認専用です。認証、保存、研究データ送信は行いません。
           </p>
           <label className="flex items-center gap-2 text-sm">
             対象ノード
@@ -39,21 +37,15 @@ function Kai24QuizHarness() {
           <p className="text-sm" aria-live="polite">最新コールバック: {lastEvent}</p>
         </div>
       </aside>
-      <Quiz
+      <PracticeChallenge
         key={nodeId}
         nodeId={nodeId}
-        nodeName={nodeId}
-        onComplete={(score) => setLastEvent(`onComplete score=${score}`)}
-        onAttemptFinalized={(attempt) => {
-          setAttemptHistory(prev => [...prev, attempt])
-          setLastEvent(`attempt=${attempt.attemptId}`)
-        }}
-        attemptHistory={attemptHistory}
+        onComplete={() => setLastEvent('onComplete')}
         onDashboard={() => setLastEvent('onDashboard')}
-        onReturnToLearning={() => setLastEvent('onReturnToLearning')}
+        onStartLearning={reviewNodeId => setLastEvent(`onStartLearning nodeId=${reviewNodeId}`)}
       />
     </>
   )
 }
 
-createRoot(document.getElementById('root')!).render(<Kai24QuizHarness />)
+createRoot(document.getElementById('root')!).render(<Kai25PracticeHarness />)

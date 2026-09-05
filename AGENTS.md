@@ -22,7 +22,7 @@ Before implementation work, read the current task or Linear issue and then use t
 
 If documents conflict, follow the latest valid decision in `docs/research/09-decision-log.md`.
 
-D-019 is a proposal and must not be treated as an active rule until explicitly approved by the researcher. Code is evidence of implementation state, not the source of research truth.
+D-019 is active and defines the source of truth for each subject and the reference principles that concretize D-010. Code is evidence of implementation state, not the source of research truth.
 
 When a task affects research purpose, research method, evaluation policy, or claims made by the research, also verify consistency with:
 

@@ -47,6 +47,19 @@
 
 [注意] 上表のSRK区分は現行エラーマッピングの分類であり、教育的妥当性を実証済みという意味ではない。
 
+## MVP外エラー
+
+次の6エラーは将来の教材拡張候補としてエラーカタログに保持するが、必要な学習内容が初回MVP 12ノードに含まれないため、初回MVPの復習推薦対象外とする。
+
+- `E_HTML_LINK_HREF_INVALID`
+- `E_CSS_PROPERTY_UNKNOWN`
+- `E_CSS_SPECIFICITY_OVERRIDE`
+- `E_LAYOUT_FLEX_AXIS_CONFUSION`
+- `E_DEBUG_TOOL_NOT_USED`
+- `E_FORM_LABEL_ASSOCIATION`
+
+[確定事項] 上記6エラーは初回MVPでは実行可能な`nodeRefs`を持たない。将来有効化する場合は、対応する学習内容と正規ノードを明示的に定義し、初回MVPとは別のスコープ変更として扱う。既存MVPノードへの便宜的な再割当や、将来ノードIDの先行確定は行わない。
+
 ## MVPで必要な研究能力
 
 - [確定事項] 診断結果をルート生成へ渡せること

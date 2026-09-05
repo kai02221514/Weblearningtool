@@ -1,11 +1,57 @@
-export default {
-  "version": "1.0.0",
+import type { MvpNodeId } from '../domain/mvpScope'
+
+export type ErrorScope = 'mvp' | 'out-of-mvp'
+export type SrkClassification = 'skill' | 'rule' | 'knowledge'
+export type DetectionType = 'lint' | 'parser' | 'runtime' | 'heuristic' | 'llm'
+
+export interface ErrorNodeRef {
+  nodeId: MvpNodeId
+  priority: number
+  reason: string
+}
+
+interface ErrorMappingBase {
+  id: string
+  label: string
+  srk: SrkClassification
+  description: string
+  examples: readonly string[]
+  detectionHints: {
+    type: DetectionType
+    signals: readonly string[]
+  }
+}
+
+export interface MvpErrorMapping extends ErrorMappingBase {
+  scope: 'mvp'
+  nodeRefs: readonly [ErrorNodeRef, ...ErrorNodeRef[]]
+  exclusionReason?: never
+}
+
+export interface OutOfMvpErrorMapping extends ErrorMappingBase {
+  scope: 'out-of-mvp'
+  nodeRefs: readonly []
+  exclusionReason: string
+}
+
+export type ErrorMapping = MvpErrorMapping | OutOfMvpErrorMapping
+
+export interface ErrorMappingCatalog {
+  version: string
+  schema: Record<string, unknown>
+  errors: readonly ErrorMapping[]
+}
+
+const errorMappingsData: ErrorMappingCatalog = {
+  "version": "1.1.0",
   "schema": {
     "error": {
       "id": "string",
       "label": "string",
       "srk": "skill|rule|knowledge",
       "description": "string",
+      "scope": "mvp|out-of-mvp",
+      "exclusionReason": "string (required for out-of-mvp)",
       "examples": ["string"],
       "detectionHints": {
         "type": "lint|parser|runtime|heuristic|llm",
@@ -23,6 +69,7 @@ export default {
   "errors": [
     {
       "id": "E_HTML_MISSING_CLOSING_TAG",
+      "scope": "mvp",
       "label": "HTMLの閉じタグ不足・対応ミス",
       "srk": "skill",
       "description": "閉じタグの欠落や対応関係の崩れによりDOM構造が破綻する。",
@@ -38,6 +85,7 @@ export default {
     },
     {
       "id": "E_HTML_INVALID_NESTING",
+      "scope": "mvp",
       "label": "HTMLの不正な入れ子(コンテンツモデル違反)",
       "srk": "rule",
       "description": "HTML要素の入れ子が仕様上不適切で、意図しない表示や補完が起きる。",
@@ -53,6 +101,7 @@ export default {
     },
     {
       "id": "E_HTML_MISSING_REQUIRED_ATTR",
+      "scope": "mvp",
       "label": "必須/推奨属性の不足(例: imgのalt)",
       "srk": "knowledge",
       "description": "アクセシビリティや意味づけの観点で必要な属性が欠落している。",
@@ -67,6 +116,7 @@ export default {
     },
     {
       "id": "E_HTML_HEADING_STRUCTURE",
+      "scope": "mvp",
       "label": "見出し構造の破綻(h1乱立・順序不自然)",
       "srk": "knowledge",
       "description": "文書構造の設計が不適切で、内容の理解やアクセシビリティが低下する。",
@@ -81,6 +131,8 @@ export default {
     },
     {
       "id": "E_HTML_LINK_HREF_INVALID",
+      "scope": "out-of-mvp",
+      "exclusionReason": "リンクとURL・パスの学習内容は初回MVP 12ノードの対象外であるため。",
       "label": "リンクのhrefが不正・意図と違う",
       "srk": "rule",
       "description": "hrefの指定やURL/パスの扱いが誤っており、遷移できない。",
@@ -89,13 +141,11 @@ export default {
         "type": "heuristic",
         "signals": ["クリックしても遷移しない", "URLとして解釈不能"]
       },
-      "nodeRefs": [
-        { "nodeId": "html.navigation.links.a_href", "priority": 1, "reason": "a要素とhrefの基本" },
-        { "nodeId": "html.webBasics.urls.paths", "priority": 2, "reason": "URLとパスの概念" }
-      ]
+      "nodeRefs": []
     },
     {
       "id": "E_CSS_SYNTAX_MISSING_SEMICOLON",
+      "scope": "mvp",
       "label": "CSSのセミコロン/コロン/波括弧の欠落",
       "srk": "skill",
       "description": "CSS宣言の区切りが欠落し、以降の宣言が無効になる。",
@@ -110,6 +160,8 @@ export default {
     },
     {
       "id": "E_CSS_PROPERTY_UNKNOWN",
+      "scope": "out-of-mvp",
+      "exclusionReason": "頻出CSSプロパティと開発者ツールの学習内容は初回MVP 12ノードの対象外であるため。",
       "label": "CSSプロパティ名の誤り(存在しない/綴りミス)",
       "srk": "skill",
       "description": "プロパティが認識されずスタイルが適用されない。",
@@ -118,13 +170,11 @@ export default {
         "type": "lint",
         "signals": ["unknown property", "宣言が無効"]
       },
-      "nodeRefs": [
-        { "nodeId": "css.basics.commonProperties", "priority": 1, "reason": "頻出プロパティの理解" },
-        { "nodeId": "css.debug.devtools.styles", "priority": 2, "reason": "無効宣言の確認方法" }
-      ]
+      "nodeRefs": []
     },
     {
       "id": "E_CSS_SELECTOR_NO_MATCH",
+      "scope": "mvp",
       "label": "セレクタが要素に一致しない",
       "srk": "rule",
       "description": "HTML側の構造やclass/id指定とCSSセレクタが噛み合っていない。",
@@ -140,6 +190,8 @@ export default {
     },
     {
       "id": "E_CSS_SPECIFICITY_OVERRIDE",
+      "scope": "out-of-mvp",
+      "exclusionReason": "詳細度・カスケードと開発者ツールの学習内容は初回MVP 12ノードの対象外であるため。",
       "label": "詳細度・カスケードにより意図通り上書きできない",
       "srk": "knowledge",
       "description": "CSSの優先順位(詳細度/順序/important/継承)を誤解している。",
@@ -148,14 +200,11 @@ export default {
         "type": "heuristic",
         "signals": ["DevToolsで取り消し線", "別ルールに負けている"]
       },
-      "nodeRefs": [
-        { "nodeId": "css.cascade.specificity", "priority": 1, "reason": "詳細度の概念" },
-        { "nodeId": "css.cascade.order_inheritance", "priority": 2, "reason": "順序と継承" },
-        { "nodeId": "css.debug.devtools.styles", "priority": 3, "reason": "競合の確認" }
-      ]
+      "nodeRefs": []
     },
     {
       "id": "E_LAYOUT_BOX_MODEL_MISUNDERSTANDING",
+      "scope": "mvp",
       "label": "ボックスモデル理解不足(サイズが合わない/はみ出す)",
       "srk": "knowledge",
       "description": "padding/border/marginとwidth/heightの関係を誤解している。",
@@ -170,6 +219,8 @@ export default {
     },
     {
       "id": "E_LAYOUT_FLEX_AXIS_CONFUSION",
+      "scope": "out-of-mvp",
+      "exclusionReason": "Flexboxの軸と整列の学習内容は初回MVP 12ノードの対象外であるため。",
       "label": "Flexの軸理解不足(justify/alignの混同)",
       "srk": "knowledge",
       "description": "主軸/交差軸の理解が曖昧で、配置が意図通りにならない。",
@@ -178,13 +229,11 @@ export default {
         "type": "heuristic",
         "signals": ["flex指定したが整列が直らない"]
       },
-      "nodeRefs": [
-        { "nodeId": "css.layout.flex.basics", "priority": 1, "reason": "flex基礎と軸" },
-        { "nodeId": "css.layout.flex.alignment", "priority": 2, "reason": "整列プロパティ" }
-      ]
+      "nodeRefs": []
     },
     {
       "id": "E_RUNTIME_RESOURCE_PATH",
+      "scope": "mvp",
       "label": "画像/フォント等のリソースパス誤り",
       "srk": "rule",
       "description": "ファイル参照のパス指定が誤り、読み込みに失敗している。",
@@ -200,6 +249,8 @@ export default {
     },
     {
       "id": "E_DEBUG_TOOL_NOT_USED",
+      "scope": "out-of-mvp",
+      "exclusionReason": "開発者ツールによる原因調査の学習内容は初回MVP 12ノードの対象外であるため。",
       "label": "開発者ツール未活用による原因特定の停滞",
       "srk": "knowledge",
       "description": "エラー原因を推定するための観察手段(DevTools)の使い方が確立していない。",
@@ -208,14 +259,12 @@ export default {
         "type": "heuristic",
         "signals": ["試行錯誤が長い", "同じ修正を繰り返す"]
       },
-      "nodeRefs": [
-        { "nodeId": "css.debug.devtools.styles", "priority": 1, "reason": "Styles/Computedの見方" },
-        { "nodeId": "css.debug.devtools.console_network", "priority": 2, "reason": "Console/Networkの見方" },
-        { "nodeId": "html.debug.dom_inspector", "priority": 3, "reason": "DOM検査" }
-      ]
+      "nodeRefs": []
     },
     {
       "id": "E_FORM_LABEL_ASSOCIATION",
+      "scope": "out-of-mvp",
+      "exclusionReason": "フォーム要素とアクセシビリティの学習内容は初回MVP 12ノードの対象外であるため。",
       "label": "フォームのラベル/入力の紐付け不備",
       "srk": "knowledge",
       "description": "フォーム部品の意味とアクセシビリティ設計が不足している。",
@@ -224,11 +273,16 @@ export default {
         "type": "lint",
         "signals": ["a11y警告", "フォームが読み上げに弱い"]
       },
-      "nodeRefs": [
-        { "nodeId": "html.forms.labels", "priority": 1, "reason": "labelとfor/id" },
-        { "nodeId": "html.forms.inputs.basics", "priority": 2, "reason": "inputの基本" },
-        { "nodeId": "html.accessibility.forms", "priority": 3, "reason": "フォームa11y" }
-      ]
+      "nodeRefs": []
     }
   ]
 }
+
+export function getMvpErrorMapping(errorId: string): MvpErrorMapping | undefined {
+  return errorMappingsData.errors.find(
+    (mapping): mapping is MvpErrorMapping =>
+      mapping.id === errorId && mapping.scope === 'mvp'
+  )
+}
+
+export default errorMappingsData

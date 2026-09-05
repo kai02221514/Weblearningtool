@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Alert, AlertDescription } from './ui/alert'
 import { BookOpen, ArrowRight, AlertCircle } from 'lucide-react'
 import { questionConfig as questionConfigData } from '../data/questionConfig'
-import { saveProfile } from '../utils/auth'
 
 type Level = 'beginner' | 'intermediate' | 'advanced' | ''
 type QuestionId = string
@@ -25,9 +24,12 @@ interface Question {
   options: QuestionOption[]
 }
 
-interface SurveyData {
+export interface SurveyData {
   levelScore: number
   level: Level
+  programming_experience?: string
+  rule_confidence?: string
+  knowledge_concept?: string
   [key: string]: string | number
 }
 
@@ -104,8 +106,8 @@ const determineLevel = (score: number): SurveyData['level'] => {
         // For now, we'll just complete the survey and move to tutorial
         setFormData(submissionData)
         onComplete(submissionData)
-      } catch (err: any) {
-        setError(err.message || 'アンケートの保存に失敗しました')
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'アンケートの処理に失敗しました')
         setIsLoading(false)
       }
     }

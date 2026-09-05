@@ -37,6 +37,8 @@ interface QuizProps {
   onComplete: (score: number) => void
   onDashboard: () => void
   onReturnToLearning: () => void
+  onAttemptFinalized: (attempt: QuizAttemptResult) => void
+  attemptHistory: readonly QuizAttemptResult[]
 }
 
 export function Quiz({
@@ -45,13 +47,14 @@ export function Quiz({
   onComplete,
   onDashboard,
   onReturnToLearning,
+  onAttemptFinalized,
+  attemptHistory,
 }: QuizProps) {
   const quiz = resolvePilotQuizByNodeId(nodeId)
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [answers, setAnswers] = useState<QuizUiAnswerState>(() =>
     quiz === null ? {} : createEmptyQuizAnswerState(quiz)
   )
-  const [attemptHistory, setAttemptHistory] = useState<readonly QuizAttemptResult[]>([])
   const [currentAttempt, setCurrentAttempt] = useState<QuizAttemptResult | null>(null)
   const [attemptStartedAt, setAttemptStartedAt] = useState(() => new Date().toISOString())
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -59,7 +62,6 @@ export function Quiz({
   useEffect(() => {
     setCurrentQuestion(0)
     setAnswers(quiz === null ? {} : createEmptyQuizAnswerState(quiz))
-    setAttemptHistory([])
     setCurrentAttempt(null)
     setAttemptStartedAt(new Date().toISOString())
     setSubmitError(null)
@@ -101,8 +103,8 @@ export function Quiz({
         startedAt: attemptStartedAt,
         submittedAt: new Date().toISOString(),
       })
-      setAttemptHistory(addedAttempt.attempts)
       setCurrentAttempt(addedAttempt.attempt)
+      onAttemptFinalized(addedAttempt.attempt)
       setSubmitError(null)
     } catch (error) {
       const detail = error instanceof QuizGradingInputError || error instanceof QuizAttemptInputError
@@ -112,7 +114,7 @@ export function Quiz({
       console.error('Quiz grading failed', detail)
       setSubmitError('確認テストの採点中に問題が発生しました。回答内容を確認してもう一度送信してください。')
     }
-  }, [answers, attemptHistory, attemptStartedAt, attemptState, quiz])
+  }, [answers, attemptHistory, attemptStartedAt, attemptState, onAttemptFinalized, quiz])
 
   const retryQuiz = useCallback(() => {
     if (quiz === null || attemptState === null || !attemptState.canAttempt) return
