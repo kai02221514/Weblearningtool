@@ -102,7 +102,7 @@ Decision Logと本書が不一致の場合は、最新の有効Decisionを優先
 - [確定事項] D-024により、当面はSupabase Freeプランを継続する。leaked-password protectionはFreeに含まれないためKAI-35では有効化せず、Pro以上への変更、課金、請求設定、独自の漏えいpassword対策も行わない。
 - [未達／既知の残存リスク] `password_hibp_enabled`は未変更で、leaked-password protectionは未提供・未有効化・未検証である。Security Advisorの`auth_leaked_password_protection`警告と、KAI-35の「既知漏えいpasswordを拒否する」元受入条件は未解消・未達のまま維持する。
 - [確定事項] Free継続はproject ref `znfwkrhquegvlcmugkoe`の合成データ専用非本番用途に限定する。実在参加者利用、予備試行、研究データ収集または本番化の前、planや提供条件が変わった場合、別の漏えいpassword対策を検討する場合は認証セキュリティを再判断する。
-- [未確定] KAI-35をCanceled／Won't Do相当へ移すかBacklogで維持するか、Free継続期間、将来のPro移行、独自代替策およびその他のpassword policy強化は未確定である。Free継続を本番適合、参加者利用許可、十分な認証セキュリティまたはOQ-009残余の解消へ一般化しない。
+- [確定事項] KAI-35は元受入条件未達を維持し、`Done`ではなく`Canceled`として終了した。Free継続期間、将来のPro移行、独自代替策およびその他のpassword policy強化は未確定である。Free継続を本番適合、参加者利用許可、十分な認証セキュリティまたはOQ-009残余の解消へ一般化しない。
 
 ## 評価
 

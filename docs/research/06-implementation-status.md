@@ -247,7 +247,7 @@
 
 1. OQ-004、OQ-005、OQ-006は初期仕様として解消済みである。
 2. KAI-34はremote適用、監査、PR #47 merge、main両検証、Linear完了証跡を完了しDoneである。
-3. KAI-35はD-024のFreeプラン継続判断により、leaked-password protectionを有効化・検証する元受入条件を実行できない。文書監査とmain反映後にCanceled／Won't Do相当へ移すかBacklogで維持するかを研究者本人が判断する。
+3. KAI-35はD-024のFreeプラン継続判断により、leaked-password protectionを有効化・検証する元受入条件を実行せず、未達を維持したまま研究者本人の明示判断により`Canceled`として終了した。
 4. 研究判断ゲートとしてKAI-12 / OQ-009の残余を解消し、研究データ管理、同意、保存、削除、アクセス権限、評価ログを確定する。
 5. KAI-13はLinear上Backlogであり、独立実装候補として扱う場合もCI必須化タイミングを確認した範囲だけ進める。
 6. KAI-14はDoneでPR #20、KAI-25はDoneでPR #22、KAI-15の対象3ノード教材接続はPR #24としてmainへ反映・再検証済みである。ただしKAI-15全体、MVP 12ノード全体、実践課題エラー履歴・振り返り・永続化を含む全入力のルート接続は完了していない。
@@ -280,10 +280,10 @@
 
 ## KAI-35 Freeプラン継続による未実施境界
 
-- 状態: [未実装・未検証／元受入条件未達] 2026-09-07の研究者本人の判断をD-024として記録し、当面はSupabase Freeプランを継続する。KAI-35はBacklogのままで、DoneまたはCanceledへ変更していない
+- 状態: [Canceled／未実装・未検証／元受入条件未達] 2026-09-07の研究者本人の判断をD-024として記録し、当面はSupabase Freeプランを継続する。PR [#49](https://github.com/kai02221514/Weblearningtool/pull/49)のfinal head `68d109b3ea579b690a68b9f6bbd15442611b3ad9`をmerge commit `a9590c82d1222cd8dca801bb3ee916e887e8bc88`としてmainへ反映し、同SHAのmain `Check` run [34049330384](https://github.com/kai02221514/Weblearningtool/actions/runs/34049330384)成功後、Linearへ終了証跡を登録してKAI-35を`Done`ではなく`Canceled`とした。main向け`Supabase Diagnosis`は自動起動せず、独自dispatchしていない
 - read-only確認: project ref `znfwkrhquegvlcmugkoe`は`ACTIVE_HEALTHY`、Organization `httvbvgmiboypecuoyqy`のplanは`free`、Security Advisorに`auth_leaked_password_protection`警告1件が存在する。KAI-34で分類済みのGraphQL schema可視性警告2件とは別件である
 - 公式提供境界: 2026-09-07確認時点のSupabase公式Password securityではleaked-password protectionはPro Plan以上、PricingではFreeは「Not included」である。Auth関連changelogにこの提供境界を覆す関連breaking changeは確認していない
 - Auth状態: `password_hibp_enabled`は変更していない。既知漏えいpassword拒否、妥当なpassword受付、既存利用者への影響、rollbackは実行・検証していない。Advisor警告を誤検知または解消済みと扱わない
 - 非変更: Supabase plan、課金、請求、Auth config、remote、schema、migration、RLS、GRANT、Edge Function、アプリコード、テスト、依存関係、CIは変更していない。合成Auth userを含むsignup/signin実験も行っていない
 - 研究境界: 指定projectは合成データ専用非本番のまま維持し、実在個人情報・研究参加者データ・本番データを投入しない。実在参加者利用、予備試行、研究データ収集または本番化の前に認証セキュリティを再判断する
-- 未確定: KAI-35の最終Linear状態、Free継続期間、将来のPro移行、独自代替策、minimum length、required characters、MFA、rate limit、CAPTCHA等の追加見直し
+- 終了境界: KAI-35の最終Linear状態は`Canceled`で確定した。Free継続期間、将来のPro移行、独自代替策、minimum length、required characters、MFA、rate limit、CAPTCHA等の追加見直しは未確定である

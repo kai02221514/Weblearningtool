@@ -25,10 +25,10 @@
 - 2026-09-07確認時点で、Supabase公式[Password security](https://supabase.com/docs/guides/auth/password-security)はleaked-password protectionをPro Plan以上としており、公式[Pricing](https://supabase.com/pricing)ではFreeに含まれない
 - D-024のFreeプラン継続判断により、KAI-35ではleaked-password protectionを有効化しない。Proへの変更、課金、請求設定、独自のHave I Been Pwned連携またはpassword blocklistも行わない
 - `password_hibp_enabled`は未変更で、機能は未提供・未有効化・未検証である。Security Advisorの`auth_leaked_password_protection`警告を誤検知または解消済みと扱わない
-- KAI-35の既知漏えいpassword拒否、妥当なpassword受付、既存利用者への影響、rollbackに関する元受入条件は未達であり、KAI-35をDoneとしない
+- KAI-35の既知漏えいpassword拒否、妥当なpassword受付、既存利用者への影響、rollbackに関する元受入条件は未達であり、KAI-35は`Done`ではなく`Canceled`として終了した
 - Free継続は合成データ専用非本番環境での利用に限る。実在個人情報・研究参加者データ・本番データを投入しない
 - OrganizationをPro以上へ変更する場合、Supabaseの提供条件が変わった場合、別の漏えいpassword対策を検討する場合、または実在参加者利用・予備試行・研究データ収集・本番化の前に認証セキュリティを再判断する
-- KAI-35をCanceled／Won't Do相当へ移すかBacklogで維持するか、Free継続期間、その他のpassword policy強化は未確定である
+- KAI-35の最終状態は`Canceled`で確定した。Free継続期間、その他のpassword policy強化は未確定である
 
 ## Remote変更の許可境界（D-023）
 

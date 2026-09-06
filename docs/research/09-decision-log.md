@@ -724,3 +724,8 @@
   - 実在参加者利用、予備試行、研究データ収集または本番化を開始する前。
   - SupabaseがFree／Proの提供条件またはleaked-password protectionの仕様を変更した場合。
   - 独自の漏えいpassword対策または別の認証セキュリティ対策を検討する場合。
+- 後続判断・終了実績（2026-09-07）:
+  - 研究者本人は、元受入条件未達を維持してKAI-35を`Done`ではなく`Canceled`として終了すると明示した。Free継続期間、将来のPro移行、独自代替策およびその他のpassword policy強化は未確定のまま維持する。
+  - PR [#49](https://github.com/kai02221514/Weblearningtool/pull/49)のfinal head `68d109b3ea579b690a68b9f6bbd15442611b3ad9`を、2026-09-06T17:40:15Zにmerge commit `a9590c82d1222cd8dca801bb3ee916e887e8bc88`としてmainへ反映した。同merge commitを対象とするmain `Check` run [34049330384](https://github.com/kai02221514/Weblearningtool/actions/runs/34049330384)は成功した。`Supabase Diagnosis`はmain pushをtriggerに含まないため自動起動せず、独自にdispatchしていない。
+  - Linear連携によりPR merge直後にKAI-35が`Backlog`から`Done`へ自動遷移したが、元受入条件達成を意味しないため、終了証跡コメントを登録して研究者本人の明示判断どおり`Canceled`へ是正した。
+  - この終了ではSupabase plan、課金、請求、Auth config、`password_hibp_enabled`、remote、schema、migration、RLS、GRANT、Edge Function、Advisor、アプリコード、テストおよびCI workflowを変更していない。
