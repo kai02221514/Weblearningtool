@@ -2,7 +2,7 @@
 
 ## 状態と境界
 
-- 状態: 2026-09-07に監査済み3 migrationとEdge Functionを指定remoteへ適用し、合成データ統合検証・cleanup・Advisor取得まで完了。Draft PR監査前であり、KAI-34はIn Progressを維持する
+- 状態: 完了。2026-09-07に監査済み3 migrationとEdge Functionを指定remoteへ適用し、合成データ統合検証・cleanup・Advisor取得を完了した。PR #47をmerge commit `732ee28e6750468c93f72ee659cb464bc7426922`としてmainへ反映し、mainの`Check`と`Supabase Diagnosis`成功後にLinear KAI-34をDoneへ更新した
 - 対象project ref: `znfwkrhquegvlcmugkoe`（`WebLearningTools`、合成データ専用非本番remote検証環境）
 - KAI-33開始基準main: `68f50a2784073a09c7733fc9171a94dc942da597`
 - KAI-33 final head: `aaec41177e35cd30190b8b57ed65c4e4aafe9510`
@@ -85,6 +85,13 @@ migration開始からFunction deploy完了まで外部検証要求を入れず�
 - rollback: 不要と判断し、実施していない。旧Function version 4と既知hash、最小互換KV rollback候補は異常時の追加許可対象として維持する
 
 すべての確認は合成データ専用非本番環境の技術的統合検証に限定する。実在個人情報・研究参加者データは使用しておらず、参加者評価や研究上の有効性主張へ一般化しない。新しい研究判断はないためDecision Logは更新しない。
+
+### PR・main・Linear完了証跡
+
+- 監査用PR [#47](https://github.com/kai02221514/Weblearningtool/pull/47)はfinal head `2070f9b3fb8ba38a395aaa44807b1ea118ab4ae6`で`Check` run [34043167730](https://github.com/kai02221514/Weblearningtool/actions/runs/34043167730)と`Supabase Diagnosis` run [34043167738](https://github.com/kai02221514/Weblearningtool/actions/runs/34043167738)に成功した
+- merge前にmergeability clean、未解決review thread 0件、head不変を確認し、2026-09-06T16:15:43Zにmerge commit `732ee28e6750468c93f72ee659cb464bc7426922`としてmainへ反映した
+- 同merge commitを対象とするmain `Check` run [34044874144](https://github.com/kai02221514/Weblearningtool/actions/runs/34044874144)と、main refで手動実行した`Supabase Diagnosis` run [34044905588](https://github.com/kai02221514/Weblearningtool/actions/runs/34044905588)は全step成功した
+- Linear KAI-34へremote適用結果とmerge後完了証跡を記録し、受入条件成立後にDoneへ更新した
 
 ## 2026-09-06 read-only再確認
 
