@@ -146,7 +146,14 @@ export function Dashboard({
           {/* メインコンテンツ */}
           <div className="dashboard-main-column lg:col-span-2 flex flex-col gap-6">
             {/* 全体進捗 */}
-            <Card className="dashboard-session-progress">
+            <Card
+              className="dashboard-session-progress"
+              data-testid="dashboard-session-progress"
+              data-completed-count={progress.completedNodeIds.length}
+              data-quiz-count={progress.quizScores.length}
+              data-reflection-count={progress.reflections.length}
+              data-in-progress-node-id={progress.inProgressNodeId ?? ''}
+            >
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="w-5 h-5" />

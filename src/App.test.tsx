@@ -152,6 +152,44 @@ function expectExperiencedRoute() {
   expect(recommendation.textContent).toContain('DG-RULE-3')
 }
 
+async function completeHtml010CycleToConfirmation(
+  user: ReturnType<typeof userEvent.setup>,
+) {
+  await user.click(screen.getByRole('button', { name: 'この単元を始める' }))
+
+  expect(screen.getByRole('navigation', { name: '単元の学習段階' }).textContent)
+    .toContain('教材')
+  await user.click(screen.getByRole('button', { name: '教材を開始する' }))
+  await user.click(screen.getByRole('tab', { name: 'テキスト形式' }))
+  await user.click(screen.getByRole('button', { name: '教材を完了して確認テストへ' }))
+
+  await user.click(screen.getByLabelText(/<body>/))
+  await user.click(screen.getByRole('button', { name: '次の問題' }))
+  await user.click(screen.getByRole('radio', {
+    name: /^1\. <!DOCTYPE html>/,
+  }))
+  await user.click(screen.getByRole('button', { name: '次の問題' }))
+  await user.type(screen.getByPlaceholderText('回答を入力'), 'body')
+  await user.click(screen.getByRole('button', { name: '結果を見る' }))
+
+  expect(await screen.findByText('合格おめでとうございます！')).not.toBeNull()
+  await user.click(screen.getByRole('button', { name: '合格済み：実践課題へ進む' }))
+
+  const practiceCode = `<!DOCTYPE html>\n<html>\n  <head><title>自己紹介</title></head>\n  <body><p>こんにちは</p></body>\n</html>`
+  fireEvent.change(screen.getByPlaceholderText('HTMLコードをここに入力...'), {
+    target: { value: practiceCode },
+  })
+  await user.click(screen.getByRole('button', { name: '条件を確認' }))
+  await user.click(screen.getByRole('checkbox', { name: /プレビューを目視確認/ }))
+  await user.click(screen.getByRole('button', { name: '実践課題を完了して振り返りへ' }))
+
+  expect(screen.getByRole('navigation', { name: '単元の学習段階' }).textContent)
+    .toContain('振り返り')
+  await user.click(screen.getByRole('checkbox', { name: 'HTMLドキュメントの基本構造' }))
+  await user.type(screen.getByPlaceholderText(/HTMLタグの使い分けがまだ曖昧/), '合成した振り返り')
+  await user.click(screen.getByRole('button', { name: '振り返りを確定して単元を完了する' }))
+}
+
 describe('authenticated diagnosis flow', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -239,7 +277,7 @@ describe('authenticated diagnosis flow', () => {
     expect(mockedGetDiagnosis).toHaveBeenNthCalledWith(2, 'synthetic-access-token')
   })
 
-  it('restores compatible saved answers, clears memory on return, and regenerates after login', async () => {
+  it('clears populated learning state on return and restores only diagnosis after login', async () => {
     mockedGetDiagnosis.mockResolvedValue({
       status: 'complete',
       diagnosis: storedDiagnosis(experiencedAnswers),
@@ -250,6 +288,25 @@ describe('authenticated diagnosis flow', () => {
     expect(await screen.findByText('現在のおすすめルート')).not.toBeNull()
     expectExperiencedRoute()
 
+    await completeHtml010CycleToConfirmation(user)
+    expect(await screen.findByRole('heading', { name: /HTML基本骨格.*を完了しました/ })).not.toBeNull()
+    await user.click(screen.getByRole('button', { name: 'Dashboardで更新後の推薦を見る' }))
+
+    const populatedProgress = screen.getByTestId('dashboard-session-progress')
+    expect(populatedProgress.getAttribute('data-completed-count')).toBe('1')
+    expect(populatedProgress.getAttribute('data-quiz-count')).toBe('1')
+    expect(populatedProgress.getAttribute('data-reflection-count')).toBe('1')
+    expect(populatedProgress.getAttribute('data-in-progress-node-id')).toBe('')
+    expect(screen.getByTestId('dashboard-notice').textContent)
+      .toContain('このセッションで単元を完了し、現在の進捗から推薦ルートを更新しました')
+    expect(screen.queryByTestId('route-recommendation-html-010')).toBeNull()
+
+    const nextRecommendation = screen.getByTestId('route-recommendation-html-020')
+    await user.click(within(nextRecommendation).getByRole('button', { name: 'この単元を始める' }))
+    await user.click(screen.getByRole('button', { name: 'ダッシュボード' }))
+    expect(screen.getByTestId('dashboard-session-progress').getAttribute('data-in-progress-node-id'))
+      .toBe('html-020')
+
     await user.click(screen.getByRole('button', { name: 'ログイン画面へ戻る' }))
     expect(await screen.findByRole('heading', { name: 'ログイン' })).not.toBeNull()
     await user.type(screen.getByLabelText('メールアドレス'), 'synthetic@example.invalid')
@@ -257,8 +314,17 @@ describe('authenticated diagnosis flow', () => {
     await user.click(screen.getByRole('button', { name: 'ログインする' }))
 
     expect(await screen.findByText('現在のおすすめルート')).not.toBeNull()
+    expect(screen.queryByRole('heading', { name: '初回診断（必須）' })).toBeNull()
+    expectExperiencedRoute()
+
+    const restoredProgress = screen.getByTestId('dashboard-session-progress')
+    expect(restoredProgress.getAttribute('data-completed-count')).toBe('0')
+    expect(restoredProgress.getAttribute('data-quiz-count')).toBe('0')
+    expect(restoredProgress.getAttribute('data-reflection-count')).toBe('0')
+    expect(restoredProgress.getAttribute('data-in-progress-node-id')).toBe('')
     expect(screen.getByTestId('dashboard-notice').textContent)
-      .toContain('学習進捗はこのセッションから始まります')
+      .toContain('保存済み診断を読み込み、その回答から推薦ルートを再生成しました')
+    expect(screen.getByTestId('dashboard-notice').textContent).not.toContain('単元を完了')
     expect(mockedGetDiagnosis).toHaveBeenCalledTimes(2)
   })
 
@@ -304,35 +370,7 @@ describe('authenticated diagnosis flow', () => {
 
     const user = await signIn()
     await screen.findByText('現在のおすすめルート')
-    await user.click(screen.getByRole('button', { name: 'この単元を始める' }))
-
-    expect(screen.getByRole('navigation', { name: '単元の学習段階' }).textContent)
-      .toContain('教材')
-    await user.click(screen.getByRole('button', { name: '教材を開始する' }))
-    await user.click(screen.getByRole('tab', { name: 'テキスト形式' }))
-    await user.click(screen.getByRole('button', { name: '教材を完了して確認テストへ' }))
-
-    await user.click(screen.getByLabelText(/<body>/))
-    await user.click(screen.getByRole('button', { name: '次の問題' }))
-    await user.click(screen.getAllByLabelText(/<!DOCTYPE html>/)[0])
-    await user.click(screen.getByRole('button', { name: '次の問題' }))
-    await user.type(screen.getByPlaceholderText('回答を入力'), 'body')
-    await user.click(screen.getByRole('button', { name: '結果を見る' }))
-
-    expect(await screen.findByText('合格おめでとうございます！')).not.toBeNull()
-    await user.click(screen.getByRole('button', { name: '合格済み：実践課題へ進む' }))
-
-    const practiceCode = `<!DOCTYPE html>\n<html>\n  <head><title>自己紹介</title></head>\n  <body><p>こんにちは</p></body>\n</html>`
-    fireEvent.change(screen.getByPlaceholderText('HTMLコードをここに入力...'), {
-      target: { value: practiceCode },
-    })
-    await user.click(screen.getByRole('button', { name: '条件を確認' }))
-    await user.click(screen.getByRole('checkbox', { name: /プレビューを目視確認/ }))
-    await user.click(screen.getByRole('button', { name: '実践課題を完了して振り返りへ' }))
-
-    expect(screen.getByRole('navigation', { name: '単元の学習段階' }).textContent)
-      .toContain('振り返り')
-    await user.click(screen.getByRole('button', { name: '振り返りを確定して単元を完了する' }))
+    await completeHtml010CycleToConfirmation(user)
     expect(await screen.findByRole('heading', { name: /HTML基本骨格.*を完了しました/ })).not.toBeNull()
     expect(screen.getByText(/再ログイン後には復元されません/)).not.toBeNull()
     await user.click(screen.getByRole('button', { name: 'Dashboardで更新後の推薦を見る' }))
