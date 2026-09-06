@@ -116,3 +116,27 @@ npm run check
 - Actions警告: 2つのmainジョブはいずれも`actions/checkout@v4`と`actions/setup-node@v4`に対するNode.js 20非推奨annotation 1件があった。機能検証は成功しており、Node.js 22移行とActions major更新は別Issue候補として本作業では変更していない
 - 未確認事項: remote Supabaseへのmigration・Edge Function deploy・動作確認、browser reload時のsession自動復元、remote advisors、参加者データ・実在個人情報を用いた確認
 - 対象外: 同意、保持期間、撤回、削除、研究者用取得・削除・export、診断以外の永続化、評価ログ、回答履歴、S群・A群・`level`・`levelScore`の保存、KAI-12/KAI-16の完了、新しい研究判断
+
+## KAI-32 Draft PR local検証
+
+- 実行日: 2026-09-06
+- 対象: Draft PR #42、branch `feat/kai-32-profiles-display-name`
+- 環境: Node `v20.17.0`、npm `11.4.2`、Supabase CLI `2.65.5`、合成データ専用local Supabase
+- 再現入口: `supabase db reset --local --no-seed`、`supabase test db`、`supabase db lint --local --fail-on error`、`npm run test:diagnosis-api`、`npm run test:profile-api`、`npm run verify`、`git diff --check`
+- 結果: fresh reset成功、pgTAP 2 files / 71 tests成功、schema error 0件、診断API/profile API統合成功、typecheck・lint・全20 files / 227 tests・build 1726 modules成功、差分check成功
+- profile API統合: 合成利用者A/Bで正常signup、trim、1/50文字、51文字、空白、改行、制御文字、日本語・Unicode、本人read/update、他人・anon拒否、DELETE・保護列拒否、profile欠損signin拒否、Auth削除CASCADE、trigger失敗時のAuth/profile不存在、同email再試行を確認した
+- ブラウザ: 通常entryのアカウント作成画面で「表示名（ニックネーム可）」、`required`、`maxlength=50`、空白のみの明示エラーを確認した
+- 失敗履歴: full local構成の初回resetはmigration適用後に未使用Storageのhealth check 502で失敗した。localだけStorageを無効化して成功し、一時設定は差分へ残していない。pgTAPの4引数matcherと、権限のないtrigger無効化を使ったAPIテスト初案も修正し、fresh resetから全検証を再実行した
+- 当時の境界: remote Supabase、remote secret、実在個人情報、研究参加者データは不使用。初回local検証後のCI・監査・指摘対応は次節へ追記する。merge・main再検証は未実施で、legacy `profile:{id}`全面撤去はKAI-33へ残す
+
+## KAI-32 Draft PR #42監査指摘対応
+
+- 初回CIと監査: head `bb2d598057c96566fec0bfb3ffdf3ebb395a2962`の`Check` run `34030858409`と`Supabase Diagnosis` run `34030858406`は成功したが、2026-09-06監査でDBのASCII space限定`btrim`とJavaScript `trim()`の差、および`service_role`権限のdefault privileges依存が要修正となった
+- 修正commit: `1aac38fd240a4842094fe8d6def0556123ae3db9`。ECMAScript WhiteSpaceとLineTerminatorのtrim集合をDB制約へ明示し、table/function権限を全roleからrevokeして必要なGRANTだけを再付与した
+- 対象validator: `npm run test -- src/domain/profile.test.ts`は1 file / 18 tests成功。NBSP、U+3000、U+FEFF、内部Unicode空白、C1制御文字を追加確認した
+- fresh local DB: `supabase db reset --local --no-seed`成功。`supabase test db`は2 files / 94 tests成功。`supabase db lint --local --fail-on error`はschema error 0件
+- pgTAP境界: ASCII space、NBSP、U+3000、U+FEFFの未正規化UPDATE、NBSPの未正規化INSERT、51文字、改行、C0/C1を拒否し、1/50文字、内部空白、日本語・絵文字を許可した。`public`、`anon`、`authenticated`、`service_role`のtable/column権限と3 trigger関数のEXECUTE拒否をRLSとは別に確認した
+- API統合: `npm run test:profile-api`成功。Edge APIはASCII space、NBSP、U+3000、U+FEFFをtrimして保存・返却し、本人Data API直接PATCHは同じ未正規化値を400で拒否、その後のsigninはDB正本の正規化済み表示名で成功した。`npm run test:diagnosis-api`も成功した
+- 全体: `npm run verify`でtypecheck、lint、全20 files / 232 tests、build 1726 modulesに成功。`git diff --check`も成功した
+- 修正commit CI: `Check` run `34032015077`と`Supabase Diagnosis` run `34032015105`はsuccess。後者はstart、fresh reset、pgTAP、DB lint、診断API、profile API、stopを含む全stepに成功した
+- 境界: 合成データだけを使用し、remote Supabase、remote secret、実在個人情報、研究参加者データは不使用。legacy `profile:{id}`、Actions Node.js 20警告、表示名変更UIは対象外。Draft・未マージ、再監査待ちで、main再検証は未実施

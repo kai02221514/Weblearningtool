@@ -198,7 +198,7 @@ describe('authenticated diagnosis flow', () => {
       accessToken: 'synthetic-access-token',
       userId: '11111111-1111-4111-8111-111111111111',
       email: 'synthetic@example.invalid',
-      name: '合成利用者',
+      displayName: '合成利用者',
     })
   })
 
@@ -211,7 +211,7 @@ describe('authenticated diagnosis flow', () => {
     render(<App />)
 
     await user.click(screen.getByRole('button', { name: '新規アカウントを作成する' }))
-    await user.type(screen.getByLabelText('お名前'), '合成利用者')
+    await user.type(screen.getByLabelText('表示名（ニックネーム可）'), '  合成利用者  ')
     await user.type(screen.getByLabelText('メールアドレス'), 'synthetic@example.invalid')
     await user.type(screen.getByLabelText('パスワード'), 'synthetic-password')
     await user.click(screen.getByRole('button', { name: 'アカウントを作成する' }))
@@ -223,7 +223,7 @@ describe('authenticated diagnosis flow', () => {
       success: true,
       userId: '11111111-1111-4111-8111-111111111111',
       email: 'synthetic@example.invalid',
-      name: '合成利用者',
+      displayName: '合成利用者',
     })
 
     expect(await screen.findByRole('heading', { name: 'ログイン' })).not.toBeNull()
@@ -231,6 +231,26 @@ describe('authenticated diagnosis flow', () => {
     expect((screen.getByLabelText('メールアドレス') as HTMLInputElement).value)
       .toBe('synthetic@example.invalid')
     expect((screen.getByLabelText('パスワード') as HTMLInputElement).value).toBe('')
+    expect(mockedSignup).toHaveBeenCalledWith({
+      email: 'synthetic@example.invalid',
+      password: 'synthetic-password',
+      displayName: '合成利用者',
+    })
+  })
+
+  it('rejects a whitespace-only display name before signup', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: '新規アカウントを作成する' }))
+    await user.type(screen.getByLabelText('表示名（ニックネーム可）'), '   ')
+    await user.type(screen.getByLabelText('メールアドレス'), 'synthetic@example.invalid')
+    await user.type(screen.getByLabelText('パスワード'), 'synthetic-password')
+    await user.click(screen.getByRole('button', { name: 'アカウントを作成する' }))
+
+    expect((await screen.findByRole('alert')).textContent)
+      .toContain('表示名は改行・制御文字を含まない1〜50文字')
+    expect(mockedSignup).not.toHaveBeenCalled()
   })
 
   it('keeps Dashboard hidden while loading and sends a missing diagnosis to Survey', async () => {

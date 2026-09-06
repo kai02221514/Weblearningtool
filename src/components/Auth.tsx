@@ -6,16 +6,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Alert, AlertDescription } from './ui/alert'
 import { Lock, Mail, User, AlertCircle } from 'lucide-react'
 import { signup, signin } from '../utils/auth'
+import {
+  DISPLAY_NAME_MAX_LENGTH,
+  validateDisplayName,
+} from '../../supabase/functions/_shared/profile'
 
 interface AuthProps {
-  onSigninSuccess: (email: string, name: string, accessToken: string, userId: string) => Promise<void>
+  onSigninSuccess: (email: string, displayName: string, accessToken: string, userId: string) => Promise<void>
 }
 
 export function Auth({ onSigninSuccess }: AuthProps) {
   const [isSignup, setIsSignup] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [name, setName] = useState('')
+  const [displayName, setDisplayName] = useState('')
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -29,7 +33,7 @@ export function Auth({ onSigninSuccess }: AuthProps) {
     try {
       if (isSignup) {
         // バリデーション
-        if (!name || !email || !password) {
+        if (!displayName || !email || !password) {
           setError('すべてのフィールドを入力してください')
           setIsLoading(false)
           return
@@ -40,8 +44,19 @@ export function Auth({ onSigninSuccess }: AuthProps) {
           return
         }
 
+        const displayNameValidation = validateDisplayName(displayName)
+        if (!displayNameValidation.success) {
+          setError('表示名は改行・制御文字を含まない1〜50文字で入力してください')
+          setIsLoading(false)
+          return
+        }
+
         // サインアップ処理
-        await signup({ email, password, name })
+        await signup({
+          email,
+          password,
+          displayName: displayNameValidation.displayName,
+        })
         setIsSignup(false)
         setPassword('')
         setNotice('アカウントを作成しました。ログインしてください。')
@@ -54,7 +69,7 @@ export function Auth({ onSigninSuccess }: AuthProps) {
         }
 
         const result = await signin({ email, password })
-        await onSigninSuccess(email, result.name, result.accessToken, result.userId)
+        await onSigninSuccess(email, result.displayName, result.accessToken, result.userId)
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'エラーが発生しました。もう一度お試しください。')
@@ -98,17 +113,18 @@ export function Auth({ onSigninSuccess }: AuthProps) {
 
               {isSignup && (
                 <div className="space-y-2">
-                  <Label htmlFor="name">お名前</Label>
+                  <Label htmlFor="display-name">表示名（ニックネーム可）</Label>
                   <div className="relative">
                     <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
-                      id="name"
+                      id="display-name"
                       type="text"
-                      placeholder="山田太郎"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      placeholder="学習者ニックネーム"
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
                       className="pl-10"
                       required
+                      maxLength={DISPLAY_NAME_MAX_LENGTH}
                     />
                   </div>
                 </div>

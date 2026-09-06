@@ -28,7 +28,7 @@ interface DashboardProps {
   onViewReflections: () => void
   onTakeSurvey: () => void
   onReturnToLogin: () => void
-  userData: { name?: string } | null
+  userData: { displayName?: string } | null
   progress: {
     completedNodeIds: string[]
     totalNodes: number
@@ -107,11 +107,11 @@ export function Dashboard({
             <div className="flex items-center gap-4">
               <Avatar className="w-12 h-12">
                 <AvatarFallback className="text-lg">
-                  {userData?.name?.charAt(0) || 'U'}
+                  {userData?.displayName?.charAt(0) || 'U'}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <h1 className="text-2xl">おかえりなさい、{userData?.name || 'ユーザー'}さん！</h1>
+                <h1 className="text-2xl">おかえりなさい、{userData?.displayName || 'ユーザー'}さん！</h1>
                 <p className="text-muted-foreground">今日も学習を続けましょう</p>
               </div>
             </div>

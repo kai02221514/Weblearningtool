@@ -45,6 +45,9 @@ jobs:
       - name: Test diagnosis API with synthetic users
         run: npm run test:diagnosis-api
 
+      - name: Test profile API with synthetic users
+        run: npm run test:profile-api
+
       - name: Stop local Supabase
         if: always()
         run: supabase stop
