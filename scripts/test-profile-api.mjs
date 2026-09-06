@@ -121,6 +121,19 @@ assert.equal(result.response.status, 200, `signin B failed: ${JSON.stringify(res
 assert.equal(result.body.displayName, userB.displayName)
 const tokenB = result.body.accessToken
 
+result = await jsonRequest(`${functionBase}/profile`, {
+  method: 'POST',
+  headers: publicHeaders(tokenA),
+  body: JSON.stringify({
+    age: 'legacy-age',
+    occupation: 'legacy-occupation',
+    pace: 'legacy-pace',
+    level: 'legacy-level',
+    levelScore: 1,
+  }),
+})
+assert.equal(result.response.status, 404, 'legacy profile KV endpoint must stay removed')
+
 result = await jsonRequest(`${functionBase}/display-name`)
 assert.equal(result.response.status, 401, 'display-name API must reject missing bearer tokens')
 
