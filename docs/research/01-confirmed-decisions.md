@@ -99,6 +99,10 @@ Decision Logと本書が不一致の場合は、最新の有効Decisionを優先
 - [確定事項] 指定remoteへのdeploy前後確認はD-023と`docs/operations/supabase-setup.md`に従う。RLSとGRANTを別々に検証し、service roleまたはsecret keyをfrontendへ公開しない。この環境判断を参加者データ収集、同意、保持、撤回、削除、研究者access/export、学内手続の承認へ一般化しない。
 - [確定事項] D-023の決定者は研究者本人であり、D-023とその確定契約に基づくKAI-32〜KAI-35の着手判断を指導教員から委任されているため、この範囲では追加の指導教員承認を開始条件としない。これは指導教員がD-023の技術内容を個別に確認・承認済みであることも、remote変更への包括許可も意味しない。指定remoteの変更には対象project ref・変更内容・適用版ごとの研究者本人の明示許可を引き続き必須とする。
 - [確定事項] D-023の委任範囲を実在参加者データ、研究データ収集、予備試行、同意、保持、撤回・削除、本人対応表、研究者access/export、評価ログ、学内手続、KAI-12/OQ-009の残余、KAI-16へ一般化しない。
+- [確定事項] D-024により、当面はSupabase Freeプランを継続する。leaked-password protectionはFreeに含まれないためKAI-35では有効化せず、Pro以上への変更、課金、請求設定、独自の漏えいpassword対策も行わない。
+- [未達／既知の残存リスク] `password_hibp_enabled`は未変更で、leaked-password protectionは未提供・未有効化・未検証である。Security Advisorの`auth_leaked_password_protection`警告と、KAI-35の「既知漏えいpasswordを拒否する」元受入条件は未解消・未達のまま維持する。
+- [確定事項] Free継続はproject ref `znfwkrhquegvlcmugkoe`の合成データ専用非本番用途に限定する。実在参加者利用、予備試行、研究データ収集または本番化の前、planや提供条件が変わった場合、別の漏えいpassword対策を検討する場合は認証セキュリティを再判断する。
+- [未確定] KAI-35をCanceled／Won't Do相当へ移すかBacklogで維持するか、Free継続期間、将来のPro移行、独自代替策およびその他のpassword policy強化は未確定である。Free継続を本番適合、参加者利用許可、十分な認証セキュリティまたはOQ-009残余の解消へ一般化しない。
 
 ## 評価
 

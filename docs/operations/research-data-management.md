@@ -1,6 +1,6 @@
 # 研究データ管理仕様
 
-- 状態: **部分確定**。D-022の初回診断保存契約とD-023の表示名・合成データ専用remote境界は確定、その他の研究データ管理案は未確定
+- 状態: **部分確定**。D-022の初回診断保存契約、D-023の表示名・合成データ専用remote境界、D-024のFreeプラン継続・認証セキュリティ再判断ゲートは確定、その他の研究データ管理案は未確定
 - 初回診断保存契約の決定日: 2026-09-05
 - 決定者: 北代櫂（研究者本人）
 - 関連Issue: Linear `KAI-12`、`KAI-30`、`KAI-31`、後続`KAI-32`〜`KAI-35`
@@ -8,6 +8,7 @@
 - 作成基準: `main` `f9a5c0dbff374eaf8aae9a90ca9b111ff3839499`（2026-07-13）
 - 重要: **§1.4の初回診断保存・復元契約だけはD-022に基づく確定仕様であり、この範囲の後続Task Aは追加の指導教員承認なしで開始できる。**
 - 重要: **§16.6の表示名・KV・指定remote境界はD-023に基づく確定仕様である。KAI-34で監査済みprofiles・診断・KV撤去・Functionを指定remoteへ適用し、合成データ境界とcleanupを確認済みである。これは参加者データ収集や研究データ管理残余の許可を意味しない。**
+- 重要: **D-024により当面はSupabase Freeプランを継続し、Freeに含まれないleaked-password protectionはKAI-35で有効化・検証しない。Security Advisor警告と元受入条件は未解消であり、実在参加者利用・予備試行・研究データ収集・本番化の前に認証セキュリティを再判断する。**
 - 重要: OQ-009全体とKAI-12は未完了である。同意UI、評価ログ、研究者用取得・削除・export、保持・撤回・削除、参加者データ収集、予備試行は開始可能になっていない。
 - 重要: D-022の権限確認は、学内規程上必要な手続または研究参加者の同意を免除しない。
 - 重要: §11のD-022対象外項目に残る研究者判断は2026-07-14時点の暫定案であり、確定仕様として扱わない。
@@ -588,7 +589,7 @@ D-023により、`user_metadata.name`は通常の表示名読取元にせず、R
 1. **KAI-32 型付きprofilesと表示名save/loadをlocal実装する**: migration、型、validation、本人限定RLS、明示GRANT、signup/signin/read/update、Auth削除連携、KV name/email依存除去をlocalで実装する。remote適用は対象外。
 2. **KAI-33 KV廃止とremote schema差を解消する**: PR #45と完了証跡PR #46はmainへ反映・再検証済みで、Linear KAI-33はDoneである。KAI-33自体ではremoteを変更せず、後続KAI-34の独立許可で適用した。
 3. **KAI-34 指定remoteへ監査済み変更を適用して統合検証する**: 監査済み版の指定remote適用、合成A/B・未認証・失敗境界、cleanup、Advisor取得、PR #47のmain反映、main両検証、Linear完了証跡を完了しDoneとした。
-4. **KAI-35 Supabase Auth leaked-password protectionを有効化・検証する**: profiles実装と混在させず、planと設定可否、既知漏えいpassword拒否、既存利用者への影響、rollbackを検証する。
+4. **KAI-35 Supabase Auth leaked-password protectionを有効化・検証する**: D-024のFreeプラン継続判断により有効化・検証は未実施で、元受入条件とSecurity Advisor警告は未解消である。文書監査・main反映後にCanceled／Won't Do相当へ移すかBacklogで維持するかを研究者本人が判断する。
 
 進捗snapshot、クイズ試行、実践課題、振り返り、評価event log、同意、研究者exportはこの分割へ含めず、それぞれOQ-009の確定後に別Issueとする。
 

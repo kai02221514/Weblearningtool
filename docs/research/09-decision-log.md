@@ -674,3 +674,53 @@
   - KVに既存データが確認され、自動移行しない方針以外の処理が必要になった場合。
   - 指定projectの用途、本番性、データ区分、権限、plan、学内要件が変わった場合。
   - SupabaseのAuth、Data API、RLS、GRANT、keyまたはdeploy仕様変更により契約見直しが必要になった場合。
+
+## D-024
+
+- 日付: 2026-09-07
+- 決定者: 北代櫂（研究者本人）
+- 状態: 有効
+- タイトル: Supabase Freeプラン継続とKAI-35未実施境界の確定
+- 関連Issue: `KAI-35`
+- 関連Decision: D-019、D-022、D-023
+- 関連OQ: OQ-009
+- 判断内容:
+  1. 当面はSupabase Freeプランを継続する。
+  2. Supabase Authのleaked-password protectionはFreeプランに含まれないため、KAI-35では有効化しない。Pro以上への変更、課金、請求設定も行わない。
+  3. `password_hibp_enabled`を変更せず、既知漏えいpasswordの拒否、妥当なpasswordの受付、既存利用者への影響およびrollbackを検証済みとしない。
+  4. Security Advisorの`auth_leaked_password_protection`警告は、誤検知または解消済みではなく、既知の残存リスクとして維持する。
+  5. project ref `znfwkrhquegvlcmugkoe`はD-023の合成データ専用非本番境界を維持し、実在個人情報・研究参加者データ・本番データを投入しない。
+  6. 実在参加者利用、予備試行、本番化または研究データ収集の前に、plan変更を含む認証セキュリティを再判断する。
+  7. 独自のHave I Been Pwned API連携、漏えいpassword一覧、password blocklistその他の代替策は本Decisionで採用しない。必要性が生じた場合は別Issue・別Decisionで扱う。
+  8. KAI-35の元受入条件は未達であり、Doneとしない。文書の監査とmain反映後にCanceled／Won't Do相当へ移すか、将来再開可能なBacklogとして維持するかを研究者本人が別途判断する。
+- 判断理由:
+  - 研究者本人が2026-09-07に「SupabaseはFreeプランを使う方向で計画する」と明示したため。
+  - 2026-09-07確認時点のSupabase公式Password securityではleaked-password protectionがPro Plan以上、公式PricingではFreeの同機能が「Not included」とされているため。
+  - 対象Organizationのplanが`free`であり、対象projectのSecurity Advisorに`auth_leaked_password_protection`警告が実際に残存しているため。
+- 影響範囲:
+  - KAI-35の実行可能範囲、受入条件、Linear状態判断
+  - 指定remoteの認証セキュリティ状態と既知リスク管理
+  - OQ-009、参加者利用、予備試行、本番化の開始前ゲート
+  - `docs/operations/supabase-setup.md`
+- 未達・残存リスク:
+  - leaked-password protectionは未提供・未有効化・未検証である。
+  - KAI-35の元受入条件である既知漏えいpassword拒否は確認していない。
+  - Security Advisor警告は残存する。
+  - Free継続期間、将来のPro移行、独自代替策、password minimum length、required characters、MFA、rate limit、CAPTCHA等の追加見直しは未確定である。
+- 禁止する一般化:
+  - Freeプランが本番または実在参加者利用に適合するとの判断。
+  - 現在の認証セキュリティが十分であるとの判断。
+  - leaked-password protectionが不要であるとの判断。
+  - OQ-009残余、KAI-12、KAI-16、参加者データ収集、予備試行、同意、保持、撤回・削除、研究者access/export、評価ログまたは学内手続の解消。
+- 根拠:
+  - 2026-09-07の研究者本人による「SupabaseはFreeプランを使う方向で計画する」との明示判断
+  - 2026-09-07のread-only確認: project ref `znfwkrhquegvlcmugkoe`は`ACTIVE_HEALTHY`、Organization `httvbvgmiboypecuoyqy`は`free`、Security Advisorに`auth_leaked_password_protection`警告が存在
+  - Supabase公式[Password security](https://supabase.com/docs/guides/auth/password-security)、[Pricing](https://supabase.com/pricing)、[Auth changelog](https://supabase.com/changelog?tags=auth)
+  - Linear `KAI-35`の目的・受入条件、`KAI-34`の完了証跡
+- 実装上の影響:
+  - 本Decisionではアプリコード、テスト、依存関係、CI、Supabase plan、Auth config、schema、migration、RLS、GRANT、Edge Functionおよびremote状態を変更しない。
+- 再検討条件:
+  - OrganizationをPro Plan以上へ変更する場合。
+  - 実在参加者利用、予備試行、研究データ収集または本番化を開始する前。
+  - SupabaseがFree／Proの提供条件またはleaked-password protectionの仕様を変更した場合。
+  - 独自の漏えいpassword対策または別の認証セキュリティ対策を検討する場合。
