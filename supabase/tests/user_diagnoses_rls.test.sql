@@ -23,9 +23,17 @@ select ok(has_table_privilege('authenticated', 'public.user_diagnoses', 'INSERT'
 select ok(has_table_privilege('authenticated', 'public.user_diagnoses', 'UPDATE'), 'authenticated can update');
 select ok(not has_table_privilege('authenticated', 'public.user_diagnoses', 'DELETE'), 'authenticated cannot delete');
 
-insert into auth.users (id, email) values
-  ('11111111-1111-4111-8111-111111111111', 'synthetic-a@example.invalid'),
-  ('22222222-2222-4222-8222-222222222222', 'synthetic-b@example.invalid');
+insert into auth.users (id, email, raw_user_meta_data) values
+  (
+    '11111111-1111-4111-8111-111111111111',
+    'synthetic-a@example.invalid',
+    '{"display_name":"Synthetic User A"}'::jsonb
+  ),
+  (
+    '22222222-2222-4222-8222-222222222222',
+    'synthetic-b@example.invalid',
+    '{"display_name":"Synthetic User B"}'::jsonb
+  );
 
 set local role authenticated;
 set local "request.jwt.claims" = '{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated"}';

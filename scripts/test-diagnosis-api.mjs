@@ -45,7 +45,7 @@ async function createSyntheticUser(user) {
       email: user.email,
       password,
       email_confirm: true,
-      user_metadata: { name: `Synthetic User ${user.id.slice(0, 4)}` },
+      user_metadata: { display_name: `Synthetic User ${user.id.slice(0, 4)}` },
     }),
   })
   assert.equal(response.status, 200, `synthetic user setup failed: ${JSON.stringify(body)}`)
@@ -62,7 +62,7 @@ async function signIn(user) {
     body: JSON.stringify({ email: user.email, password }),
   })
   assert.equal(response.status, 200, `synthetic sign-in failed: ${JSON.stringify(body)}`)
-  assert.match(body.name, /^Synthetic User /)
+  assert.match(body.displayName, /^Synthetic User /)
   return body.accessToken
 }
 

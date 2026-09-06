@@ -22,7 +22,7 @@ function renderDashboard(
       onViewReflections={() => undefined}
       onTakeSurvey={() => undefined}
       onReturnToLogin={() => undefined}
-      userData={{ name: 'テスト利用者' }}
+      userData={{ displayName: 'テスト利用者' }}
       progress={{
         completedNodeIds,
         assumedNodeIds: [],

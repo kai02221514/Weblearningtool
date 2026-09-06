@@ -8,11 +8,12 @@ import type {
   DiagnosisReadResult,
   StoredDiagnosis,
 } from '../../supabase/functions/_shared/diagnosis'
+import type { Profile } from '../../supabase/functions/_shared/profile'
 
 export interface SignupData {
   email: string
   password: string
-  name: string
+  displayName: string
 }
 
 export interface SigninData {
@@ -32,7 +33,7 @@ interface SignupResponse {
   success: boolean
   userId: string
   email?: string
-  name?: string
+  displayName: string
 }
 
 interface SigninResponse {
@@ -40,7 +41,7 @@ interface SigninResponse {
   accessToken: string
   userId: string
   email?: string
-  name: string
+  displayName: string
 }
 
 interface ApiPayload {
@@ -140,6 +141,28 @@ export async function saveProfile(data: ProfileData, accessToken: string) {
     },
     body: JSON.stringify(data),
   }, 'プロファイルの保存に失敗しました')
+}
+
+export async function getDisplayName(accessToken: string): Promise<Profile> {
+  const result = await requestEdgeFunction<{ profile: Profile }>('/display-name', {
+    method: 'GET',
+    headers: authenticatedHeaders(accessToken),
+  }, '表示名の取得に失敗しました')
+
+  return result.profile
+}
+
+export async function updateDisplayName(
+  displayName: string,
+  accessToken: string,
+): Promise<Profile> {
+  const result = await requestEdgeFunction<{ success: boolean; profile: Profile }>('/display-name', {
+    method: 'PUT',
+    headers: authenticatedHeaders(accessToken),
+    body: JSON.stringify({ displayName }),
+  }, '表示名の更新に失敗しました')
+
+  return result.profile
 }
 
 function authenticatedHeaders(accessToken: string): HeadersInit {

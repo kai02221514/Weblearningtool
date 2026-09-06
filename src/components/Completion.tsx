@@ -155,7 +155,7 @@ export function Completion({ onDashboard, userData, progress }: CompletionProps)
                       
                       <div className="space-y-4 text-left max-w-md mx-auto">
                         <div>
-                          <strong>受講者:</strong> {userData?.name || 'ユーザー'}様
+                          <strong>受講者:</strong> {userData?.displayName || 'ユーザー'}様
                         </div>
                         <div>
                           <strong>コース名:</strong> Web開発基礎コース
@@ -363,7 +363,7 @@ export function Completion({ onDashboard, userData, progress }: CompletionProps)
                 <div className="space-y-4 text-center">
                   <div className="text-4xl">🌟</div>
                   <p className="text-sm leading-relaxed">
-                    {userData?.name || 'あなた'}さん、本当にお疲れ様でした！
+                    {userData?.displayName || 'あなた'}さん、本当にお疲れ様でした！
                     
                     継続的な学習により、Web開発の基礎をしっかりと身につけることができました。
                     

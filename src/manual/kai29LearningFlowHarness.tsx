@@ -21,7 +21,7 @@ globalThis.fetch = async (input, init) => {
       success: true,
       userId: '11111111-1111-4111-8111-111111111111',
       email: 'synthetic@example.invalid',
-      name: '合成利用者',
+      displayName: '合成利用者',
     })
   }
 
@@ -31,7 +31,7 @@ globalThis.fetch = async (input, init) => {
       accessToken: 'synthetic-access-token',
       userId: '11111111-1111-4111-8111-111111111111',
       email: 'synthetic@example.invalid',
-      name: '合成利用者',
+      displayName: '合成利用者',
     })
   }
 

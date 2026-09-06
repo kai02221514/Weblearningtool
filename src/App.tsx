@@ -29,7 +29,7 @@ const learningNodes = getMvpLearningNodes()
 type Phase = 'auth' | 'diagnosis-loading' | 'diagnosis-error' | 'survey' | 'tutorial' | 'dashboard' | 'learning' | 'quiz' | 'practice' | 'reflection' | 'completion' | 'reflections'
 
 interface UserData {
-  name: string
+  displayName: string
   email: string
   userId: string
   accessToken?: string
@@ -103,8 +103,8 @@ export default function App() {
     }
   }
 
-  const handleSigninSuccess = async (email: string, name: string, accessToken: string, userId: string) => {
-    setUserData({ email, name, userId, accessToken })
+  const handleSigninSuccess = async (email: string, displayName: string, accessToken: string, userId: string) => {
+    setUserData({ email, displayName, userId, accessToken })
     await resolveDiagnosis(accessToken)
   }
 
@@ -236,7 +236,7 @@ export default function App() {
       return (
         <SignupSurvey 
           onComplete={handleSurveyComplete}
-          userName={userData?.name || 'ユーザー'}
+          userName={userData?.displayName || 'ユーザー'}
           accessToken={userData?.accessToken || ''}
         />
       )
@@ -245,7 +245,7 @@ export default function App() {
       return (
         <Tutorial 
           onComplete={handleTutorialComplete}
-          userName={userData?.name || 'ユーザー'}
+          userName={userData?.displayName || 'ユーザー'}
         />
       )
       

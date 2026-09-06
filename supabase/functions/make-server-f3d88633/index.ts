@@ -9,6 +9,11 @@ import {
   validateStoredDiagnosis,
   type StoredDiagnosis,
 } from "../_shared/diagnosis.ts";
+import {
+  validateDisplayNameRequest,
+  validateStoredProfile,
+  type Profile,
+} from "../_shared/profile.ts";
 
 const app = new Hono();
 const FUNCTION_NAME = "make-server-f3d88633"
@@ -79,29 +84,6 @@ function serverConfigErrorResponse(c: { json: (body: { error: string }, status: 
   return null
 }
 
-function isUserRecord(value: unknown): value is { name: string } {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "name" in value &&
-    typeof value.name === "string"
-  )
-}
-
-function getUserNameFromMetadata(value: unknown): string | null {
-  if (
-    typeof value !== "object"
-    || value === null
-    || !("name" in value)
-    || typeof value.name !== "string"
-  ) {
-    return null
-  }
-
-  const name = value.name.trim()
-  return name || null
-}
-
 function getBearerToken(authorization: string | undefined): string | null {
   if (!authorization) return null
   const match = authorization.match(/^Bearer\s+(\S+)$/i)
@@ -121,7 +103,15 @@ function toStoredDiagnosis(row: Record<string, unknown>): StoredDiagnosis | null
   })
 }
 
-async function authenticateDiagnosisRequest(c: { req: { header: (name: string) => string | undefined } }) {
+function toProfile(row: Record<string, unknown>): Profile | null {
+  return validateStoredProfile({
+    displayName: row.display_name,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  })
+}
+
+async function authenticateRequest(c: { req: { header: (name: string) => string | undefined } }) {
   const accessToken = getBearerToken(c.req.header("Authorization"))
   if (!accessToken) return null
 
@@ -135,6 +125,24 @@ async function authenticateDiagnosisRequest(c: { req: { header: (name: string) =
     user,
     userClient: createUserClient(config, accessToken),
   }
+}
+
+async function readOwnProfile(
+  userClient: ReturnType<typeof createUserClient>,
+  userId: string,
+): Promise<{ profile: Profile | null; errorCode: string | null }> {
+  const { data, error } = await userClient
+    .from("profiles")
+    .select("display_name, created_at, updated_at")
+    .eq("id", userId)
+    .maybeSingle()
+
+  if (error) {
+    return { profile: null, errorCode: error.code ?? "unknown" }
+  }
+
+  const profile = data ? toProfile(data) : null
+  return { profile, errorCode: data && !profile ? "invalid-profile" : null }
 }
 
 app.use("*", logger(console.log));
@@ -156,18 +164,42 @@ app.get("/health", (c) => {
 
 app.post("/signup", async (c) => {
   try {
-    const config = getServerConfig({ requireServiceRole: true })
+    const config = getServerConfig({ requireAnonKey: true, requireServiceRole: true })
     const adminClient = createAdminClient(config)
-    const { email, password, name } = await c.req.json();
+    const publicClient = createPublicClient(config)
+    let body: unknown
+    try {
+      body = await c.req.json()
+    } catch {
+      return c.json({ error: "入力形式が正しくありません" }, 400)
+    }
 
-    if (!email || !password || !name) {
+    if (
+      typeof body !== "object"
+      || body === null
+      || Array.isArray(body)
+      || Object.keys(body).some(key => !["email", "password", "displayName"].includes(key))
+      || Object.keys(body).length !== 3
+      || typeof (body as Record<string, unknown>).email !== "string"
+      || typeof (body as Record<string, unknown>).password !== "string"
+    ) {
       return c.json({ error: "すべてのフィールドが必要です" }, 400);
     }
+
+    const { email, password } = body as { email: string; password: string }
+    const displayNameValidation = validateDisplayNameRequest({
+      displayName: (body as Record<string, unknown>).displayName,
+    })
+    if (!email || !password || !displayNameValidation.success) {
+      return c.json({ error: "表示名、メールアドレス、パスワードを正しく入力してください" }, 400)
+    }
+
+    const displayName = displayNameValidation.displayName
 
     const { data, error } = await adminClient.auth.admin.createUser({
       email,
       password,
-      user_metadata: { name },
+      user_metadata: { display_name: displayName },
       email_confirm: true,
     });
 
@@ -180,17 +212,38 @@ app.post("/signup", async (c) => {
       return c.json({ error: "ユーザー作成結果を確認できません" }, 500);
     }
 
-    await kv.set(`user:${data.user.id}`, {
+    const { data: signInData, error: signInError } = await publicClient.auth.signInWithPassword({
       email,
-      name,
-      createdAt: new Date().toISOString(),
-    });
+      password,
+    })
+    const createdUserId = data.user.id
+    let profile: Profile | null = null
+    let verificationErrorCode: string | null = null
+
+    if (signInError || !signInData.session) {
+      verificationErrorCode = "profile-verification-signin"
+    } else {
+      const verification = await readOwnProfile(
+        createUserClient(config, signInData.session.access_token),
+        createdUserId,
+      )
+      profile = verification.profile
+      verificationErrorCode = verification.errorCode
+    }
+
+    if (!profile || profile.displayName !== displayName) {
+      const { error: deleteError } = await adminClient.auth.admin.deleteUser(createdUserId)
+      console.log(
+        `サインアップprofile検証エラー: ${verificationErrorCode ?? "missing-or-mismatched"}; cleanup=${deleteError ? "failed" : "completed"}`,
+      )
+      return c.json({ error: "必須プロフィールを作成できませんでした" }, 500)
+    }
 
     return c.json({
       success: true,
-      userId: data.user.id,
+      userId: createdUserId,
       email: data.user.email,
-      name,
+      displayName: profile.displayName,
     });
   } catch (error) {
     const configResponse = serverConfigErrorResponse(c, error)
@@ -221,23 +274,21 @@ app.post("/signin", async (c) => {
       return c.json({ error: "メールアドレスまたはパスワードが正しくありません" }, 401);
     }
 
-    let userData: unknown = null
-    try {
-      userData = await kv.get(`user:${data.user.id}`)
-    } catch (error) {
-      console.log(`ユーザー表示名取得エラー: ${error instanceof Error ? error.name : "unknown"}`)
+    const { profile, errorCode } = await readOwnProfile(
+      createUserClient(config, data.session.access_token),
+      data.user.id,
+    )
+    if (!profile) {
+      console.log(`サインインprofile取得エラー: ${errorCode ?? "missing"}`)
+      return c.json({ error: "必須プロフィールを確認できないためログインできません" }, errorCode ? 500 : 409)
     }
-
-    const name = isUserRecord(userData)
-      ? userData.name
-      : getUserNameFromMetadata(data.user.user_metadata) ?? "ユーザー"
 
     return c.json({
       success: true,
       accessToken: data.session.access_token,
       userId: data.user.id,
       email: data.user.email,
-      name,
+      displayName: profile.displayName,
     });
   } catch (error) {
     const configResponse = serverConfigErrorResponse(c, error)
@@ -285,13 +336,92 @@ app.post("/profile", async (c) => {
   }
 });
 
+app.get("/display-name", async (c) => {
+  try {
+    if (Object.keys(c.req.query()).length > 0) {
+      return c.json({ error: "表示名取得要求の形式が正しくありません" }, 400)
+    }
+
+    const authenticated = await authenticateRequest(c)
+    if (!authenticated) {
+      return c.json({ error: "Unauthorized" }, 401)
+    }
+
+    const { profile, errorCode } = await readOwnProfile(
+      authenticated.userClient,
+      authenticated.user.id,
+    )
+    if (errorCode) {
+      console.log(`表示名取得DBエラー: ${errorCode}`)
+      return c.json({ error: "表示名の取得に失敗しました" }, 500)
+    }
+    if (!profile) {
+      return c.json({ error: "必須プロフィールが存在しません" }, 409)
+    }
+
+    return c.json({ profile })
+  } catch (error) {
+    const configResponse = serverConfigErrorResponse(c, error)
+    if (configResponse) return configResponse
+
+    console.log(`表示名取得処理エラー: ${error instanceof Error ? error.name : "unknown"}`)
+    return c.json({ error: "表示名の取得に失敗しました" }, 500)
+  }
+});
+
+app.put("/display-name", async (c) => {
+  try {
+    const authenticated = await authenticateRequest(c)
+    if (!authenticated) {
+      return c.json({ error: "Unauthorized" }, 401)
+    }
+
+    let body: unknown
+    try {
+      body = await c.req.json()
+    } catch {
+      return c.json({ error: "表示名の形式が正しくありません" }, 400)
+    }
+
+    const validation = validateDisplayNameRequest(body)
+    if (!validation.success) {
+      return c.json({ error: "表示名は改行・制御文字を含まない1〜50文字で入力してください" }, 400)
+    }
+
+    const { data, error } = await authenticated.userClient
+      .from("profiles")
+      .update({ display_name: validation.displayName })
+      .eq("id", authenticated.user.id)
+      .select("display_name, created_at, updated_at")
+      .maybeSingle()
+
+    if (error) {
+      console.log(`表示名更新DBエラー: ${error.code ?? "unknown"}`)
+      return c.json({ error: "表示名の更新に失敗しました" }, 500)
+    }
+
+    const profile = data ? toProfile(data) : null
+    if (!profile) {
+      return c.json({ error: "必須プロフィールが存在しません" }, 409)
+    }
+
+    return c.json({ success: true, profile })
+  } catch (error) {
+    const configResponse = serverConfigErrorResponse(c, error)
+    if (configResponse) return configResponse
+
+    console.log(`表示名更新処理エラー: ${error instanceof Error ? error.name : "unknown"}`)
+    return c.json({ error: "表示名の更新に失敗しました" }, 500)
+  }
+});
+
 app.get("/diagnosis", async (c) => {
   try {
     if (Object.keys(c.req.query()).length > 0) {
       return c.json({ error: "診断取得要求の形式が正しくありません" }, 400)
     }
 
-    const authenticated = await authenticateDiagnosisRequest(c)
+    const authenticated = await authenticateRequest(c)
     if (!authenticated) {
       return c.json({ error: "Unauthorized" }, 401)
     }
@@ -325,7 +455,7 @@ app.get("/diagnosis", async (c) => {
 
 app.put("/diagnosis", async (c) => {
   try {
-    const authenticated = await authenticateDiagnosisRequest(c)
+    const authenticated = await authenticateRequest(c)
     if (!authenticated) {
       return c.json({ error: "Unauthorized" }, 401)
     }
