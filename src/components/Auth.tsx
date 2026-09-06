@@ -84,14 +84,14 @@ export function Auth({ onSigninSuccess }: AuthProps) {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
-                <Alert variant="destructive">
+                <Alert variant="destructive" role="alert" aria-live="assertive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
 
               {notice && (
-                <Alert>
+                <Alert role="status" aria-live="polite">
                   <AlertDescription>{notice}</AlertDescription>
                 </Alert>
               )}
@@ -152,7 +152,9 @@ export function Auth({ onSigninSuccess }: AuthProps) {
                 size="lg"
                 disabled={isLoading}
               >
-                {isLoading ? '処理中...' : (isSignup ? 'アカウント作成' : 'ログイン')}
+                {isLoading
+                  ? (isSignup ? 'アカウントを作成しています...' : 'ログインしています...')
+                  : (isSignup ? 'アカウントを作成する' : 'ログインする')}
               </Button>
             </form>
 
@@ -167,8 +169,8 @@ export function Auth({ onSigninSuccess }: AuthProps) {
                 className="text-sm text-primary hover:underline"
               >
                 {isSignup 
-                  ? 'すでにアカウントをお持ちの方はこちら' 
-                  : 'アカウントをお持ちでない方はこちら'}
+                  ? 'ログイン画面へ切り替える'
+                  : '新規アカウントを作成する'}
               </button>
             </div>
           </CardContent>

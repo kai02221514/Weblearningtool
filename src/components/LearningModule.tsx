@@ -24,6 +24,7 @@ import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Progress } from './ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs'
+import { LearningFlowProgress } from './LearningFlowProgress'
 
 interface LearningModuleProps {
   onComplete: () => void
@@ -193,12 +194,12 @@ export function LearningModule({
     <div className="min-h-screen bg-gray-50">
       <header className="border-b bg-white">
         <div className="mx-auto max-w-4xl px-4 py-4">
-          <div className="flex items-center gap-4">
+          <div className="learning-header-layout flex gap-4">
             <Button onClick={onDashboard} variant="outline" size="sm">
               <Home className="mr-2 h-4 w-4" />
               ダッシュボード
             </Button>
-            <div>
+            <div className="learning-header-copy">
               <h1 className="text-xl">{currentNodeName}</h1>
               <p className="text-sm text-muted-foreground">
                 対象ノード: {material.nodeId} / {currentPhase === 'introduction'
@@ -218,6 +219,9 @@ export function LearningModule({
       </header>
 
       <main className="mx-auto max-w-4xl px-4 py-8">
+        <div className="mb-6">
+          <LearningFlowProgress currentStep="learning" />
+        </div>
         {currentPhase === 'introduction' && (
           <Card>
             <CardHeader>
@@ -230,7 +234,7 @@ export function LearningModule({
               <div className="text-center">
                 <Button onClick={handlePhaseComplete} size="lg">
                   <BookOpen className="mr-2 h-4 w-4" />
-                  学習を開始する
+                  教材を開始する
                 </Button>
               </div>
             </CardContent>
@@ -301,7 +305,7 @@ export function LearningModule({
                       {slideIndex === material.sections.length - 1 && (
                         <div className="text-center">
                           <Button onClick={handlePhaseComplete}>
-                            学習完了 - 確認テストへ進む
+                            教材を完了して確認テストへ
                             <ArrowRight className="ml-2 h-4 w-4" />
                           </Button>
                         </div>
@@ -318,7 +322,7 @@ export function LearningModule({
                       ))}
                       <div className="text-center">
                         <Button onClick={handlePhaseComplete}>
-                          学習完了 - 確認テストへ進む
+                          教材を完了して確認テストへ
                           <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                       </div>

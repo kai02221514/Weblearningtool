@@ -30,6 +30,7 @@ import {
   type QuizUiAnswerState,
 } from '../features/quiz/quizUiModel'
 import type { QuizId, QuizQuestion } from '../features/quiz/types'
+import { LearningFlowProgress } from './LearningFlowProgress'
 
 interface QuizProps {
   nodeId: string
@@ -216,6 +217,9 @@ export function Quiz({
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-4xl mx-auto px-4">
+          <div className="mb-6">
+            <LearningFlowProgress currentStep="quiz" />
+          </div>
           <Card className="shadow-lg border-amber-200">
             <CardHeader className="text-center">
               <div className="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center bg-amber-100">
@@ -251,6 +255,9 @@ export function Quiz({
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-4xl mx-auto px-4">
+          <div className="mb-6">
+            <LearningFlowProgress currentStep="quiz" />
+          </div>
           <Card className="shadow-lg">
             <CardHeader className="text-center">
               <div className={`w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center ${
@@ -314,7 +321,7 @@ export function Quiz({
                 })}
               </div>
 
-              <div className="flex gap-4 justify-center">
+              <div className="quiz-result-actions flex flex-col gap-3">
                 <Button variant="outline" onClick={onDashboard}>
                   <Home className="w-4 h-4 mr-2" />
                   ダッシュボード
@@ -336,7 +343,7 @@ export function Quiz({
 
                 {currentAttempt.passed && (
                   <Button onClick={() => onComplete(percentage)}>
-                    実践課題へ
+                    合格済み：実践課題へ進む
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 )}
@@ -357,8 +364,11 @@ export function Quiz({
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
         <div className="mb-6">
-          <div className="flex justify-between items-center mb-2">
-            <div>
+          <LearningFlowProgress currentStep="quiz" />
+        </div>
+        <div className="mb-6">
+          <div className="quiz-header-layout flex mb-2">
+            <div className="quiz-header-copy">
               <h1>確認テスト: {nodeName}</h1>
               <p className="text-sm text-muted-foreground">
                 {quiz.quizId} / {quiz.questionSetVersion}
@@ -428,7 +438,7 @@ export function Quiz({
               )}
 
               {submitError !== null && (
-                <div className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                <div className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert" aria-live="assertive">
                   {submitError}
                 </div>
               )}

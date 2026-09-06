@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react'
 import { Play, CheckCircle, AlertTriangle, Home, ArrowRight, RefreshCw, Lightbulb, User, Square, XCircle, BookOpen, Code } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Button } from './ui/button'
-import { Progress } from './ui/progress'
 import { Badge } from './ui/badge'
 import { Textarea } from './ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs'
@@ -19,6 +18,7 @@ import type {
   PracticeChallengeDefinition,
   PracticeEvaluationResult,
 } from '../features/practice/types'
+import { LearningFlowProgress } from './LearningFlowProgress'
 
 const learningNodesArray = getMvpLearningNodes()
 
@@ -409,8 +409,8 @@ function SupportedPracticeChallenge({
     <div className="min-h-screen bg-gray-50">
       {/* ヘッダー */}
       <div className="bg-white border-b sticky top-0 z-10 shadow-sm">
-        <div className="max-w-[1600px] mx-auto px-6 py-4">
-          <div className="flex items-center justify-between mb-3">
+        <div className="practice-shell max-w-[1600px] mx-auto px-4 py-4">
+          <div className="practice-header-layout flex flex-col gap-3">
             {/* 左：ロゴ */}
             <div className="flex items-center gap-2">
               <Code className="w-6 h-6 text-primary" />
@@ -418,7 +418,7 @@ function SupportedPracticeChallenge({
             </div>
             
             {/* 中央：タイトル */}
-            <h1 className="text-xl absolute left-1/2 transform -translate-x-1/2">{challenge.title}</h1>
+            <h1 className="text-xl">{challenge.title}</h1>
             
             {/* 右：ユーザー情報 */}
             <div className="flex items-center gap-3">
@@ -429,19 +429,14 @@ function SupportedPracticeChallenge({
             </div>
           </div>
           
-          {/* プログレスバー */}
-          <div>
-            <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
-              <span>Lesson 3 / 10</span>
-              <span>30%</span>
-            </div>
-            <Progress value={30} className="h-2" />
+          <div className="mt-4">
+            <LearningFlowProgress currentStep="practice" />
           </div>
         </div>
       </div>
 
       {/* メインコンテンツ：3カラムレイアウト */}
-      <div className="max-w-[1600px] mx-auto px-6 py-4">
+      <div className="practice-shell max-w-[1600px] mx-auto px-4 py-4">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           
           {/* 左カラム：課題パネル (25%) */}
@@ -1074,7 +1069,7 @@ function SupportedPracticeChallenge({
               size="lg"
               disabled={!completionAllowed}
             >
-              課題完了
+              実践課題を完了して振り返りへ
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>

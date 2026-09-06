@@ -162,6 +162,7 @@ function Kai27RouteDashboardHarness() {
         onViewCompletion={() => setLastAction('成果を見る')}
         onViewReflections={() => setLastAction('学習の振り返り')}
         onTakeSurvey={() => setLastAction('診断に回答・再回答')}
+        onReturnToLogin={() => setLastAction('ログイン画面へ戻る')}
         userData={{ name: 'KAI-27確認者' }}
         progress={{
           completedNodeIds: routeState.progress.completedNodeIds,
@@ -174,6 +175,7 @@ function Kai27RouteDashboardHarness() {
           reflections: [],
         }}
         routeResult={routeResult}
+        notice={null}
       />
     </>
   )

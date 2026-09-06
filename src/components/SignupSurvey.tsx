@@ -4,7 +4,7 @@ import { Label } from './ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
 import { Alert, AlertDescription } from './ui/alert'
-import { BookOpen, ArrowRight, AlertCircle } from 'lucide-react'
+import { BookOpen, ArrowRight, AlertCircle, CheckCircle } from 'lucide-react'
 import { questionConfig as questionConfigData } from '../data/questionConfig'
 import {
   validateDiagnosisAnswers,
@@ -12,7 +12,6 @@ import {
 } from '../../supabase/functions/_shared/diagnosis'
 import { saveDiagnosis } from '../utils/auth'
 
-type Level = 'beginner' | 'intermediate' | 'advanced' | ''
 type QuestionId = string
 
 interface QuestionOption {
@@ -30,12 +29,10 @@ interface Question {
 }
 
 export interface SurveyData {
-  levelScore: number
-  level: Level
   programming_experience?: string
   rule_confidence?: string
   knowledge_concept?: string
-  [key: string]: string | number
+  [key: string]: string | undefined
 }
 
 interface SignupSurveyProps {
@@ -44,51 +41,26 @@ interface SignupSurveyProps {
   onComplete: (answers: DiagnosisAnswers) => void
 }
 
-const questionConfig: Question[] = questionConfigData
-
-const conditionalQuestionIds = new Set([
-  'skill_errors',
-  'error_handling',
-  'learning_anxiety'
+const diagnosisQuestionIds = new Set([
+  'programming_experience',
+  'rule_confidence',
+  'knowledge_concept',
 ])
 
+const questionConfig: Question[] = questionConfigData.filter(question => (
+  diagnosisQuestionIds.has(question.id)
+))
+
 export function SignupSurvey({ userName, accessToken, onComplete }: SignupSurveyProps) {
-  const [formData, setFormData] = useState<SurveyData>({
-    levelScore: 0,
-    level: ''
-  })
+  const [formData, setFormData] = useState<SurveyData>({})
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-
-  const shouldShowSkillQuestions = formData.programming_experience === 'yes'
-
-  const isQuestionVisible = (question: Question) => {
-    if (!conditionalQuestionIds.has(question.id)) return true
-    return shouldShowSkillQuestions
-  }
-
-  const calculateScore = () => {
-    return questionConfig.reduce((total, question) => {
-      if (!isQuestionVisible(question)) return total
-      const selectedValue = String(formData[question.id] ?? '')
-      const optionScore = (question.options.find(option => option.value === selectedValue)?.score ?? 0) * question.weight
-      return total + optionScore
-    }, 0)
-  }
-
-const determineLevel = (score: number): SurveyData['level'] => {
-  if (score >= 24) return 'advanced'
-  if (score >= 17) return 'intermediate'
-  if (score >= 10) return 'beginner'
-  return 'beginner'
-}
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault()
     setError('')
     
     const isFormComplete = questionConfig.every((question) => {
-      if (!isQuestionVisible(question)) return true
       return Boolean(formData[question.id])
     })
 
@@ -120,9 +92,6 @@ const determineLevel = (score: number): SurveyData['level'] => {
     }
   }
 
-  const currentScore = calculateScore()
-  const currentLevel = determineLevel(currentScore)
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="max-w-2xl w-full">
@@ -131,15 +100,23 @@ const determineLevel = (score: number): SurveyData['level'] => {
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
               <BookOpen className="w-8 h-8 text-primary" />
             </div>
-            <CardTitle className="text-2xl">ようこそ、{userName}さん！</CardTitle>
+            <CardTitle className="text-2xl">初回診断（必須）</CardTitle>
             <CardDescription className="text-base mt-2">
-              あなたに最適な学習プランを作成するため、いくつか教えてください
+              {userName}さんの回答を保存し、学習の開始位置と次に学ぶ単元を決めます。
+              保存が完了するまでDashboardには進みません。
             </CardDescription>
           </CardHeader>
           
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-5">
-              {questionConfig.filter(isQuestionVisible).map((question) => (
+              <Alert>
+                <CheckCircle className="h-4 w-4" />
+                <AlertDescription>
+                  保存するのは、開始判定に必要な以下の3項目だけです。
+                </AlertDescription>
+              </Alert>
+
+              {questionConfig.map((question) => (
                 <div className="space-y-2" key={question.id}>
                   <Label htmlFor={question.id}>{question.label}</Label>
                   <Select
@@ -160,19 +137,8 @@ const determineLevel = (score: number): SurveyData['level'] => {
                 </div>
               ))}
               
-              {currentLevel && (
-                <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
-                  <p className="text-sm">
-                    <span className="font-semibold">推奨レベル: </span>
-                    {currentLevel === 'beginner' && '初級（基礎から丁寧に学習）'}
-                    {currentLevel === 'intermediate' && '中級（基本を復習しながら応用へ）'}
-                    {currentLevel === 'advanced' && '上級（実践的なスキルを習得）'}
-                  </p>
-                </div>
-              )}
-              
               {error && (
-                <Alert className="mt-4">
+                <Alert className="mt-4" variant="destructive" role="alert" aria-live="assertive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription className="ml-3">
                     {error}
@@ -181,7 +147,7 @@ const determineLevel = (score: number): SurveyData['level'] => {
               )}
               
               <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
-                {isLoading ? '処理中...' : '学習を始める'}
+                {isLoading ? '診断を保存しています...' : '診断を保存して推薦を見る'}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </form>

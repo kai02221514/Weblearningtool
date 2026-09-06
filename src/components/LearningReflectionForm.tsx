@@ -3,15 +3,14 @@ import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Alert, AlertDescription } from './ui/alert'
 import { Textarea } from './ui/textarea'
-import { 
-  ArrowLeft,
+import {
   MessageCircle,
   Target,
-  Lightbulb,
   CheckCircle,
   Home,
   ArrowRight
 } from 'lucide-react'
+import { LearningFlowProgress } from './LearningFlowProgress'
 
 interface ReflectionData {
   nodeId: string
@@ -48,6 +47,7 @@ export function LearningReflectionForm({
 }: LearningReflectionFormProps) {
   const [struggledConcepts, setStruggledConcepts] = useState<string[]>([])
   const [reflection, setReflection] = useState('')
+  const [completedReflection, setCompletedReflection] = useState<ReflectionData | null>(null)
 
   const handleSubmit = () => {
     const recommendations = generateRecommendations(struggledConcepts)
@@ -58,19 +58,18 @@ export function LearningReflectionForm({
       date: new Date().toLocaleDateString('ja-JP'),
       struggledConcepts,
       reflection,
-      quickTestResult: true, // この時点では仮の値
+      quickTestResult: true,
       recommendations
     }
 
-    onComplete(reflectionData)
+    setCompletedReflection(reflectionData)
   }
 
   const generateRecommendations = (concepts: string[]): string[] => {
     const recommendations: string[] = []
     
     if (concepts.length === 0) {
-      recommendations.push('素晴らしい理解度です！次のモジュールに進みましょう')
-      recommendations.push('復習として、学んだ概念を使って自分なりのWebページを作ってみましょう')
+      recommendations.push('このセッションでは、次の推薦単元へ進めます')
     } else {
       if (concepts.some(c => c.includes('HTMLタグ'))) {
         recommendations.push('HTMLタグの練習として、基本的なタグを繰り返し書いてみましょう')
@@ -84,9 +83,38 @@ export function LearningReflectionForm({
       recommendations.push(`つまずいた概念「${concepts.join('、')}」の復習をおすすめします`)
     }
     
-    recommendations.push('次のCSSモジュールで、HTMLとスタイリングの組み合わせを学習できます')
-    
     return recommendations
+  }
+
+  if (completedReflection !== null) {
+    return (
+      <div className="min-h-screen bg-gray-50 px-4 py-8">
+        <div className="mx-auto max-w-3xl space-y-6">
+          <LearningFlowProgress currentStep="reflection" />
+          <Card className="border-green-200 shadow-lg">
+            <CardHeader className="text-center">
+              <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+                <CheckCircle className="h-9 w-9 text-green-700" />
+              </div>
+              <CardTitle>{currentNodeName} を完了しました</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-5 text-center">
+              <p className="text-muted-foreground">
+                教材・確認テスト・実践課題・振り返りの4段階が完了しました。
+                Dashboardで、このセッションの完了状態と更新後の推薦を確認できます。
+              </p>
+              <p className="rounded-md bg-amber-50 p-3 text-sm text-amber-900">
+                振り返りと学習進捗はこのセッション内だけで保持され、再ログイン後には復元されません。
+              </p>
+              <Button size="lg" onClick={() => onComplete(completedReflection)}>
+                Dashboardで更新後の推薦を見る
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -101,18 +129,21 @@ export function LearningReflectionForm({
             </Button>
             <div>
               <h1 className="text-2xl">学習の振り返り</h1>
-              <p className="text-muted-foreground">{currentNodeName} - メタ認知の促進</p>
+              <p className="text-muted-foreground">{currentNodeName} - 学習内容の整理</p>
             </div>
           </div>
         </div>
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="mb-6">
+          <LearningFlowProgress currentStep="reflection" />
+        </div>
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <MessageCircle className="w-5 h-5" />
-              フィードバック・振り返り：メタ認知の促進
+              単元の振り返り
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -120,7 +151,8 @@ export function LearningReflectionForm({
               <Alert>
                 <Target className="w-4 h-4" />
                 <AlertDescription>
-                  学習モジュール、確認テスト、実践課題を通して学んだことを振り返りましょう。正直に回答することで、より効果的な学習が可能になります。
+                  教材、確認テスト、実践課題を通して学んだことを振り返りましょう。
+                  入力内容は現在のセッション内だけで保持されます。
                 </AlertDescription>
               </Alert>
 
@@ -173,31 +205,9 @@ export function LearningReflectionForm({
                       onChange={(e) => setReflection(e.target.value)}
                       className="min-h-[150px]"
                     />
-                    <p className="text-xs text-muted-foreground mt-2">
-                      この内容は今後の復習提案と学習計画に活用されます
-                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">入力は任意です。サーバーへは保存されません。</p>
                   </CardContent>
                 </Card>
-              </div>
-
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="mb-3 flex items-center gap-2">
-                  <Lightbulb className="w-4 h-4 text-blue-600" />
-                  次回学習への提案（プレビュー）
-                </h4>
-                <div className="space-y-2 text-sm">
-                  {struggledConcepts.length > 0 ? (
-                    <>
-                      <p>• つまずいた概念「{struggledConcepts.slice(0, 2).join('、')}{struggledConcepts.length > 2 ? '、他' : ''}」の復習をおすすめします</p>
-                      {struggledConcepts.some(c => c.includes('実践課題')) && (
-                        <p>• 実践課題を再度チャレンジして、コーディングに慣れましょう</p>
-                      )}
-                    </>
-                  ) : (
-                    <p>• 素晴らしい理解度です！次のモジュールに進みましょう</p>
-                  )}
-                  <p>• 次のCSSモジュールで、HTMLとスタイリングの組み合わせを学習できます</p>
-                </div>
               </div>
 
               <div className="bg-green-50 p-4 rounded-lg">
@@ -206,14 +216,8 @@ export function LearningReflectionForm({
                   学習サイクル完了！
                 </h4>
                 <p className="text-sm text-green-700 mb-3">
-                  学習モジュール → 確認テスト → 実践課題 → 振り返りの4段階を完了しました。
-                  この振り返りデータは学習履歴に保存され、いつでも確認できます。
+                  「振り返りを確定する」と、この単元を現在のセッション内で完了にします。
                 </p>
-                <ul className="text-xs text-green-600 space-y-1">
-                  <li>• 学習内容の定着度が向上します</li>
-                  <li>• 今後の学習計画が最適化されます</li>
-                  <li>• メタ認知能力が強化されます</li>
-                </ul>
               </div>
 
               <div className="text-center space-y-4">
@@ -222,7 +226,7 @@ export function LearningReflectionForm({
                 </p>
                 <Button onClick={handleSubmit} size="lg">
                   <CheckCircle className="w-4 h-4 mr-2" />
-                  振り返りを保存してダッシュボードへ
+                  振り返りを確定して単元を完了する
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </div>

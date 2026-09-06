@@ -10,13 +10,18 @@ import {
 } from '../features/route/routeRuntime'
 import { Dashboard } from './Dashboard'
 
-function renderDashboard(routeResult: RouteGenerationResult, completedNodeIds: string[] = []) {
+function renderDashboard(
+  routeResult: RouteGenerationResult,
+  completedNodeIds: string[] = [],
+  notice: 'diagnosis-saved' | 'diagnosis-restored' | 'unit-completed' | null = null,
+) {
   return renderToStaticMarkup(
     <Dashboard
       onStartLearning={() => undefined}
       onViewCompletion={() => undefined}
       onViewReflections={() => undefined}
       onTakeSurvey={() => undefined}
+      onReturnToLogin={() => undefined}
       userData={{ name: 'テスト利用者' }}
       progress={{
         completedNodeIds,
@@ -29,6 +34,7 @@ function renderDashboard(routeResult: RouteGenerationResult, completedNodeIds: s
         reflections: [],
       }}
       routeResult={routeResult}
+      notice={notice}
     />,
   )
 }
@@ -48,6 +54,10 @@ describe('Dashboard route rendering', () => {
     expect(html).toContain('要素とタグ:開始/終了タグ、空要素')
     expect(html).toContain('診断の開始ノード規則に基づく候補です。')
     expect(html).toContain('DIAGNOSIS_START / evidence: diagnosis / DG-RULE-4')
+    expect(html).toContain('推薦根拠の詳細')
+    expect(html).not.toContain('今週の目標')
+    expect(html).not.toContain('連続学習日数')
+    expect(html).not.toContain('総学習時間')
   })
 
   it('renders active, completed, and error states from route results', () => {
@@ -73,5 +83,20 @@ describe('Dashboard route rendering', () => {
     const errorHtml = renderDashboard(error)
     expect(errorHtml).toContain('推薦の生成中にエラーが発生しました。')
     expect(errorHtml).toContain('学習カタログを確認できないため')
+  })
+
+  it('distinguishes saved diagnosis, restored diagnosis, and session-only progress', () => {
+    const result = applyDiagnosis(createInitialRouteRuntimeState(), {
+      programming_experience: 'yes',
+      rule_confidence: 'confident',
+      knowledge_concept: 'structure_style',
+    }).result
+
+    expect(renderDashboard(result, [], 'diagnosis-saved'))
+      .toContain('診断を保存し、回答から推薦ルートを作成しました。')
+    const restored = renderDashboard(result, [], 'diagnosis-restored')
+    expect(restored).toContain('保存済み診断を読み込み、その回答から推薦ルートを再生成しました。')
+    expect(restored).toContain('学習進捗はこのセッションから始まります。')
+    expect(restored).not.toContain('ルート履歴を復元')
   })
 })
