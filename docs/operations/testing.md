@@ -116,3 +116,15 @@ npm run check
 - Actions警告: 2つのmainジョブはいずれも`actions/checkout@v4`と`actions/setup-node@v4`に対するNode.js 20非推奨annotation 1件があった。機能検証は成功しており、Node.js 22移行とActions major更新は別Issue候補として本作業では変更していない
 - 未確認事項: remote Supabaseへのmigration・Edge Function deploy・動作確認、browser reload時のsession自動復元、remote advisors、参加者データ・実在個人情報を用いた確認
 - 対象外: 同意、保持期間、撤回、削除、研究者用取得・削除・export、診断以外の永続化、評価ログ、回答履歴、S群・A群・`level`・`levelScore`の保存、KAI-12/KAI-16の完了、新しい研究判断
+
+## KAI-32 Draft PR local検証
+
+- 実行日: 2026-09-06
+- 対象: Draft PR #42、branch `feat/kai-32-profiles-display-name`
+- 環境: Node `v20.17.0`、npm `11.4.2`、Supabase CLI `2.65.5`、合成データ専用local Supabase
+- 再現入口: `supabase db reset --local --no-seed`、`supabase test db`、`supabase db lint --local --fail-on error`、`npm run test:diagnosis-api`、`npm run test:profile-api`、`npm run verify`、`git diff --check`
+- 結果: fresh reset成功、pgTAP 2 files / 71 tests成功、schema error 0件、診断API/profile API統合成功、typecheck・lint・全20 files / 227 tests・build 1726 modules成功、差分check成功
+- profile API統合: 合成利用者A/Bで正常signup、trim、1/50文字、51文字、空白、改行、制御文字、日本語・Unicode、本人read/update、他人・anon拒否、DELETE・保護列拒否、profile欠損signin拒否、Auth削除CASCADE、trigger失敗時のAuth/profile不存在、同email再試行を確認した
+- ブラウザ: 通常entryのアカウント作成画面で「表示名（ニックネーム可）」、`required`、`maxlength=50`、空白のみの明示エラーを確認した
+- 失敗履歴: full local構成の初回resetはmigration適用後に未使用Storageのhealth check 502で失敗した。localだけStorageを無効化して成功し、一時設定は差分へ残していない。pgTAPの4引数matcherと、権限のないtrigger無効化を使ったAPIテスト初案も修正し、fresh resetから全検証を再実行した
+- 境界: remote Supabase、remote secret、実在個人情報、研究参加者データは不使用。CI、監査、merge、main再検証は未実施。legacy `profile:{id}`全面撤去はKAI-33へ残す
