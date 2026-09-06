@@ -116,7 +116,7 @@ Supabase Dashboardでは対象の`main`が`PRODUCTION`と表示されている�
 
 - `signup`、`signin`、`health` を未認証で呼び出すための暫定設定である。
 - `display-name`と`diagnosis`はアプリ内で`Authorization: Bearer <access token>`を検証する。
-- D-023で不採用となった5項目用legacy `/profile`とKV helperはKAI-33で撤去候補とし、remote適用・rollbackの詳細は`docs/operations/kai-34-remote-application-plan.md`を参照する。
+- D-023で不採用となった5項目用legacy `/profile`とKV helperはKAI-33 / Draft PR #45でrepository/local候補から撤去済みである。指定remoteにはKAI-34適用前のKV tableと旧Edge Function version 4が残るため、適用順・停止条件・rollbackは`docs/operations/kai-34-remote-application-plan.md`を参照する。
 - 本番運用時にはレート制限、公開範囲、CORS制限を再検討する。
 
 ## Health確認

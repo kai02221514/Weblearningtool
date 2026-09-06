@@ -47,8 +47,8 @@
 |区分|構成|状態|
 |---|---|---|
 |現在のフロントエンド|Vite 6 + React 18 + TypeScript/TSX|[確認済み事実]|
-|現在の認証・データ関連|Supabaseを利用する認証処理コード・保存用エンドポイント|[部分実装／手動確認済み] 接続先はVite環境変数へ移行済み。サインイン成功とDashboard到達は確認済み。一連の保存成功は未確認|
-|現在のAPI関連|Hono依存関係およびSupabase Functions配下のサーバーコードあり|[部分実装／手動確認済み] Edge FunctionはSupabase CLI標準配置へ移行済み。`make-server-f3d88633`のデプロイと`/health` HTTP 200を確認済み|
+|現在の認証・データ関連|Supabaseを利用する認証処理コード・型付き表示名と診断の保存用エンドポイント|[部分実装／local検証済み／remote未適用] 接続先はVite環境変数へ移行済み。KAI-32の表示名とKAI-28の診断をlocal/CIで検証済み。指定remoteはKAI-34適用前|
+|現在のAPI関連|Hono依存関係およびSupabase Functions配下のサーバーコードあり|[部分実装／local検証済み／remote旧版稼働中] Edge FunctionはSupabase CLI標準配置へ移行済み。repository/local候補ではKAI-33によりlegacy `/profile`とKV helperを撤去済み。指定remoteは旧version 4がACTIVE|
 |履修計画書上の構想|Next.js + Deno/Hono + Supabase|[確認済み事実] 旧計画または将来構想|
 |全面移行|Next.jsへの移行|[確定事項] 現行MVP対象外|
 
@@ -95,9 +95,9 @@
 - 進捗: [実装済み／main反映・自動検証済み] KAI-27でルートへ影響する初期デモ値を除去し、空の`completedNodeIds`・`assumedNodeIds`と`inProgressNodeId: null`で開始する。未完了ノードの完了は完了集合を重複なく更新して再生成する。完了済みノードを再開していない単純な重複完了通知は同一state・同一生成結果を返す一方、完了済みノードを復習として再開した後の完了は完了集合を重複させず`inProgressNodeId`を`null`へ戻して決定的に再生成する。学習開始は進行中状態だけを更新し、それ自体やDashboard表示だけでは再生成しない。状態はメモリ保持のみである。
 - 診断: [KAI-28 / PR #34でmain反映・再検証済み] 認証後は診断状態解決中を経由し、互換な`diagnosis-k/v1`の完了済みrecordだけをK群3項目として`applyDiagnosis`へ復元する。recordなし・欠損・未知値・非互換版はSurveyへ誘導し、通信障害は再試行画面へ分離する。Surveyは未経験回答時もK群3項目を必須表示し、K群だけの保存成功後にDashboardへ進む。保存失敗時は回答を保持して再送できる。S群・A群、`level`、`levelScore`は診断API payloadへ含めない
 - 確認テスト入力: [実装済み／main反映・自動検証済み] `QuizAttemptResult`を親のメモリへ通知し、確定済みの`quizId`、`nodeId`、`passed`、0〜100点、`attemptNumber`、`submittedAt`を`QuizResult`へ変換する。親側で合否や試行番号を推測しない。同一`attemptId`通知を重複反映せず、不合格確定時に再生成し、後続の合格試行で最新結果に基づき不合格由来の推薦を解除する。
-- プロファイル保存: 保存用エンドポイントは存在するが、サインアップ後の初期アンケートフローから実保存されることを確認できていない。
+- 表示名profile: [KAI-32でmain反映・local再検証済み／remote未適用] 型付き`public.profiles.display_name`を正本とするsignup/signin/read/update、本人限定アクセス、Auth user削除連動を実装した。KAI-33 / Draft PR #45ではD-023で不採用となった5項目用legacy `/profile`、frontend helper/type、KV helperをrepository/local候補から撤去済みである。5項目を別の保存先へ移行しておらず、指定remoteはKAI-34適用前である。
 - Supabase接続: 旧Project Reference IDがフロントエンド設定に残っていたため、現在の接続先は `VITE_SUPABASE_URL` と `VITE_SUPABASE_PUBLISHABLE_KEY` で指定する構成へ変更した。Publishable keyは `apikey` ヘッダーで送信し、ユーザーJWTのみ `Authorization: Bearer` で送信する。Supabaseプロジェクトへの接続先修正は完了し、サインインの実環境成功を確認済みである。
-- Edge Function: 旧 `src/supabase/functions/server` 配置から `supabase/functions/make-server-f3d88633` へ移行した。既存routeに加え、KAI-28 / PR #34でBearer tokenを`auth.getUser`により明示検証し、user-scoped clientでRLSを通す`GET /diagnosis`と`PUT /diagnosis`を追加して`main`へ反映した。service-role KV helperは診断recordへ使用しない。KAI-28分は合成データ専用ローカル環境だけで検証し、remoteへdeployしていない
+- Edge Function: 旧 `src/supabase/functions/server` 配置から `supabase/functions/make-server-f3d88633` へ移行した。KAI-28 / PR #34でBearer tokenを`auth.getUser`により明示検証し、user-scoped clientでRLSを通す`GET /diagnosis`と`PUT /diagnosis`を追加して`main`へ反映した。KAI-33 / Draft PR #45のrepository/local候補ではlegacy `/profile`とservice-role KV helperを撤去済みである。指定remoteはKAI-34未実施のため旧version 4が残る
 - サインアップ後セッション: `admin.createUser` はセッションを返さないため、サインアップ成功後は未認証のままアンケートへ進めず、ログイン画面へ戻してログインを促す。
 - 予備試行用確認テストデータ: `html-010`、`html-021`、`css-011` の3ノード9問を `src/features/quiz/` 配下の型付きデータへ変換し、ID、版、形式、出典参照、参照整合性の構造検証テストを追加した。
 - KAI-22採点・正規化: `src/features/quiz/grading.ts` に、短いコード補完回答の正規化、単一問題の採点、クイズ全体の採点、提出入力の実装上の検証を行う純粋関数を追加した。実行時のコード補完判定は各問題の`acceptedAnswers`と`answerNormalization`を使用し、`researchMetadata.acceptedAnswerDecision`は説明・追跡情報として扱う。
@@ -159,15 +159,15 @@
 - MVP 12ノード全体の実践課題（KAI-25は予備試行対象3ノードだけを扱う）
 - 学習進捗、テスト、実践、エラー、振り返り、ルート履歴の永続化・復元
 - サインアップ後の自動セッション作成
-- 初期アンケート完了時の `saveProfile` 接続
 - ページ更新時の認証セッション復元
 - 評価用事前・事後アンケートまたは外部フォームとの運用接続
 - 評価に必要なログ取得・分析可能形式での出力
 - 比較条件を含む評価フロー
 - 実践課題エラー履歴と正規`struggledNodeIds`による振り返りの実行時接続
 - `routeGenerator`入力・出力の永続化と評価ログを含む統合テスト
-- 診断以外のプロフィール保存と、ページ更新時の認証session自動復元
 - 参加者による利用評価
+
+[注意] D-023で不採用となった`profile:{id}`のage、occupation、pace、level、levelScoreは未実装一覧へ含めない。これらの必要性と保存先は未確定であり、将来実装すべき確定仕様ではない。表示名は型付き`public.profiles.display_name`、診断K群3項目は`public.user_diagnoses`を使用する。
 
 ## モック・研究上の注意
 
@@ -239,7 +239,7 @@
 - KAI-29検証時の失敗・部分確認: [記録済み] 最初の`supabase start`は既存の別projectが54322番を使用中だったため失敗し、既存projectを停止せず専用ポートへ分離した。専用設定の初回起動も一時configのsection配置誤りでparseに失敗し、修正後に成功した。空DBには既存Edge Functionが前提とする`kv_store_f3d88633`がmigration化されておらず、通常entryの初回signupはAuth user作成後のprofile保存でHTTP 500となったため、合成検証DBだけに同テーブルをRLS有効・policyなしで作成し、新しい合成アカウントで完走した。この一時前提はcommitしていない。限定UIテストの初回修正では問題2のaccessible name完全一致が改行差で2件失敗し、曖昧な配列位置参照へ戻さずroleと先頭文字列の一意照合に修正して再実行成功した。ブラウザ計測は`innerWidth`比較であり、指定された`documentElement.clientWidth`値の直接記録とTabキーによるフォーカス移動は未取得である。実APIの診断保存失敗・回答保持・再試行は安全な障害注入を行わず、既存App UI統合テストと合成ハーネスの証跡に限定した
 - KAI-29対象外・未検証: [未接続] 学習進捗、確認テスト、実践課題、振り返り、ルート履歴の永続化、ページ更新時の認証session復元、同意、保持・撤回・削除、評価ログ、研究データ出力、remote Supabase変更は対象外である。remote Supabase、参加者データ、実在個人情報、service-role keyは使用していない
 - セッション復元: [未確認] リロード後の認証状態復元は確認していない
-- D-023表示名profile: [local実装・main再検証済み／remote未適用] KAI-32 / PR #42でsignup/signin/read/update、本人限定アクセス、Auth削除連動を合成データで確認した。legacy `profile:{id}` 5項目APIの全面撤去はKAI-33へ残す
+- D-023表示名profile: [local実装・main再検証済み／remote未適用] KAI-32 / PR #42でsignup/signin/read/update、本人限定アクセス、Auth削除連動を合成データで確認した。KAI-33 / Draft PR #45でlegacy `profile:{id}` 5項目APIとfrontend helper/typeをrepository/local候補から撤去済みであり、指定remoteへの反映はKAI-34へ残す
 
 [注意] 本書で「コード存在確認済み」とした項目は、コードまたは定義の存在確認に基づく。動作・受入条件の検証完了後にのみ「実装済み」へ変更する。
 
@@ -258,7 +258,7 @@
 
 ## KAI-33 KV廃止・remote差分整理
 
-- 状態: [local実装・検証済み／Draft PR監査前] 開始基準main `68f50a2784073a09c7733fc9171a94dc942da597`からbranch `refactor/kai-33-remove-legacy-kv`を作成した
+- 状態: [条件付き承認／文書修正中] 開始基準main `68f50a2784073a09c7733fc9171a94dc942da597`からbranch `refactor/kai-33-remove-legacy-kv`を作成し、Draft PR #45でlocal実装とCIの監査を受けた。Critical・High指摘はなく、現行状態文書の同期を条件に承認されている。remoteは未変更であり、文書修正後のfinal headに対する再監査、Linear詳細証跡、独立merge許可ゲートを待つ
 - remote read-only: project ref `znfwkrhquegvlcmugkoe`を厳密照合した。最初の正確なKV集計は合計1件（`user:` 1、`profile:` 0、その他0）だったため内容を取得せず停止した。研究者本人の削除完了連絡後、同じ集計で全区分0件を確認して再開した。remote migration、deploy、削除、更新、設定変更はCodexから実行していない
 - remote差分: migration履歴は`20251204051132_create_kv_table_f3d88633`のみ、public tableはKVのみ、RLS有効・policy 0、anon/authenticated/service_roleの広いtable GRANT、PK＋同一prefix index 3件、public routine 0件だった。Edge Function `make-server-f3d88633`はACTIVE version 4、`verify_jwt=false`だった
 - local実装commit: `b4211f9`。remote履歴version/nameをrepositoryへ整合し、非空時に例外停止して空の場合だけKV tableをdropするmigrationをCLI `supabase migration new`で生成した。legacy `/profile`、frontend `saveProfile` / `ProfileData`、KV helper、未使用legacy `Onboarding`を撤去し、`/profile` 404とKV table不存在を回帰テストへ追加した。5項目は別の保存先へ移行していない
