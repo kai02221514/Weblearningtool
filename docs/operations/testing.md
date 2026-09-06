@@ -165,3 +165,18 @@ npm run check
 - PR段階の`Check` run [34034625678](https://github.com/kai02221514/Weblearningtool/actions/runs/34034625678)と`Supabase Diagnosis` run [34034625651](https://github.com/kai02221514/Weblearningtool/actions/runs/34034625651)は、どちらもmerge-ref `9e77e985bba2a7f9676cc208f6570f8a42c0292d`をcheckoutして全step成功した
 - 文書merge commitを対象・checkoutしたmain `Check` run [34035137530](https://github.com/kai02221514/Weblearningtool/actions/runs/34035137530)は全step成功した。文書だけの変更であり、main手動Supabase Diagnosisはコードmerge commit `9b73e4010da4dc7d6e8c5305696a08fb9a015ff8`に対するrun `34034224612`を正本証跡とする
 - remote Supabaseへの接続・変更はなく、実在個人情報・研究参加者データを使用していない。KAI-32を完了とし、KAI-33を開始可能とする
+
+## KAI-33 Draft PR local検証
+
+- 実行日: 2026-09-06
+- 対象: branch `refactor/kai-33-remove-legacy-kv`、開始基準main `68f50a2784073a09c7733fc9171a94dc942da597`、実装commit `b4211f9`
+- 環境: Node `v20.10.0`、npm `10.2.3`、Supabase CLI `2.65.5`、別ポート・Storage除外の合成データ専用local project `weblearningtool-kai33-local`
+- 依存導入: `npm ci`成功。既存のNode engine/deprecated警告は出たがlockfileを変更せず、後続検証は成功した
+- 全体検証: `npm run verify`はtypecheck、lint、全20 files / 232 tests、build 1726 modules transformedに成功した
+- fresh DB: `20251204051132_create_kv_table_f3d88633`、D-022、profiles、`20260906132827_drop_legacy_kv_store`を順番に適用する`supabase db reset --local --no-seed`に成功した
+- DB/API: `supabase test db`は3 files / 95 tests、`supabase db lint --local --fail-on error`はschema error 0件、`npm run test:diagnosis-api`と`npm run test:profile-api`は合成利用者A/Bで成功した。後者はlegacy `/profile`が404であることを含む
+- migration停止境界: localに合成`user:` KV 1件を作り撤去migrationを直接適用すると、`KAI-33 stop condition` error（exit 3）で停止し、件数1が保持された。0件にした再実行は成功し、table不存在を確認した
+- rollback: 最小互換KV table、RLS、service_role DML、単一prefix indexを再作成し、RLS true、index 2件（PK＋prefix）、service_role DML true、anon/authenticated SELECT falseを確認した。初回は改行引用ミスでSQL実行前に失敗し、1行SQLでの再実行が成功した。最後にfresh resetでrepository最終状態へ戻し、当該local projectだけを停止した
+- remote read-only: exact project ref、migration、table/column/constraint、RLS、policy、GRANT、index、routine、Function version/deploy状態、KV集計区分だけを確認した。個別key/valueは取得していない。最初は合計1件で停止し、研究者本人の削除完了後は合計0件を再確認した
+- remote変更: migration適用、Function deploy、KV削除・更新、設定変更、remote secret利用は未実施。実在個人情報・研究参加者データは不使用
+- 未確認事項: Draft PRのCI・監査・merge、KAI-34のremote dry-run・適用・deploy・Advisor・合成利用者統合検証

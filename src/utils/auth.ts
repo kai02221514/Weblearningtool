@@ -21,14 +21,6 @@ export interface SigninData {
   password: string
 }
 
-export interface ProfileData {
-  age: string
-  occupation: string
-  pace: string
-  level: string
-  levelScore: number
-}
-
 interface SignupResponse {
   success: boolean
   userId: string
@@ -129,18 +121,6 @@ export async function signin(data: SigninData) {
     },
     body: JSON.stringify(data),
   }, 'サインインに失敗しました')
-}
-
-export async function saveProfile(data: ProfileData, accessToken: string) {
-  return requestEdgeFunction<{ success: boolean }>('/profile', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      apikey: SUPABASE_PUBLISHABLE_KEY,
-      Authorization: `Bearer ${accessToken}`,
-    },
-    body: JSON.stringify(data),
-  }, 'プロファイルの保存に失敗しました')
 }
 
 export async function getDisplayName(accessToken: string): Promise<Profile> {

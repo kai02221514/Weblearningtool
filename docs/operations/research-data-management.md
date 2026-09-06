@@ -457,7 +457,7 @@ routeGenerator保存接続は、routeGenerator自体の実装と混ぜず、純�
 | 調査対象 | [コード存在確認済み] | 未接続・mock・注意 |
 |---|---|---|
 | 認証ID | Supabase Authの`data.user.id`を返し、アプリstateの`userId`に保持 | 分析用研究IDではない |
-| 認証・プロフィール送信 | signupはemail/password/name、signinはemail/password、profileはage/occupation/pace/level/levelScoreをEdge Functionへ送るコードがある | profileは初期アンケートから呼ばれておらず、保存成功未確認 |
+| 認証・表示名 | signupはemail/password/display name、signinはemail/passwordをEdge Functionへ送り、認証済み本人は`GET /display-name`と`PUT /display-name`を使用する。KAI-33 / Draft PR #45では5項目用legacy `/profile`とfrontend helper/typeをrepository/local候補から撤去済み | 表示名の正本は型付き`public.profiles.display_name`。age、occupation、pace、level、levelScoreは採用・移行しておらず、必要性と保存先は未確定 |
 | 初期アンケート | 9項目、条件表示、旧重み付きscoreとlevel判定。KAI-28 / PR #34で未経験時もK群3項目を必須表示し、K群だけを保存する実装をmainへ反映した | S群・A群のUIと旧score表示は残るが診断APIへ送信・保存しない。remote Supabaseでは未確認 |
 | 進捗 | KAI-27で空の`completedNodeIds`・`assumedNodeIds`と`inProgressNodeId: null`から開始し、学習開始・完了をメモリ内のルート入力へ接続済み | 永続化なし。表示用の`currentNodeId`・`currentNodeName`は初期値を持つが、ルート生成入力とは区別する |
 | クイズ | 詳細な`QuizAttemptResult`にID、番号、回答、版、得点、合否、誤答、時刻、model versionがある | Quizコンポーネントのメモリ内stateのみ。再表示で初期化、保存なし |
@@ -465,17 +465,23 @@ routeGenerator保存接続は、routeGenerator自体の実装と混ぜず、純�
 | 振り返り | node、固定7概念、自由記述、日付、recommendationsをメモリ保持 | `quickTestResult=true`は仮値。概念が正規nodeIdでなく、永続化なし |
 | 事後アンケート | 該当機能を確認できない | 未実装 |
 | ルート生成 | KAI-26で純粋なrouteGenerator、KAI-27でK群3項目・進捗・確認テストとDashboard上位3件表示を接続済み。KAI-28 / PR #34で認証後に保存済みK群を復元して同じ開始判定・ルート生成へ渡す実装をmainへ反映・再検証した | `generatedAt`、routeId、診断以外の保存は未実装。remote Supabaseでは未確認 |
-| Supabase永続化 | KAI-28 / PR #34で専用`user_diagnoses` table、K群制約、版・DB時刻、本人SELECT/INSERT/UPDATEのGRANT/RLS、本人単位upsertをmainへ反映し、合成データ専用ローカル環境とmain refの独立CIで検証済み | remote deploy、研究者用取得・削除・export、診断履歴、進捗、試行、課題、エラー、振り返り、ルート、同意、評価ログは対象外・未実装 |
+| Supabase永続化 | KAI-28 / PR #34の`public.user_diagnoses`とKAI-32 / PR #42の`public.profiles`をmainへ反映し、本人限定RLS・最小GRANTを合成データ専用local環境と独立CIで検証済み。KAI-33 / Draft PR #45ではKV helperとlegacy保存経路をrepository/local候補から撤去済み | 指定remoteはKAI-34未実施のため、KV tableと旧Edge Function version 4が残る。研究者用取得・削除・export、診断履歴、進捗、試行、課題、エラー、振り返り、ルート、同意、評価ログは対象外・未実装 |
 
 ### 14.1 調査した主なコード箇所
 
-- 認証・ユーザーID・送信項目: `src/components/Auth.tsx`、`src/utils/auth.ts`、`supabase/functions/make-server-f3d88633/index.ts`、`supabase/functions/make-server-f3d88633/kv_store.ts`
+- 認証・ユーザーID・表示名: `src/components/Auth.tsx`、`src/utils/auth.ts`、`supabase/functions/_shared/profile.ts`、`supabase/functions/make-server-f3d88633/index.ts`
 - 診断項目・旧スコア・未保存フロー: `src/data/questionConfig.ts`、`src/components/SignupSurvey.tsx`、`src/App.tsx`
 - 進捗・固定値・メモリ状態: `src/App.tsx`、`src/components/Dashboard.tsx`
 - クイズの版・採点・全試行モデル: `src/features/quiz/types.ts`、`src/features/quiz/grading.ts`、`src/features/quiz/attempts.ts`、`src/components/Quiz.tsx`
 - 実践課題コード・簡易エラー検出・SRK・復習先: `src/components/PracticeChallenge.tsx`、`src/data/errorMappings.ts`
 - 振り返りの選択式項目・自由記述・仮値: `src/components/LearningReflectionForm.tsx`、`src/components/LearningReflections.tsx`
 - 事後アンケート: `src/`配下を名称・文言で検索したが、評価用事後アンケートに該当するコンポーネントまたはデータ契約を確認できなかった。
+
+### 14.2 repository/local候補と指定remoteの現在差
+
+- repository/local候補: KAI-33 / Draft PR #45により、legacy `/profile`、frontendの`saveProfile` / `ProfileData`、KV helperを撤去済みである。表示名は型付き`public.profiles.display_name`、診断K群3項目は`public.user_diagnoses`を使用する。
+- 指定remote: KAI-34未実施のため、`public.kv_store_f3d88633`と旧Edge Function version 4が残る。KAI-33ではremote migration、Function deploy、KV削除・更新、設定変更を行っていない。
+- 境界: `profile:{id}`の5項目を採用・移行していない。repository/local候補の撤去済み状態をremote適用済みと解釈せず、remote変更はKAI-34の独立ゲートに従う。
 
 ## 15. 未決事項と対象外の既知問題
 
@@ -485,9 +491,9 @@ routeGenerator保存接続は、routeGenerator自体の実装と混ぜず、純�
 - OQ-001、OQ-002、OQ-003、OQ-007、OQ-008、評価質問文・尺度・分析方法は本作業で確定しない。
 - 本文同期ではDB、RLS、migration、Edge Function、API、同意UI、保存処理、評価ログ、CSV出力、アプリコードを変更しない。
 
-## 16. KAI-30 KV依存調査（2026-09-06）
+## 16. [履歴] KAI-30 KV依存調査（2026-09-06）
 
-この節は、fresh local Supabaseで通常entryのsignupが失敗する原因と、後続判断の選択肢を整理する調査記録である。`[コード存在確認済み]`と`[確認済み事実]`は採用仕様を意味しない。比較中の推奨は`[提案]`であり、研究者判断、schema変更、remote変更を行っていない。
+この節はKAI-30当時の履歴記録であり、fresh local Supabaseで通常entryのsignupが失敗する原因と、後続判断の選択肢を整理したものである。現行状態は§14を参照する。`[コード存在確認済み]`と`[確認済み事実]`は採用仕様を意味しない。比較中の推奨は`[提案]`であり、研究者判断、schema変更、remote変更を行っていない。
 
 ### 16.1 調査範囲と根拠
 

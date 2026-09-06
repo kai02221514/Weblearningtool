@@ -2,7 +2,6 @@ import { Hono } from "npm:hono";
 import { cors } from "npm:hono/cors";
 import { logger } from "npm:hono/logger";
 import { createClient } from "npm:@supabase/supabase-js@2";
-import * as kv from "./kv_store.ts";
 import {
   CURRENT_DIAGNOSIS_VERSION,
   validateDiagnosisSaveRequest,
@@ -296,43 +295,6 @@ app.post("/signin", async (c) => {
 
     console.log(`サインイン処理エラー: ${error}`);
     return c.json({ error: "サインインに失敗しました" }, 500);
-  }
-});
-
-app.post("/profile", async (c) => {
-  try {
-    const config = getServerConfig({ requireAnonKey: true })
-    const publicClient = createPublicClient(config)
-    const accessToken = c.req.header("Authorization")?.split(" ")[1];
-
-    if (!accessToken) {
-      return c.json({ error: "Unauthorized" }, 401);
-    }
-
-    const { data: { user }, error } = await publicClient.auth.getUser(accessToken);
-
-    if (error || !user) {
-      return c.json({ error: "Unauthorized" }, 401);
-    }
-
-    const { age, occupation, pace, level, levelScore } = await c.req.json();
-
-    await kv.set(`profile:${user.id}`, {
-      age,
-      occupation,
-      pace,
-      level,
-      levelScore,
-      updatedAt: new Date().toISOString(),
-    });
-
-    return c.json({ success: true });
-  } catch (error) {
-    const configResponse = serverConfigErrorResponse(c, error)
-    if (configResponse) return configResponse
-
-    console.log(`プロファイル保存エラー: ${error}`);
-    return c.json({ error: "プロファイルの保存に失敗しました" }, 500);
   }
 });
 
