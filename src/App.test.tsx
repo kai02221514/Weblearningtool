@@ -326,6 +326,33 @@ describe('authenticated diagnosis flow', () => {
       .toContain('保存済み診断を読み込み、その回答から推薦ルートを再生成しました')
     expect(screen.getByTestId('dashboard-notice').textContent).not.toContain('単元を完了')
     expect(mockedGetDiagnosis).toHaveBeenCalledTimes(2)
+
+    const restoredRecommendation = screen.getByTestId('route-recommendation-html-010')
+    await user.click(within(restoredRecommendation).getByRole('button', {
+      name: 'この単元を始める',
+    }))
+    await user.click(screen.getByRole('button', { name: '教材を開始する' }))
+    await user.click(screen.getByRole('tab', { name: 'テキスト形式' }))
+    await user.click(screen.getByRole('button', { name: '教材を完了して確認テストへ' }))
+
+    expect(screen.queryByText('合格おめでとうございます！')).toBeNull()
+    expect(screen.queryByRole('button', { name: '合格済み：実践課題へ進む' })).toBeNull()
+    expect(screen.getByRole('heading', { name: '問題 1' })).not.toBeNull()
+    expect(screen.getByText('問題 1 / 3')).not.toBeNull()
+    expect(screen.getByText('試行 1 / 進捗: 33%')).not.toBeNull()
+    expect(screen.getAllByRole('radio')).toHaveLength(4)
+    expect(screen.getAllByRole('radio').every(radio => !(radio as HTMLInputElement).checked))
+      .toBe(true)
+
+    await user.click(screen.getByLabelText(/<body>/))
+    await user.click(screen.getByRole('button', { name: '次の問題' }))
+    await user.click(screen.getByRole('radio', { name: /^1\. <!DOCTYPE html>/ }))
+    await user.click(screen.getByRole('button', { name: '次の問題' }))
+    await user.type(screen.getByPlaceholderText('回答を入力'), 'body')
+    await user.click(screen.getByRole('button', { name: '結果を見る' }))
+
+    expect(await screen.findByText('合格おめでとうございます！')).not.toBeNull()
+    expect(screen.getByText('quiz-html-010 / quiz-html-010/v0.2 / 試行1')).not.toBeNull()
   })
 
   it('retains answers after save failure and enters Dashboard only with saved response answers', async () => {
