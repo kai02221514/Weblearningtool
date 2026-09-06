@@ -158,3 +158,10 @@ npm run check
 - remote境界: remote Supabaseへの接続、migration適用、Function deploy、設定変更、remote secretの使用はない。実在個人情報・研究参加者データを使用していない
 - KAI-33へ残す範囲: legacy `profile:{id}` API・frontend helper・型・利用箇所の全面撤去、KV table・不要GRANT・重複indexの撤去候補、D-022診断migrationとprofiles migrationを含むlocal/remote差分、適用順、rollback、KAI-34向け検証計画
 - KAI-33開始ゲート: 本完了証跡文書PRの監査・merge、merge後main Check、Linear KAI-32への両merge commit・main検証・CI・対象外・remote未変更を含む完了コメント、Linear Done、remote未変更をすべて確認し、その時点の`origin/main`を開始基準SHAとする
+
+## KAI-32完了証跡main反映
+
+- 完了証跡PR [#43](https://github.com/kai02221514/Weblearningtool/pull/43)の最終head `9a3f93380347a93a54713d9535f88652ee801843`を、base `9b73e4010da4dc7d6e8c5305696a08fb9a015ff8`から2026-09-06T13:07:28Zにmerge commit `9fb625a71177c339a1c085a34de1345edca429a0`としてmainへ反映した
+- PR段階の`Check` run [34034625678](https://github.com/kai02221514/Weblearningtool/actions/runs/34034625678)と`Supabase Diagnosis` run [34034625651](https://github.com/kai02221514/Weblearningtool/actions/runs/34034625651)は、どちらもmerge-ref `9e77e985bba2a7f9676cc208f6570f8a42c0292d`をcheckoutして全step成功した
+- 文書merge commitを対象・checkoutしたmain `Check` run [34035137530](https://github.com/kai02221514/Weblearningtool/actions/runs/34035137530)は全step成功した。文書だけの変更であり、main手動Supabase Diagnosisはコードmerge commit `9b73e4010da4dc7d6e8c5305696a08fb9a015ff8`に対するrun `34034224612`を正本証跡とする
+- remote Supabaseへの接続・変更はなく、実在個人情報・研究参加者データを使用していない。KAI-32を完了とし、KAI-33を開始可能とする
