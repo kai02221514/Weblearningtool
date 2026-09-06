@@ -7,7 +7,7 @@
 - 関連OQ: `OQ-009`、`OQ-004`のDG-08、`OQ-005`の保存境界、`OQ-008`
 - 作成基準: `main` `f9a5c0dbff374eaf8aae9a90ca9b111ff3839499`（2026-07-13）
 - 重要: **§1.4の初回診断保存・復元契約だけはD-022に基づく確定仕様であり、この範囲の後続Task Aは追加の指導教員承認なしで開始できる。**
-- 重要: **§16.6の表示名・KV・指定remote境界はD-023に基づく確定仕様である。profilesとrepository/localのKV撤去候補はmainへ反映済みだが、指定remoteは未適用であり、KAI-33完了後にKAI-34の開始時再確認・停止条件・独立した明示許可へ従う。**
+- 重要: **§16.6の表示名・KV・指定remote境界はD-023に基づく確定仕様である。KAI-34で監査済みprofiles・診断・KV撤去・Functionを指定remoteへ適用し、合成データ境界とcleanupを確認済みである。これは参加者データ収集や研究データ管理残余の許可を意味しない。**
 - 重要: OQ-009全体とKAI-12は未完了である。同意UI、評価ログ、研究者用取得・削除・export、保持・撤回・削除、参加者データ収集、予備試行は開始可能になっていない。
 - 重要: D-022の権限確認は、学内規程上必要な手続または研究参加者の同意を免除しない。
 - 重要: §11のD-022対象外項目に残る研究者判断は2026-07-14時点の暫定案であり、確定仕様として扱わない。
@@ -144,9 +144,9 @@ KAI-12／OQ-009について、研究者本人と指導教員が次の事項を�
 
 | データ群 | 代表項目 | 取得元 | 収集目的 | 必須／任意 | 研究分析 | 直接識別性 | 機微性・再識別リスク | 保存先候補 | 保持判断 | 削除対象 | 出力 | 現行コード上の状態 | 根拠・未決事項 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 1. 認証・運用 | auth user ID、メール、表示名、セッション | Supabase Auth、登録画面 | ログイン、通常利用 | 通常利用に必須 | 使用しない | 高 | 高 | email・認証はAuth、表示名は`public.profiles` | 必要 | アカウント・運用記録 | 除外 | Auth metadata・KV重複が残るがD-023で廃止方針確定 | 実装はKAI-32、KV撤去はKAI-33 |
+| 1. 認証・運用 | auth user ID、メール、表示名、セッション | Supabase Auth、登録画面 | ログイン、通常利用 | 通常利用に必須 | 使用しない | 高 | 高 | email・認証はAuth、表示名は`public.profiles` | 必要 | アカウント・運用記録 | 除外 | KAI-32で型付きprofilesを実装し、KAI-33でAuth metadataの表示名重複・KV経路を撤去、KAI-34で指定remoteへ適用済み | D-023の確定境界とKAI-32〜KAI-34の実装・合成検証に基づく |
 | 2. 研究参加管理 | 研究用仮名ID、同意版、同意状態、同意・撤回日時 | 同意UI／研究者管理 | 適法・倫理的な参加管理 | 研究参加に必須 | 参加可否・欠損説明のみ | 対応表保持中は本人へ再対応可能 | 高 | 研究参加管理領域 | 必要 | 撤回・終了時 | 限定 | 未実装 | 同意版、再同意、撤回境界が未決 |
-| 3. 診断 | K群回答、完了状態、再回答。S/A群は初回保存対象外 | 初期アンケート | 開始判定。S/A群の将来利用は未確定 | D-022によりK群3項目は初回診断・保存とも必須。S/A群の将来利用は未確定 | K群は開始判定に使用。S/A群の研究分析利用は未確定 | 直接識別子なし／対応表で再対応可能 | 属性組合せで再識別 | 仮名化研究データ／アプリ状態 | 必要 | 対象 | 必要 | 9項目UIと旧重み計算がある。KAI-27でK群3項目を開始判定・ルート生成・Dashboardへメモリ内接続済み。KAI-28 / PR #34でK群3項目の本人単位保存・復元をmainへ反映し、合成データ専用local projectで再検証済み | DG-08とK群3項目の初回保存契約はD-022で確定。S/A群の将来利用、年齢・職業は未確定。remote Supabaseへの反映・動作確認は未実施 |
+| 3. 診断 | K群回答、完了状態、再回答。S/A群は初回保存対象外 | 初期アンケート | 開始判定。S/A群の将来利用は未確定 | D-022によりK群3項目は初回診断・保存とも必須。S/A群の将来利用は未確定 | K群は開始判定に使用。S/A群の研究分析利用は未確定 | 直接識別子なし／対応表で再対応可能 | 属性組合せで再識別 | 仮名化研究データ／アプリ状態 | 必要 | 対象 | 必要 | 9項目UIと旧重み計算がある。KAI-27でK群3項目を開始判定・ルート生成・Dashboardへ接続し、KAI-28で本人単位保存・復元を実装、KAI-34で指定remoteの合成データ境界を確認済み | DG-08とK群3項目の初回保存契約はD-022で確定。S/A群の将来利用、年齢・職業は未確定。remote確認は参加者データ利用の許可を意味しない |
 | 4. ルート入力スナップショット | diagnosis、completed/assumed/inProgress、quiz、error、reflection、catalog | route記録層 | 推薦の再現・監査 | 候補必須 | 利用候補 | 直接識別子なし／対応表で再対応可能 | 詳細履歴の組合せ | 仮名化研究データ | 必要 | 対象 | 必要 | KAI-26で純粋な`routeGenerator`を実装済み。KAI-27でK群・進捗・確認テストをメモリ内のルート入力としてDashboardへ接続済み。エラー・振り返り接続と永続化は未実装 | 入力スナップショットを全量保存するか参照IDで再構成するかは未確定 |
 | 5. ルート結果・理由・版 | 全順序、上位3件、reasonCode、evidence、3版、generatedAt、routeId候補 | route記録層 | 説明可能性・再現性 | 候補必須 | 利用候補 | 直接識別子なし／対応表で再対応可能 | 行動推測 | 仮名化研究データ | 必要 | 対象 | 必要 | KAI-26でルート生成結果・理由・3版を実装済み。KAI-27で生成順の上位3件をDashboardへ表示済み。結果保存、`generatedAt`、`routeId`は未実装 | `routeId`、全順序・上位3件の保存範囲、`generatedAt`の保存形式は未確定 |
 | 6. 学習進捗 | completed、inProgress、開始・完了イベント | アプリ | 学習状態、ルート入力 | 候補必須 | 補助指標候補 | 直接識別子なし／対応表で再対応可能 | 時系列で再識別 | アプリ状態／仮名化研究データ | 必要 | 対象 | 必要 | KAI-27でルートに影響するデモ初期値を除去し、完了・進行中状態をメモリ内のルート入力へ接続済み。永続化は未実装 | 実時間との区別、完了定義が未決 |
@@ -458,14 +458,14 @@ routeGenerator保存接続は、routeGenerator自体の実装と混ぜず、純�
 |---|---|---|
 | 認証ID | Supabase Authの`data.user.id`を返し、アプリstateの`userId`に保持 | 分析用研究IDではない |
 | 認証・表示名 | signupはemail/password/display name、signinはemail/passwordをEdge Functionへ送り、認証済み本人は`GET /display-name`と`PUT /display-name`を使用する。KAI-33 / PR #45では5項目用legacy `/profile`とfrontend helper/typeをrepositoryから撤去しmainへ反映済み | 表示名の正本は型付き`public.profiles.display_name`。age、occupation、pace、level、levelScoreは採用・移行しておらず、必要性と保存先は未確定 |
-| 初期アンケート | 9項目、条件表示、旧重み付きscoreとlevel判定。KAI-28 / PR #34で未経験時もK群3項目を必須表示し、K群だけを保存する実装をmainへ反映した | S群・A群のUIと旧score表示は残るが診断APIへ送信・保存しない。remote Supabaseでは未確認 |
+| 初期アンケート | 9項目、条件表示、旧重み付きscoreとlevel判定。KAI-28 / PR #34で未経験時もK群3項目を必須表示し、K群だけを保存する実装をmainへ反映した | S群・A群のUIと旧score表示は残るが診断APIへ送信・保存しない。KAI-34でK群保存・復元のremote合成検証済み |
 | 進捗 | KAI-27で空の`completedNodeIds`・`assumedNodeIds`と`inProgressNodeId: null`から開始し、学習開始・完了をメモリ内のルート入力へ接続済み | 永続化なし。表示用の`currentNodeId`・`currentNodeName`は初期値を持つが、ルート生成入力とは区別する |
 | クイズ | 詳細な`QuizAttemptResult`にID、番号、回答、版、得点、合否、誤答、時刻、model versionがある | Quizコンポーネントのメモリ内stateのみ。再表示で初期化、保存なし |
 | 実践課題 | 入力コード、簡易SRK検出、正規errorIdから復習先を表示 | 完了callbackはデータを渡さず、提出コード・error・解消履歴を保存しない |
 | 振り返り | node、固定7概念、自由記述、日付、recommendationsをメモリ保持 | `quickTestResult=true`は仮値。概念が正規nodeIdでなく、永続化なし |
 | 事後アンケート | 該当機能を確認できない | 未実装 |
 | ルート生成 | KAI-26で純粋なrouteGenerator、KAI-27でK群3項目・進捗・確認テストとDashboard上位3件表示を接続済み。KAI-28 / PR #34で認証後に保存済みK群を復元して同じ開始判定・ルート生成へ渡す実装をmainへ反映・再検証した | `generatedAt`、routeId、診断以外の保存は未実装。remote Supabaseでは未確認 |
-| Supabase永続化 | KAI-28 / PR #34の`public.user_diagnoses`、KAI-32 / PR #42の`public.profiles`、KAI-33 / PR #45のKV helper・legacy保存経路撤去をmainへ反映し、本人限定RLS・最小GRANT・KV非空停止を合成データ専用local環境と独立CIで検証済み | 指定remoteはKAI-34未実施のため、KV tableと旧Edge Function version 4が残る。研究者用取得・削除・export、診断履歴、進捗、試行、課題、エラー、振り返り、ルート、同意、評価ログは対象外・未実装 |
+| Supabase永続化 | KAI-28 / PR #34の`public.user_diagnoses`、KAI-32 / PR #42の`public.profiles`、KAI-33 / PR #45のKV helper・legacy保存経路撤去をmainへ反映し、KAI-34で指定remoteへ適用した。本人限定RLS・GRANT・API認証、失敗境界、cleanupを合成A/Bで検証済み | 研究者用取得・削除・export、診断履歴、進捗、試行、課題、エラー、振り返り、ルート、同意、評価ログは対象外・未実装。remote検証結果を参加者データ利用へ一般化しない |
 
 ### 14.1 調査した主なコード箇所
 
@@ -480,8 +480,9 @@ routeGenerator保存接続は、routeGenerator自体の実装と混ぜず、純�
 ### 14.2 repository/local候補と指定remoteの現在差
 
 - repository/main: KAI-33 / PR #45のmerge commit `f7bf8c86ebae8e23c7c8ddb9aa9fbb43bf8b1246`により、legacy `/profile`、frontendの`saveProfile` / `ProfileData`、KV helperを撤去済みである。表示名は型付き`public.profiles.display_name`、診断K群3項目は`public.user_diagnoses`を使用する。
-- 指定remote: KAI-34未実施のため、`public.kv_store_f3d88633`と旧Edge Function version 4が残る。KAI-33ではremote migration、Function deploy、KV削除・更新、設定変更を行っていない。
-- 境界: `profile:{id}`の5項目を採用・移行していない。repository/local候補の撤去済み状態をremote適用済みと解釈せず、remote変更はKAI-34の独立ゲートに従う。
+- 指定remote: KAI-34で`public.profiles`と`public.user_diagnoses`を適用し、`public.kv_store_f3d88633`を撤去した。Edge Functionはversion 5へ更新し、表示名・診断の本人成功、他人・未認証拒否、失敗境界、再ログイン復元を合成データだけで確認した。
+- cleanup: 作成した合成Auth user、profiles、diagnosesは対象集合0件で、独立確認でも両public tableは0件だった。実在個人情報・研究参加者データは使用していない。
+- 境界: `profile:{id}`の5項目を採用・移行していない。KAI-34は合成データ専用非本番環境の技術検証であり、保持、撤回・削除要求運用、同意、評価ログ、研究者access/export、参加者利用の判断には一般化しない。
 
 ## 15. 未決事項と対象外の既知問題
 
@@ -585,8 +586,8 @@ D-023により、`user_metadata.name`は通常の表示名読取元にせず、R
 ### 16.7 後続Issue
 
 1. **KAI-32 型付きprofilesと表示名save/loadをlocal実装する**: migration、型、validation、本人限定RLS、明示GRANT、signup/signin/read/update、Auth削除連携、KV name/email依存除去をlocalで実装する。remote適用は対象外。
-2. **KAI-33 KV廃止とremote schema差を解消する**: PR #45の実装はmainへ反映・再検証済み。完了証跡PRのmerge、Linear完了コメント、Doneを確認して閉じる。remoteは変更しない。
-3. **KAI-34 指定remoteへ監査済み変更を適用して統合検証する**: KAI-33のLinear Done後、project ref、KV 0件、migration履歴、Function version/hash、適用対象commitを再確認し、独立して明示許可された監査済み版だけを指定remoteへ適用する。
+2. **KAI-33 KV廃止とremote schema差を解消する**: PR #45と完了証跡PR #46はmainへ反映・再検証済みで、Linear KAI-33はDoneである。KAI-33自体ではremoteを変更せず、後続KAI-34の独立許可で適用した。
+3. **KAI-34 指定remoteへ監査済み変更を適用して統合検証する**: 監査済み版の指定remote適用、合成A/B・未認証・失敗境界、cleanup、Advisor取得まで完了した。Draft PR監査前のためIn Progressを維持する。
 4. **KAI-35 Supabase Auth leaked-password protectionを有効化・検証する**: profiles実装と混在させず、planと設定可否、既知漏えいpassword拒否、既存利用者への影響、rollbackを検証する。
 
 進捗snapshot、クイズ試行、実践課題、振り返り、評価event log、同意、研究者exportはこの分割へ含めず、それぞれOQ-009の確定後に別Issueとする。

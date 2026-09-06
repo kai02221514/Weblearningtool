@@ -47,8 +47,8 @@
 |区分|構成|状態|
 |---|---|---|
 |現在のフロントエンド|Vite 6 + React 18 + TypeScript/TSX|[確認済み事実]|
-|現在の認証・データ関連|Supabaseを利用する認証処理コード・型付き表示名と診断の保存用エンドポイント|[部分実装／local検証済み／remote未適用] 接続先はVite環境変数へ移行済み。KAI-32の表示名とKAI-28の診断をlocal/CIで検証済み。指定remoteはKAI-34適用前|
-|現在のAPI関連|Hono依存関係およびSupabase Functions配下のサーバーコードあり|[部分実装／local検証済み／remote旧版稼働中] Edge FunctionはSupabase CLI標準配置へ移行済み。repository/local候補ではKAI-33によりlegacy `/profile`とKV helperを撤去済み。指定remoteは旧version 4がACTIVE|
+|現在の認証・データ関連|Supabaseを利用する認証処理コード・型付き表示名と診断の保存用エンドポイント|[部分実装／local・remote合成データ検証済み] KAI-34で指定remoteへprofilesとuser_diagnosesを適用し、本人・他人・未認証境界、再ログイン復元、失敗境界、cleanupを確認済み。参加者データ利用や研究上の有効性は未確認|
+|現在のAPI関連|Hono依存関係およびSupabase Functions配下のサーバーコードあり|[部分実装／local・remote合成データ検証済み] KAI-34で監査済みFunctionをversion 5としてdeployし、legacy `/profile` 404と内部Bearer認証を確認済み。`verify_jwt=false`は維持|
 |履修計画書上の構想|Next.js + Deno/Hono + Supabase|[確認済み事実] 旧計画または将来構想|
 |全面移行|Next.jsへの移行|[確定事項] 現行MVP対象外|
 
@@ -95,9 +95,9 @@
 - 進捗: [実装済み／main反映・自動検証済み] KAI-27でルートへ影響する初期デモ値を除去し、空の`completedNodeIds`・`assumedNodeIds`と`inProgressNodeId: null`で開始する。未完了ノードの完了は完了集合を重複なく更新して再生成する。完了済みノードを再開していない単純な重複完了通知は同一state・同一生成結果を返す一方、完了済みノードを復習として再開した後の完了は完了集合を重複させず`inProgressNodeId`を`null`へ戻して決定的に再生成する。学習開始は進行中状態だけを更新し、それ自体やDashboard表示だけでは再生成しない。状態はメモリ保持のみである。
 - 診断: [KAI-28 / PR #34でmain反映・再検証済み] 認証後は診断状態解決中を経由し、互換な`diagnosis-k/v1`の完了済みrecordだけをK群3項目として`applyDiagnosis`へ復元する。recordなし・欠損・未知値・非互換版はSurveyへ誘導し、通信障害は再試行画面へ分離する。Surveyは未経験回答時もK群3項目を必須表示し、K群だけの保存成功後にDashboardへ進む。保存失敗時は回答を保持して再送できる。S群・A群、`level`、`levelScore`は診断API payloadへ含めない
 - 確認テスト入力: [実装済み／main反映・自動検証済み] `QuizAttemptResult`を親のメモリへ通知し、確定済みの`quizId`、`nodeId`、`passed`、0〜100点、`attemptNumber`、`submittedAt`を`QuizResult`へ変換する。親側で合否や試行番号を推測しない。同一`attemptId`通知を重複反映せず、不合格確定時に再生成し、後続の合格試行で最新結果に基づき不合格由来の推薦を解除する。
-- 表示名profile: [KAI-32・KAI-33でmain反映・再検証済み／remote未適用] 型付き`public.profiles.display_name`を正本とするsignup/signin/read/update、本人限定アクセス、Auth user削除連動を実装した。KAI-33 / PR #45ではD-023で不採用となった5項目用legacy `/profile`、frontend helper/type、KV helperをrepository mainから撤去済みである。5項目を別の保存先へ移行しておらず、指定remoteはKAI-34適用前である。
+- 表示名profile: [KAI-32・KAI-33でmain反映／KAI-34 remote合成検証済み] 型付き`public.profiles.display_name`を正本とするsignup/signin/read/update、本人限定アクセス、Auth user削除連動を実装した。KAI-34で指定remoteへ適用し、本人成功、他人拒否、未認証拒否、再ログイン復元、profile失敗境界、cleanupを確認した。5項目は採用・移行していない。
 - Supabase接続: 旧Project Reference IDがフロントエンド設定に残っていたため、現在の接続先は `VITE_SUPABASE_URL` と `VITE_SUPABASE_PUBLISHABLE_KEY` で指定する構成へ変更した。Publishable keyは `apikey` ヘッダーで送信し、ユーザーJWTのみ `Authorization: Bearer` で送信する。Supabaseプロジェクトへの接続先修正は完了し、サインインの実環境成功を確認済みである。
-- Edge Function: 旧 `src/supabase/functions/server` 配置から `supabase/functions/make-server-f3d88633` へ移行した。KAI-28 / PR #34でBearer tokenを`auth.getUser`により明示検証し、user-scoped clientでRLSを通す`GET /diagnosis`と`PUT /diagnosis`を追加して`main`へ反映した。KAI-33 / PR #45ではlegacy `/profile`とservice-role KV helperをrepository mainから撤去済みである。指定remoteはKAI-34未実施のため旧version 4が残る
+- Edge Function: 旧 `src/supabase/functions/server` 配置から `supabase/functions/make-server-f3d88633` へ移行した。KAI-28 / PR #34でBearer tokenを`auth.getUser`により明示検証し、user-scoped clientでRLSを通す`GET /diagnosis`と`PUT /diagnosis`を追加した。KAI-33 / PR #45でlegacy `/profile`とservice-role KV helperを撤去し、KAI-34で指定remoteへversion 5 / artifact SHA-256 `caec2a968e3899ce06fb482af6f43bd824ec93877afac574c5c2213395be7c77`としてdeployした。`verify_jwt=false`を維持し、保護APIの内部Bearer認証境界を合成データで確認済みである
 - サインアップ後セッション: `admin.createUser` はセッションを返さないため、サインアップ成功後は未認証のままアンケートへ進めず、ログイン画面へ戻してログインを促す。
 - 予備試行用確認テストデータ: `html-010`、`html-021`、`css-011` の3ノード9問を `src/features/quiz/` 配下の型付きデータへ変換し、ID、版、形式、出典参照、参照整合性の構造検証テストを追加した。
 - KAI-22採点・正規化: `src/features/quiz/grading.ts` に、短いコード補完回答の正規化、単一問題の採点、クイズ全体の採点、提出入力の実装上の検証を行う純粋関数を追加した。実行時のコード補完判定は各問題の`acceptedAnswers`と`answerNormalization`を使用し、`researchMetadata.acceptedAnswerDecision`は説明・追跡情報として扱う。
@@ -246,8 +246,8 @@
 ## 次の最小作業単位
 
 1. OQ-004、OQ-005、OQ-006は初期仕様として解消済みである。
-2. KAI-33完了証跡PRを監査・mergeし、main CI成功とLinear完了コメント・Doneを確認する。証跡PRのmergeまではKAI-33をIn Progress、KAI-34をBacklogのまま維持する。
-3. KAI-33のLinear Done確認後だけ、KAI-34で適用直前のproject ref、KV 0件、migration履歴、Function version/hashを再確認し、指定remoteへ監査・明示許可済み変更だけを適用する。
+2. KAI-34のDraft PRでremote適用証跡、Advisor分類、cleanup、対象外、rollback未実施を監査し、CI・review thread・mergeabilityを確認する。
+3. KAI-34の監査前はPRをmergeせずLinear Doneへ変更しない。KAI-35の設定変更は独立した許可ゲートで扱う。
 4. KAI-35でleaked-password protectionのplan・設定影響・rollbackを、表示名実装と分離して確認する。
 5. 研究判断ゲートとしてKAI-12 / OQ-009の残余を解消し、研究データ管理、同意、保存、削除、アクセス権限、評価ログを確定する。
 6. KAI-13はLinear上Backlogであり、独立実装候補として扱う場合もCI必須化タイミングを確認した範囲だけ進める。
@@ -258,7 +258,7 @@
 
 ## KAI-33 KV廃止・remote差分整理
 
-- 状態: [実装main反映・完了証跡同期待ち／remote未適用] 開始基準main `68f50a2784073a09c7733fc9171a94dc942da597`からbranch `refactor/kai-33-remove-legacy-kv`を作成し、PR [#45](https://github.com/kai02221514/Weblearningtool/pull/45)のfinal head `aaec41177e35cd30190b8b57ed65c4e4aafe9510`を2026-09-06T14:46:25Zにmerge commit `f7bf8c86ebae8e23c7c8ddb9aa9fbb43bf8b1246`として`main`へ反映した。Linear KAI-33にはmerge前証跡を記録済みである。完了証跡PRのmergeとLinear完了更新まではKAI-33をIn Progress、KAI-34をBacklogのまま維持する
+- 状態: [完了／remote適用はKAI-34で実施済み] 開始基準main `68f50a2784073a09c7733fc9171a94dc942da597`からbranch `refactor/kai-33-remove-legacy-kv`を作成し、PR [#45](https://github.com/kai02221514/Weblearningtool/pull/45)のfinal head `aaec41177e35cd30190b8b57ed65c4e4aafe9510`を2026-09-06T14:46:25Zにmerge commit `f7bf8c86ebae8e23c7c8ddb9aa9fbb43bf8b1246`として`main`へ反映した。完了証跡PR #46はmerge commit `22ca66d662067b639c33912e41bab3a81ee78c2d`として反映され、Linear KAI-33はDoneである
 - remote read-only: project ref `znfwkrhquegvlcmugkoe`を厳密照合した。最初の正確なKV集計は合計1件（`user:` 1、`profile:` 0、その他0）だったため内容を取得せず停止した。研究者本人の削除完了連絡後、同じ集計で全区分0件を確認して再開した。remote migration、deploy、削除、更新、設定変更はCodexから実行していない
 - remote差分: migration履歴は`20251204051132_create_kv_table_f3d88633`のみ、public tableはKVのみ、RLS有効・policy 0、anon/authenticated/service_roleの広いtable GRANT、PK＋同一prefix index 3件、public routine 0件だった。Edge Function `make-server-f3d88633`はACTIVE version 4、`verify_jwt=false`だった
 - 実装: 起点commit `b4211f9`からfinal head `aaec41177e35cd30190b8b57ed65c4e4aafe9510`までで、remote履歴version/nameをrepositoryへ整合し、非空時に例外停止して空の場合だけKV tableをdropするmigrationをCLI `supabase migration new`で生成した。legacy `/profile`、frontend `saveProfile` / `ProfileData`、KV helper、未使用legacy `Onboarding`を撤去し、`/profile` 404とKV table不存在を回帰テストへ追加した。5項目は別の保存先へ移行していない
@@ -266,4 +266,14 @@
 - rollback: KV最小互換table、RLS、service_role DML、単一prefix indexの逆向きmigrationをlocal確認した。初回はコマンド引用ミスでSQL実行前に失敗し、修正後に成功した。Functionのremote rollback先はversion 4 / bundle SHA-256 `9494c89b52f9e9994e7c7098bad6462dc835a2f7ce16965d52ee5ffb490a6c58`
 - PR・main検証: PR段階はmerge-ref `f95437dc8c34b5e78db03a88cd1434968fa08a71`をcheckoutした`Check` run [34038608451](https://github.com/kai02221514/Weblearningtool/actions/runs/34038608451)が成功した。`Supabase Diagnosis` run [34038608454](https://github.com/kai02221514/Weblearningtool/actions/runs/34038608454)はattempt 1のlocal DB schema初期化時container exit 1を成功扱いせず、attempt 2で同merge-refの全stepが成功した。unresolved review threadは0、mergeabilityはcleanだった。merge後は同merge commitを対象・checkoutしたmain `Check` run [34040215920](https://github.com/kai02221514/Weblearningtool/actions/runs/34040215920)と手動`Supabase Diagnosis` run [34040249439](https://github.com/kai02221514/Weblearningtool/actions/runs/34040249439)が全step成功した
 - KAI-34引継ぎ: `docs/operations/kai-34-remote-application-plan.md`に差分表、適用順、停止条件、rollback、合成データ検証計画を記録した。remote適用はKAI-33のLinear Done後、KAI-34の独立した監査・明示許可ゲートでのみ行う
-- 研究境界: 新しい研究判断はなくDecision Logを更新しない。5項目、OQ-009残余、KAI-12/KAI-16、同意・保持・撤回・削除・評価ログ・参加者利用は対象外
+
+## KAI-34 指定remote適用・統合検証
+
+- 状態: [remote適用・合成統合検証完了／Draft PR監査前] 実行基準main `22ca66d662067b639c33912e41bab3a81ee78c2d`で固定した3 migrationとFunctionだけを、研究者本人の明示許可後にproject `znfwkrhquegvlcmugkoe`へ適用した
+- preflight: project health、旧migration 1件、Function version 4 / 既知hash、KVの値なし正確集計全区分0、dry-runのpending 3件だけを確認した
+- 結果: migration履歴は予定した4件、public tableはRLS有効なprofilesとuser_diagnosesだけ、Functionはversion 5 / `verify_jwt=false`。RLS、operation別policy、role・column別GRANT、constraint、index、routine owner/security/EXECUTEを計画と照合した
+- 統合検証: 合成A/Bでsignup、signin、表示名load/update、D-022診断save/load/update、明示的再ログイン後復元、本人成功、他人拒否、未認証・無効token拒否、owner ID拒否、legacy `/profile` 404、trigger失敗、欠損profile account拒否、Auth削除連動を確認した
+- cleanup: 作成した合成Auth user、profiles、diagnosesは対象集合0件で、独立確認でもprofiles 0 / diagnoses 0だった
+- Advisor: Performance 0件。Securityは意図したauthenticated SELECTへのGraphQL schema可視性警告2件と、KAI-35対象の既知leaked-password protection警告1件。重大なRLS・GRANT・Function認証境界失敗はない
+- rollback: 実施していない。適用版、時刻、status別結果、Advisor分類、rollback候補の詳細は`docs/operations/kai-34-remote-application-plan.md`を正とする
+- 研究境界: 合成データ専用非本番環境の技術確認であり、参加者データ、予備試行、研究上の有効性主張へ一般化しない。新しい研究判断はなくDecision Logを更新しない。5項目、OQ-009残余、KAI-12/KAI-16、同意・保持・撤回・削除・評価ログ・参加者利用は対象外
