@@ -140,3 +140,21 @@ npm run check
 - 全体: `npm run verify`でtypecheck、lint、全20 files / 232 tests、build 1726 modulesに成功。`git diff --check`も成功した
 - 修正commit CI: `Check` run `34032015077`と`Supabase Diagnosis` run `34032015105`はsuccess。後者はstart、fresh reset、pgTAP、DB lint、診断API、profile API、stopを含む全stepに成功した
 - 境界: 合成データだけを使用し、remote Supabase、remote secret、実在個人情報、研究参加者データは不使用。legacy `profile:{id}`、Actions Node.js 20警告、表示名変更UIは対象外。Draft・未マージ、再監査待ちで、main再検証は未実施
+
+## KAI-32 main反映後検証結果
+
+- 実行日: 2026-09-06
+- 対象PR: PR #42。最終head `525d969866e12892cfdec2997b7833c1edf20e45`、base `7906f32778251b13cff0a6a6c6560209ec55cb37`、PR段階merge-ref `153eb01b0ca83ff4e585fe9ace19fc9e3db17830`、2026-09-06T12:42:45Zマージ、merge commit / main検証対象SHA `9b73e4010da4dc7d6e8c5305696a08fb9a015ff8`
+- PR段階Actions: `Check` run [34032277250](https://github.com/kai02221514/Weblearningtool/actions/runs/34032277250)と`Supabase Diagnosis` run [34032277253](https://github.com/kai02221514/Weblearningtool/actions/runs/34032277253)は、どちらもmerge-ref `153eb01b0ca83ff4e585fe9ace19fc9e3db17830`をcheckoutして全step成功した
+- main同期: `origin/main`がPR最終headを祖先として含み、clean worktreeをmerge commit `9b73e4010da4dc7d6e8c5305696a08fb9a015ff8`へ固定した
+- 検証環境: Node `v20.10.0`、npm `10.2.3`、Supabase CLI `2.65.5`
+- 依存導入: `npm ci`は384 packagesを導入して成功した。Supabase client libraries 5件と`eslint-visitor-keys`の既存`EBADENGINE`、`whatwg-encoding`と`recharts@2.15.4`のdeprecated警告が出たが、lockfileや依存定義は変更せず後続検証は成功した
+- 全体検証: `npm run verify`でtypecheck、lint、全20 files / 232 tests、build 1726 modules transformedに成功した。`git diff --check`も成功した
+- local Supabase失敗履歴: 最初の`supabase start`は既存の別projectが既定DBポート54322を使用中のため失敗した。既存projectは停止せず、検証専用projectを別ポートへ分離した。その後の最初の`supabase db reset --local --no-seed`はmigration適用後、未使用Storageの再起動health check 502で失敗した。いずれも成功扱いしない
+- local Supabase成功結果: 検証専用projectだけStorageを一時無効化して再起動し、fresh `supabase db reset --local --no-seed`に成功した。`supabase test db`は2 files / 94 tests、`supabase db lint --local --fail-on error`はschema error 0件、`npm run test:diagnosis-api`と`npm run test:profile-api`は合成利用者A/Bで成功した。最後にproject ID `weblearningtool-kai32-main-9b73e40`のlocal projectだけを停止した。一時ポート・Storage設定は成果物へ含めていない
+- main push Actions: `push` workflow `Check` / run [34033921358](https://github.com/kai02221514/Weblearningtool/actions/runs/34033921358)は、対象・checkoutともmerge commit `9b73e4010da4dc7d6e8c5305696a08fb9a015ff8`で、全step成功した
+- main手動Supabase Actions: 同じSHAの`main` refで手動起動した`workflow_dispatch` workflow `Supabase Diagnosis` / run [34034224612](https://github.com/kai02221514/Weblearningtool/actions/runs/34034224612)は、対象・checkoutとも同merge commitで、start、fresh reset、pgTAP、DB lint、診断/profile API、stopを含む全stepに成功した
+- Actions警告: mainの両runには`actions/checkout@v4`と`actions/setup-node@v4`のNode.js 20非推奨annotationがある。機能検証は成功しており、Actions major更新は別Issue候補として本作業では変更していない
+- remote境界: remote Supabaseへの接続、migration適用、Function deploy、設定変更、remote secretの使用はない。実在個人情報・研究参加者データを使用していない
+- KAI-33へ残す範囲: legacy `profile:{id}` API・frontend helper・型・利用箇所の全面撤去、KV table・不要GRANT・重複indexの撤去候補、D-022診断migrationとprofiles migrationを含むlocal/remote差分、適用順、rollback、KAI-34向け検証計画
+- KAI-33開始ゲート: 本完了証跡文書PRの監査・merge、merge後main Check、Linear KAI-32への両merge commit・main検証・CI・対象外・remote未変更を含む完了コメント、Linear Done、remote未変更をすべて確認し、その時点の`origin/main`を開始基準SHAとする
