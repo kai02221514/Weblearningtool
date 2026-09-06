@@ -12,12 +12,23 @@
 
 ## 現在の指定remote状態（2026-09-07）
 
+- Organization `httvbvgmiboypecuoyqy`のplanは`free`である。D-024により当面はFreeプランを継続する
 - KAI-34で実行基準main `22ca66d662067b639c33912e41bab3a81ee78c2d`に固定した3 migrationを適用済みである
 - public tableはRLS有効な`profiles`と`user_diagnoses`で、旧`kv_store_f3d88633`は不存在である
 - Edge Function `make-server-f3d88633`はversion 5、ACTIVE、`verify_jwt=false`、artifact SHA-256 `caec2a968e3899ce06fb482af6f43bd824ec93877afac574c5c2213395be7c77`である
 - 合成A/B・未認証・無効token・signup失敗境界を検証し、作成したAuth user、profiles、diagnosesは0件へcleanup済みである
 - rollbackは実施していない。適用前version 4と既知hash、最小互換KV rollback候補を追加許可が必要な復旧候補として維持する
 - 詳細な適用版、時刻、metadata差分、HTTP status、Advisor分類は`docs/operations/kai-34-remote-application-plan.md`を正とする
+
+## Auth leaked-password protectionの既知リスク（D-024）
+
+- 2026-09-07確認時点で、Supabase公式[Password security](https://supabase.com/docs/guides/auth/password-security)はleaked-password protectionをPro Plan以上としており、公式[Pricing](https://supabase.com/pricing)ではFreeに含まれない
+- D-024のFreeプラン継続判断により、KAI-35ではleaked-password protectionを有効化しない。Proへの変更、課金、請求設定、独自のHave I Been Pwned連携またはpassword blocklistも行わない
+- `password_hibp_enabled`は未変更で、機能は未提供・未有効化・未検証である。Security Advisorの`auth_leaked_password_protection`警告を誤検知または解消済みと扱わない
+- KAI-35の既知漏えいpassword拒否、妥当なpassword受付、既存利用者への影響、rollbackに関する元受入条件は未達であり、KAI-35をDoneとしない
+- Free継続は合成データ専用非本番環境での利用に限る。実在個人情報・研究参加者データ・本番データを投入しない
+- OrganizationをPro以上へ変更する場合、Supabaseの提供条件が変わった場合、別の漏えいpassword対策を検討する場合、または実在参加者利用・予備試行・研究データ収集・本番化の前に認証セキュリティを再判断する
+- KAI-35をCanceled／Won't Do相当へ移すかBacklogで維持するか、Free継続期間、その他のpassword policy強化は未確定である
 
 ## Remote変更の許可境界（D-023）
 

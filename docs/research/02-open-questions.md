@@ -128,7 +128,7 @@
 - 状態: [部分解消]
 - 関連Issue: `KAI-12`
 - 表示名・環境境界の関連Decision: D-023 / [KAI-31](https://linear.app/kai02221514/issue/KAI-31/)（研究者判断反映済み、PR #40でmain反映済み、完了証跡登録済み、Done）
-- 後続Issue: [KAI-32](https://linear.app/kai02221514/issue/KAI-32/)（local profiles実装）、[KAI-33](https://linear.app/kai02221514/issue/KAI-33/)（KV廃止・remote差分）、[KAI-34](https://linear.app/kai02221514/issue/KAI-34/)（remote適用・統合検証）、[KAI-35](https://linear.app/kai02221514/issue/KAI-35/)（leaked-password protection）
+- 後続Issue: [KAI-32](https://linear.app/kai02221514/issue/KAI-32/)（local profiles実装）、[KAI-33](https://linear.app/kai02221514/issue/KAI-33/)（KV廃止・remote差分）、[KAI-34](https://linear.app/kai02221514/issue/KAI-34/)（remote適用・統合検証）、[KAI-35](https://linear.app/kai02221514/issue/KAI-35/)（Freeプラン制約によりleaked-password protection未実施）
 - 仕様文書: `docs/operations/research-data-management.md`（D-022の初回診断保存契約とD-023の表示名・環境境界は確定。その他の研究データ管理案は未確定）
 - 論点: 収集対象・非収集対象、収集目的、認証・運用・研究データの境界、研究用仮名ID、仮名化研究データ、本人対応表、匿名化済みデータ候補への移行条件、対応表削除後の再識別性確認、集計データの少人数再識別リスク、保存先、保持期間・起算点、削除・撤回、アクセス権限、バックアップ、自由記述・提出コード、分析用エクスポート
 - 解消済み範囲: D-022によりDG-08、K群3項目だけの最小保存、最新状態の上書き、診断版・完了日時・更新日時、互換性、保存失敗時の再試行、明示的な再ログイン後の復元、通常APIの本人限定アクセス、合成データ専用非本番Supabase環境の一般条件を確定した。D-023により表示名を研究分析に使わない通常運用データとし、型付き`public.profiles.display_name`を唯一の正本とする型・更新・削除契約、KV廃止方針、project ref `znfwkrhquegvlcmugkoe`の合成データ専用非本番用途と条件付きdeploy許可を確定した。
@@ -137,7 +137,7 @@
 - OQ-006から接続: 確認テスト全試行、再受験回数、問題集合版、回答・誤答・時刻を研究データとして利用する範囲
 - OQ-007/OQ-008から接続: 実践課題の提出コード・エラー・SRK・解消履歴、振り返りの選択式項目・自由記述の収集・保存・分析範囲
 - 残る未確定事項: 保持期間・起算点、撤回・削除、同意UI、本人対応表、研究者用取得・削除・export、評価ログ、バックアップ、匿名化・再識別性確認、S群・A群の将来利用、その他の研究データ群。これらには学内手続・参加者同意・必要な指導教員確認の別ゲートを適用する。
-- 現在地（2026-09-07）: D-022の初回診断保存・復元とD-023の表示名契約はKAI-32〜KAI-33で実装し、KAI-34で合成データ専用非本番remoteへ適用・統合検証した。PR #47のmain反映、main `Check`・`Supabase Diagnosis`、Linear完了証跡を確認してKAI-34をDoneとした。これはOQ-009全体の解消ではなく、KAI-12はIn Reviewを維持する。参加者データ収集、予備試行、同意・保持・撤回・削除・評価ログ・研究者用アクセス等の実装開始許可には一般化しない。
+- 現在地（2026-09-07）: D-022の初回診断保存・復元とD-023の表示名契約はKAI-32〜KAI-33で実装し、KAI-34で合成データ専用非本番remoteへ適用・統合検証した。PR #47のmain反映、main `Check`・`Supabase Diagnosis`、Linear完了証跡を確認してKAI-34をDoneとした。D-024により当面はFreeプランを継続し、Freeに含まれないleaked-password protectionはKAI-35で有効化しない。`password_hibp_enabled`は未変更、機能は未実装・未検証、Security Advisor警告とKAI-35元受入条件は未解消である。KAI-35をCanceled／Won't Do相当へ移すかBacklogで維持するかは文書監査・main反映後の別判断とする。これはOQ-009全体の解消ではなく、KAI-12はIn Reviewを維持する。参加者データ収集、予備試行、同意・保持・撤回・削除・評価ログ・研究者用アクセス等の実装開始許可には一般化しない。
 
 ### OQ-010 技術構成の最終説明
 - 状態: [矛盾・要確認]

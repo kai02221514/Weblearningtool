@@ -1,6 +1,6 @@
 # 実装状態
 
-- 最新確認日: 2026-09-06
+- 最新確認日: 2026-09-07
 - 対象: `kai02221514/Weblearningtool`
 - GitHub取得時点（2026-07-02）の`main`: `1a8efb5aa28a9ef08042a9e275cc171dccf8b6a2`
 - PR #28によるKAI-26完了証跡反映時の`main`: `3ca325b2c2738db0869d6b8e391ed09e91a13eeb`
@@ -247,7 +247,7 @@
 
 1. OQ-004、OQ-005、OQ-006は初期仕様として解消済みである。
 2. KAI-34はremote適用、監査、PR #47 merge、main両検証、Linear完了証跡を完了しDoneである。
-3. KAI-35でleaked-password protectionのplan・設定影響・rollbackを、表示名実装と分離し、独立した設定変更許可ゲートで確認する。
+3. KAI-35はD-024のFreeプラン継続判断により、leaked-password protectionを有効化・検証する元受入条件を実行できない。文書監査とmain反映後にCanceled／Won't Do相当へ移すかBacklogで維持するかを研究者本人が判断する。
 4. 研究判断ゲートとしてKAI-12 / OQ-009の残余を解消し、研究データ管理、同意、保存、削除、アクセス権限、評価ログを確定する。
 5. KAI-13はLinear上Backlogであり、独立実装候補として扱う場合もCI必須化タイミングを確認した範囲だけ進める。
 6. KAI-14はDoneでPR #20、KAI-25はDoneでPR #22、KAI-15の対象3ノード教材接続はPR #24としてmainへ反映・再検証済みである。ただしKAI-15全体、MVP 12ノード全体、実践課題エラー履歴・振り返り・永続化を含む全入力のルート接続は完了していない。
@@ -277,3 +277,13 @@
 - rollback: 実施していない。適用版、時刻、status別結果、Advisor分類、rollback候補の詳細は`docs/operations/kai-34-remote-application-plan.md`を正とする
 - PR・main・Linear: PR [#47](https://github.com/kai02221514/Weblearningtool/pull/47)のfinal head `2070f9b3fb8ba38a395aaa44807b1ea118ab4ae6`で両CI成功、mergeability clean、未解決review thread 0件を確認し、merge commit `732ee28e6750468c93f72ee659cb464bc7426922`としてmainへ反映した。同merge commitのmain `Check` run [34044874144](https://github.com/kai02221514/Weblearningtool/actions/runs/34044874144)と手動`Supabase Diagnosis` run [34044905588](https://github.com/kai02221514/Weblearningtool/actions/runs/34044905588)は成功し、Linearへ完了証跡を記録してDoneとした
 - 研究境界: 合成データ専用非本番環境の技術確認であり、参加者データ、予備試行、研究上の有効性主張へ一般化しない。新しい研究判断はなくDecision Logを更新しない。5項目、OQ-009残余、KAI-12/KAI-16、同意・保持・撤回・削除・評価ログ・参加者利用は対象外
+
+## KAI-35 Freeプラン継続による未実施境界
+
+- 状態: [未実装・未検証／元受入条件未達] 2026-09-07の研究者本人の判断をD-024として記録し、当面はSupabase Freeプランを継続する。KAI-35はBacklogのままで、DoneまたはCanceledへ変更していない
+- read-only確認: project ref `znfwkrhquegvlcmugkoe`は`ACTIVE_HEALTHY`、Organization `httvbvgmiboypecuoyqy`のplanは`free`、Security Advisorに`auth_leaked_password_protection`警告1件が存在する。KAI-34で分類済みのGraphQL schema可視性警告2件とは別件である
+- 公式提供境界: 2026-09-07確認時点のSupabase公式Password securityではleaked-password protectionはPro Plan以上、PricingではFreeは「Not included」である。Auth関連changelogにこの提供境界を覆す関連breaking changeは確認していない
+- Auth状態: `password_hibp_enabled`は変更していない。既知漏えいpassword拒否、妥当なpassword受付、既存利用者への影響、rollbackは実行・検証していない。Advisor警告を誤検知または解消済みと扱わない
+- 非変更: Supabase plan、課金、請求、Auth config、remote、schema、migration、RLS、GRANT、Edge Function、アプリコード、テスト、依存関係、CIは変更していない。合成Auth userを含むsignup/signin実験も行っていない
+- 研究境界: 指定projectは合成データ専用非本番のまま維持し、実在個人情報・研究参加者データ・本番データを投入しない。実在参加者利用、予備試行、研究データ収集または本番化の前に認証セキュリティを再判断する
+- 未確定: KAI-35の最終Linear状態、Free継続期間、将来のPro移行、独自代替策、minimum length、required characters、MFA、rate limit、CAPTCHA等の追加見直し
