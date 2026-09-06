@@ -18,7 +18,7 @@
 - KAI-27実装commit: `97a2df0`。監査指摘対応commit: `aafd9b142e13777eae5d48c43e1bdf14a4d4c788`。完了イベント境界の追加対応commit: `ca121d43bfbe58ed5dfcee1f9517e166af658115`。最終head `3e74f087f206fc35948e0756428554349171da68`を2026-09-04T06:11:28Zにmerge commit `101ac22f3cb645aa0727c66a6447aeb97d98accf`として`main`へ反映した。診断・進捗・確認テストに限定したブラウザ内メモリ接続であり、保存・評価ログを含まない
 - KAI-27 PR段階CI: workflow `Check`、run `33840997363`、`pull_request`、対象head `3e74f087f206fc35948e0756428554349171da68`、`success`
 - KAI-27 main push CI: workflow `Check`、run `33843351139`、`push`、対象SHA `101ac22f3cb645aa0727c66a6447aeb97d98accf`、`success`
-- KAI-28対象Issue / 実装PR: Linear KAI-28（完了証跡同期中のためIn Review）/ PR #34（merged、branch `feat/kai-28-diagnosis-persistence`）。最終head `bfa3e239df6a7b9c00135dde773a0b74f20ad31b`を2026-09-05T16:36:45Zにmerge commit `38782ebb55b0e37f98592d110b26d2afce20dd1d`として`main`へ反映した。K群3項目の本人単位保存・復元、保存成功ゲート、失敗時再試行、版互換性、RLS、認証後UI統合テスト、固定版CLIによる独立workflow `Supabase Diagnosis`を実装し、同一merge commitのローカル環境とmain Actionsで再検証済みである。remote Supabaseへのdeploy・変更は未実施
+- KAI-28対象Issue / 実装PR: Linear KAI-28（Done、完了コメント登録済み）/ PR #34（merged、branch `feat/kai-28-diagnosis-persistence`）。最終head `bfa3e239df6a7b9c00135dde773a0b74f20ad31b`を2026-09-05T16:36:45Zにmerge commit `38782ebb55b0e37f98592d110b26d2afce20dd1d`として`main`へ反映した。K群3項目の本人単位保存・復元、保存成功ゲート、失敗時再試行、版互換性、RLS、認証後UI統合テスト、固定版CLIによる独立workflow `Supabase Diagnosis`を実装し、同一merge commitのローカル環境とmain Actionsで再検証済みである。完了証跡はPR #35で同期済みであり、remote Supabaseへのdeploy・変更は未実施
 - 追加確認日: 2026-07-05
 - KAI-20作業開始時点の`main`: `233f9ac6152bc587643134f67bcfeea50be69d37`
 - KAI-21作業開始時点の`main`: `461dea5e7eca532eb077f0998a4b680945ba74c8`
