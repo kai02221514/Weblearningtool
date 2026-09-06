@@ -620,7 +620,7 @@
 - 状態: 有効
 - タイトル: 表示名の型付き正本と合成データ専用remote運用の確定
 - 関連Issue: `KAI-31`、後続`KAI-32`、`KAI-33`、`KAI-34`、`KAI-35`
-- 関連PR: [#40](https://github.com/kai02221514/Weblearningtool/pull/40)（Draft、監査・マージ前）
+- 関連PR: [#40](https://github.com/kai02221514/Weblearningtool/pull/40)（merged、final head `6b36d3c03174145c42ccdec6c443db7209186a0d`、merge commit `83dc8d4e08d29b67a249022d678e98c8b3719b58`、2026-09-06T10:16:40Z）
 - 関連OQ: OQ-009
 - 判断内容:
   1. 表示名は認証後の画面で継続利用する通常運用データとする。研究分析、評価指標、研究用exportには使用せず、研究用仮名IDまたは参加者識別子にも使用しない。実名を要求せず、ニックネームを許可する。
