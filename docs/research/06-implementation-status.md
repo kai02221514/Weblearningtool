@@ -246,8 +246,8 @@
 ## 次の最小作業単位
 
 1. OQ-004、OQ-005、OQ-006は初期仕様として解消済みである。
-2. KAI-32完了ゲートの両merge commit、main検証、CI、Linear Done、remote未変更をKAI-33開始前に再確認する。
-3. KAI-33でKV廃止・remote差分をread-only調査し、KVが1行でも存在する場合は値を取得せず停止する。KAI-33の停止条件を満たした後だけ、KAI-34で指定remoteへ監査済み変更を適用する。
+2. KAI-33 Draft PRのfinal head、merge-ref、両CI、review thread、local検証、対象外、remote未変更を監査し、独立したmerge許可ゲートで停止する。
+3. KAI-33完了後だけ、KAI-34で適用直前のKV 0件とremote差分を再確認し、指定remoteへ監査・明示許可済み変更だけを適用する。
 4. KAI-35でleaked-password protectionのplan・設定影響・rollbackを、表示名実装と分離して確認する。
 5. 研究判断ゲートとしてKAI-12 / OQ-009の残余を解消し、研究データ管理、同意、保存、削除、アクセス権限、評価ログを確定する。
 6. KAI-13はLinear上Backlogであり、独立実装候補として扱う場合もCI必須化タイミングを確認した範囲だけ進める。
@@ -255,3 +255,14 @@
 8. 予備試行は関連準備と研究者判断を確認した後に実施する。
 
 [注意] Phase 3は仕様確定作業であり、未確定の診断重み、ルート生成優先順位、確認テスト閾値、保存項目を実装上の既定値で補完してはならない。
+
+## KAI-33 KV廃止・remote差分整理
+
+- 状態: [local実装・検証済み／Draft PR監査前] 開始基準main `68f50a2784073a09c7733fc9171a94dc942da597`からbranch `refactor/kai-33-remove-legacy-kv`を作成した
+- remote read-only: project ref `znfwkrhquegvlcmugkoe`を厳密照合した。最初の正確なKV集計は合計1件（`user:` 1、`profile:` 0、その他0）だったため内容を取得せず停止した。研究者本人の削除完了連絡後、同じ集計で全区分0件を確認して再開した。remote migration、deploy、削除、更新、設定変更はCodexから実行していない
+- remote差分: migration履歴は`20251204051132_create_kv_table_f3d88633`のみ、public tableはKVのみ、RLS有効・policy 0、anon/authenticated/service_roleの広いtable GRANT、PK＋同一prefix index 3件、public routine 0件だった。Edge Function `make-server-f3d88633`はACTIVE version 4、`verify_jwt=false`だった
+- local実装commit: `b4211f9`。remote履歴version/nameをrepositoryへ整合し、非空時に例外停止して空の場合だけKV tableをdropするmigrationをCLI `supabase migration new`で生成した。legacy `/profile`、frontend `saveProfile` / `ProfileData`、KV helper、未使用legacy `Onboarding`を撤去し、`/profile` 404とKV table不存在を回帰テストへ追加した。5項目は別の保存先へ移行していない
+- local検証: `npm ci`成功。`npm run verify`はtypecheck、lint、全20 files / 232 tests、build 1726 modulesに成功した。fresh DBは4 migrationを順番に適用し、pgTAP 3 files / 95 tests、DB lint、診断API、profile/signup/signin/display-name回帰に成功した。合成KV 1件では撤去migrationがerrorで停止して行を保持し、0件ではdrop成功した
+- rollback: KV最小互換table、RLS、service_role DML、単一prefix indexの逆向きmigrationをlocal確認した。初回はコマンド引用ミスでSQL実行前に失敗し、修正後に成功した。Functionのremote rollback先はversion 4 / bundle SHA-256 `9494c89b52f9e9994e7c7098bad6462dc835a2f7ce16965d52ee5ffb490a6c58`
+- KAI-34引継ぎ: `docs/operations/kai-34-remote-application-plan.md`に差分表、適用順、停止条件、rollback、合成データ検証計画を記録した。remote適用はKAI-34の独立ゲートでのみ行う
+- 研究境界: 新しい研究判断はなくDecision Logを更新しない。5項目、OQ-009残余、KAI-12/KAI-16、同意・保持・撤回・削除・評価ログ・参加者利用は対象外

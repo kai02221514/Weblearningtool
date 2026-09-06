@@ -115,7 +115,8 @@ Supabase Dashboardでは対象の`main`が`PRODUCTION`と表示されている�
 `supabase/config.toml` では `make-server-f3d88633` に対して `verify_jwt = false` を設定している。
 
 - `signup`、`signin`、`health` を未認証で呼び出すための暫定設定である。
-- `profile` はアプリ内で `Authorization: Bearer <access token>` を検証する。
+- `display-name`と`diagnosis`はアプリ内で`Authorization: Bearer <access token>`を検証する。
+- D-023で不採用となった5項目用legacy `/profile`とKV helperはKAI-33で撤去候補とし、remote適用・rollbackの詳細は`docs/operations/kai-34-remote-application-plan.md`を参照する。
 - 本番運用時にはレート制限、公開範囲、CORS制限を再検討する。
 
 ## Health確認
