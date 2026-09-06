@@ -234,6 +234,7 @@
 - KAI-29 main反映後検証: [確認済み] merge commit `db6f4dc017ca062db050469e07332a9977c06a4a`と同一の専用clean worktreeで、依存未導入の初回`npm run verify`はglobal TypeScript 4.5.5を参照して失敗した。`npm ci`でlockfileどおりの依存を導入後、`npm run verify`（typecheck、lint、全19 files / 213 tests、build 1725 modules transformed）と`git diff --check`に成功した。`npm ci`ではNode 20.10.0に対する既存のengine警告、Recharts 2系deprecated、7 vulnerabilities（moderate 1、high 6）が表示されたが、依存・Node版は変更していない
 - KAI-29 main Actions: [確認済み] merge commit `db6f4dc017ca062db050469e07332a9977c06a4a`を対象とする`push` workflow `Check` / run [34021470395](https://github.com/kai02221514/Weblearningtool/actions/runs/34021470395)と、同じmain refを対象に手動実行した`workflow_dispatch` workflow `Supabase Diagnosis` / run [34021577529](https://github.com/kai02221514/Weblearningtool/actions/runs/34021577529)はいずれも`success`だった。後者はDB reset、pgTAP、DB lint、合成利用者API検証、stopを含む全stepに成功した。KAI-30のKV再現性問題は未解決の独立Issueであり、解消済みと扱わない。`clientWidth`直接値、Tab移動、実ブラウザでの教材の左矢印キー操作はLowの将来確認として維持する。remote Supabase、実在個人情報、参加者データ、secret/service-role keyは使用していない
 - KAI-30 KV依存調査: [調査完了・未実装] PR #38の最終head `0f9ac201c4cc5b33f96c80b273a1f445d6633328`をmerge commit `9c90855010a8a430bd5713fcb398f47714244bd3`としてmainへ反映し、main `Check` run [34024031887](https://github.com/kai02221514/Weblearningtool/actions/runs/34024031887)が成功した。現行signupがAuth user作成後にmigration未管理のKV tableへ必須書込みしてfresh環境でHTTP 500となること、signinがKV nameを優先しAuth metadataへfallbackするため表示名の正本が重複すること、localと指定remote候補のschemaが異なることを確認した。Linear KAI-30はDoneで、後続Decision Issue [KAI-31](https://linear.app/kai02221514/issue/KAI-31/)はBacklogである。表示名の正本・型契約・KV廃止範囲とproject ref `znfwkrhquegvlcmugkoe`の用途・deploy許可は未決定で、schema、migration、Edge Function、frontend、remote Supabaseには未適用である
+- KAI-31研究者判断: [仕様確定・未実装・remote未適用] D-023により、表示名を研究分析に使わない通常運用データ、型付き`public.profiles.display_name`を唯一の正本、emailをSupabase Authの正本とした。trim後1〜50文字、空文字・改行・制御文字拒否、Unicode・本人変更許可、Auth user削除連動、DB時刻、signup完了境界、KV廃止方針を確定した。project ref `znfwkrhquegvlcmugkoe`は合成データ専用の非本番remote検証環境とし、監査済み・明示許可済み変更だけdeploy可能とした。現行コード、schema、migration、RLS、GRANT、Edge Function、frontend、remoteは変更しておらず、profilesとKV廃止は未実装、remoteは未適用である。後続はKAI-32〜KAI-35へ分離した
 - KAI-29検証時の失敗・部分確認: [記録済み] 最初の`supabase start`は既存の別projectが54322番を使用中だったため失敗し、既存projectを停止せず専用ポートへ分離した。専用設定の初回起動も一時configのsection配置誤りでparseに失敗し、修正後に成功した。空DBには既存Edge Functionが前提とする`kv_store_f3d88633`がmigration化されておらず、通常entryの初回signupはAuth user作成後のprofile保存でHTTP 500となったため、合成検証DBだけに同テーブルをRLS有効・policyなしで作成し、新しい合成アカウントで完走した。この一時前提はcommitしていない。限定UIテストの初回修正では問題2のaccessible name完全一致が改行差で2件失敗し、曖昧な配列位置参照へ戻さずroleと先頭文字列の一意照合に修正して再実行成功した。ブラウザ計測は`innerWidth`比較であり、指定された`documentElement.clientWidth`値の直接記録とTabキーによるフォーカス移動は未取得である。実APIの診断保存失敗・回答保持・再試行は安全な障害注入を行わず、既存App UI統合テストと合成ハーネスの証跡に限定した
 - KAI-29対象外・未検証: [未接続] 学習進捗、確認テスト、実践課題、振り返り、ルート履歴の永続化、ページ更新時の認証session復元、同意、保持・撤回・削除、評価ログ、研究データ出力、remote Supabase変更は対象外である。remote Supabase、参加者データ、実在個人情報、service-role keyは使用していない
 - セッション復元: [未確認] リロード後の認証状態復元は確認していない
@@ -244,10 +245,12 @@
 ## 次の最小作業単位
 
 1. OQ-004、OQ-005、OQ-006は初期仕様として解消済みである。
-2. KAI-31で表示名の唯一の正本・型契約・KV廃止範囲と、指定remote検証環境の用途・deploy許可境界を確定する。決定前に実装またはremote適用へ進まない。
-3. 研究判断ゲートとしてKAI-12 / OQ-009の残余を解消し、研究データ管理、同意、保存、削除、アクセス権限、評価ログを確定する。
-4. KAI-13はLinear上Backlogであり、独立実装候補として扱う場合もCI必須化タイミングを確認した範囲だけ進める。
-5. KAI-14はDoneでPR #20、KAI-25はDoneでPR #22、KAI-15の対象3ノード教材接続はPR #24としてmainへ反映・再検証済みである。ただしKAI-15全体、MVP 12ノード全体、実践課題エラー履歴・振り返り・永続化を含む全入力のルート接続は完了していない。
-6. 予備試行は関連準備と研究者判断を確認した後に実施する。
+2. D-023とKAI-31の文書Draft PRを監査する。マージ・完了証跡登録前にKAI-31をDoneにしない。
+3. KAI-32で型付きprofilesと表示名save/loadをlocal実装し、main反映後にKAI-33でKV廃止・remote差分を整理する。KAI-33の停止条件を満たした後だけ、KAI-34で指定remoteへ監査済み変更を適用する。
+4. KAI-35でleaked-password protectionのplan・設定影響・rollbackを、表示名実装と分離して確認する。
+5. 研究判断ゲートとしてKAI-12 / OQ-009の残余を解消し、研究データ管理、同意、保存、削除、アクセス権限、評価ログを確定する。
+6. KAI-13はLinear上Backlogであり、独立実装候補として扱う場合もCI必須化タイミングを確認した範囲だけ進める。
+7. KAI-14はDoneでPR #20、KAI-25はDoneでPR #22、KAI-15の対象3ノード教材接続はPR #24としてmainへ反映・再検証済みである。ただしKAI-15全体、MVP 12ノード全体、実践課題エラー履歴・振り返り・永続化を含む全入力のルート接続は完了していない。
+8. 予備試行は関連準備と研究者判断を確認した後に実施する。
 
 [注意] Phase 3は仕様確定作業であり、未確定の診断重み、ルート生成優先順位、確認テスト閾値、保存項目を実装上の既定値で補完してはならない。

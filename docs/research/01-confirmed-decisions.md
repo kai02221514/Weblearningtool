@@ -90,6 +90,13 @@ Decision Logと本書が不一致の場合は、最新の有効Decisionを優先
 - [確定事項] コードは実装事実の確認材料であり、研究仕様の正解とはみなさない。
 - [確定事項] 要件ID体系はMVP評価終了まで既存のR-xx体系を維持し、RQ/LM/MVP/ERR/EVAL/DATA/OPS体系への全面移行は現時点では行わない。
 - [確定事項] 「実装済み」は、コードが存在するだけでなく、正規データで動作し、受入条件に対応する検証が通った状態を指す。
+- [確定事項] D-023により、表示名は認証後の画面で継続利用する通常運用データとし、研究分析、評価指標、研究用export、研究用仮名ID、参加者識別には使用しない。実名を要求せずニックネームを許可する。
+- [確定事項] 表示名の唯一の正本は型付き`public.profiles.display_name`、emailの正本はSupabase Authとする。Auth `user_metadata.name`とKVを通常の表示名読取元にせず、`user_metadata`を認可、RLS、本人所有判定へ使用しない。
+- [確定事項] `display_name`は必須で、trim後1〜50文字、空文字・改行・制御文字を拒否する。日本語を含むUnicodeを許可し、狭い文字種allowlistは設けない。認証済み本人による変更を許可し、欠損時の`「ユーザー」`はDBへ保存しないUI fallbackとする。
+- [確定事項] `profiles.id`は`auth.users(id)`主キーを参照してAuth user削除時に連動削除し、`created_at`と`updated_at`にはDB時刻を使う。signupはAuth userと必須profileが成立した場合だけ完了扱いとし、失敗時に孤立Auth userまたは利用可能な不完全accountを残さない。具体方式はKAI-32で設計する。
+- [確定事項] `user:{id}`のemail、name、createdAt重複を廃止する。`profile:{id}`のage、occupation、pace、level、levelScoreは自動移行せず、必要性が生じた場合は別Decisionで再設計する。remote KVにデータがあれば自動処理せず停止する。
+- [確定事項] project ref `znfwkrhquegvlcmugkoe`は合成データ専用の非本番remote検証環境とする。実在個人情報・研究参加者データを禁止し、Git管理、local/CI検証、Draft PR監査、対象変更への明示許可を満たす変更だけmigration適用・Edge Function deployを許可する。
+- [確定事項] 指定remoteへのdeploy前後確認はD-023と`docs/operations/supabase-setup.md`に従う。RLSとGRANTを別々に検証し、service roleまたはsecret keyをfrontendへ公開しない。この環境判断を参加者データ収集、同意、保持、撤回、削除、研究者access/export、学内手続の承認へ一般化しない。
 
 ## 評価
 

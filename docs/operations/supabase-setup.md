@@ -4,9 +4,45 @@
 
 - 対象Project Reference ID: `znfwkrhquegvlcmugkoe`
 - Project URL: `https://znfwkrhquegvlcmugkoe.supabase.co`
+- 用途: D-023で正式指定した**合成データ専用の非本番remote検証環境**
+- 禁止データ: 実在個人情報、研究参加者データ、本番データ
 - Supabase CLIを利用できること
 - Supabase DashboardでPublishable keyを取得できること
 - Secret key、service_role key、JWT secretをフロントエンド環境変数へ置かないこと
+
+## Remote変更の許可境界（D-023）
+
+このprojectへのmigration適用とEdge Function deployは、次の条件をすべて満たす変更だけに許可する。
+
+1. schema、migration、FunctionがGit管理されている。
+2. fresh local環境とCIで、対象Issueの受入条件に対応する検証が成功している。
+3. Draft PRの差分、review thread、対象外、rollbackが監査されている。
+4. 対象project ref、変更内容、適用版について研究者本人の明示許可がある。
+5. KAI-33でremote KVの行数・利用箇所・停止条件を再確認済みである。KVにデータが存在する場合は、自動移行・削除を行わず停止する。
+
+Dashboard上の手作業やad hoc SQLで、Git管理外のschema差分を作らない。RLS policyとPostgres GRANTは別レイヤーであり、片方だけを確認済みとして扱わない。service roleまたはsecret keyはbackendだけで扱い、frontend、配布物、source、検証記録へ公開しない。
+
+### Deploy前確認
+
+- `project ref = znfwkrhquegvlcmugkoe`であり、本番projectでない。
+- remote migration履歴とrepository migrationの差分、対象table、RLS有効性、operation別policy、`anon`・`authenticated`・`service_role`のGRANTを確認する。
+- 現在のEdge Function versionと、deployするGit commit・artifactを照合する。
+- 実在個人情報・研究参加者データがないことと、合成利用者の識別方法を確認する。
+- 逆向きmigration、直前Function version、停止判定、復旧確認を含むrollback方法を用意する。
+
+### Deploy後確認
+
+- migration履歴、table、RLS、policy、GRANT、Function versionが監査済み計画と一致する。
+- 合成利用者A/Bと未認証要求で、本人read/write成功、他人read/write拒否、未認証拒否を確認する。
+- signupから表示名load/update、D-022診断保存、明示的再ログイン後復元までを確認する。
+- signup後段の失敗時に、孤立Auth userまたは利用可能な不完全accountを残さないことを確認する。
+- Security AdvisorとPerformance Advisorを取得し、警告、判断、未解消事項をPRまたはIssueへ記録する。
+
+### Rollback
+
+異常、計画外差分、停止条件、境界テスト失敗があれば追加変更を止め、事前定義した逆向きmigrationと直前の監査済みFunction versionへ戻す。rollback後もmigration履歴、RLS、GRANT、Function version、合成利用者境界を再確認し、実行時刻と結果を記録する。
+
+この許可はKAI-34等の独立Issueに限って適用する。参加者データ収集、予備試行、同意、保持、撤回、削除、研究者access/export、評価ログ、学内手続の許可を意味しない。
 
 ## ローカル設定
 
