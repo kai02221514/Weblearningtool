@@ -7,7 +7,7 @@
 - 関連OQ: `OQ-009`、`OQ-004`のDG-08、`OQ-005`の保存境界、`OQ-008`
 - 作成基準: `main` `f9a5c0dbff374eaf8aae9a90ca9b111ff3839499`（2026-07-13）
 - 重要: **§1.4の初回診断保存・復元契約だけはD-022に基づく確定仕様であり、この範囲の後続Task Aは追加の指導教員承認なしで開始できる。**
-- 重要: **§16.6の表示名・KV・指定remote境界はD-023に基づく確定仕様である。profilesの実装、KV撤去、remote適用は未実施であり、KAI-32〜KAI-34の順序と停止条件に従う。**
+- 重要: **§16.6の表示名・KV・指定remote境界はD-023に基づく確定仕様である。profilesとrepository/localのKV撤去候補はmainへ反映済みだが、指定remoteは未適用であり、KAI-33完了後にKAI-34の開始時再確認・停止条件・独立した明示許可へ従う。**
 - 重要: OQ-009全体とKAI-12は未完了である。同意UI、評価ログ、研究者用取得・削除・export、保持・撤回・削除、参加者データ収集、予備試行は開始可能になっていない。
 - 重要: D-022の権限確認は、学内規程上必要な手続または研究参加者の同意を免除しない。
 - 重要: §11のD-022対象外項目に残る研究者判断は2026-07-14時点の暫定案であり、確定仕様として扱わない。
@@ -457,7 +457,7 @@ routeGenerator保存接続は、routeGenerator自体の実装と混ぜず、純�
 | 調査対象 | [コード存在確認済み] | 未接続・mock・注意 |
 |---|---|---|
 | 認証ID | Supabase Authの`data.user.id`を返し、アプリstateの`userId`に保持 | 分析用研究IDではない |
-| 認証・表示名 | signupはemail/password/display name、signinはemail/passwordをEdge Functionへ送り、認証済み本人は`GET /display-name`と`PUT /display-name`を使用する。KAI-33 / Draft PR #45では5項目用legacy `/profile`とfrontend helper/typeをrepository/local候補から撤去済み | 表示名の正本は型付き`public.profiles.display_name`。age、occupation、pace、level、levelScoreは採用・移行しておらず、必要性と保存先は未確定 |
+| 認証・表示名 | signupはemail/password/display name、signinはemail/passwordをEdge Functionへ送り、認証済み本人は`GET /display-name`と`PUT /display-name`を使用する。KAI-33 / PR #45では5項目用legacy `/profile`とfrontend helper/typeをrepositoryから撤去しmainへ反映済み | 表示名の正本は型付き`public.profiles.display_name`。age、occupation、pace、level、levelScoreは採用・移行しておらず、必要性と保存先は未確定 |
 | 初期アンケート | 9項目、条件表示、旧重み付きscoreとlevel判定。KAI-28 / PR #34で未経験時もK群3項目を必須表示し、K群だけを保存する実装をmainへ反映した | S群・A群のUIと旧score表示は残るが診断APIへ送信・保存しない。remote Supabaseでは未確認 |
 | 進捗 | KAI-27で空の`completedNodeIds`・`assumedNodeIds`と`inProgressNodeId: null`から開始し、学習開始・完了をメモリ内のルート入力へ接続済み | 永続化なし。表示用の`currentNodeId`・`currentNodeName`は初期値を持つが、ルート生成入力とは区別する |
 | クイズ | 詳細な`QuizAttemptResult`にID、番号、回答、版、得点、合否、誤答、時刻、model versionがある | Quizコンポーネントのメモリ内stateのみ。再表示で初期化、保存なし |
@@ -465,7 +465,7 @@ routeGenerator保存接続は、routeGenerator自体の実装と混ぜず、純�
 | 振り返り | node、固定7概念、自由記述、日付、recommendationsをメモリ保持 | `quickTestResult=true`は仮値。概念が正規nodeIdでなく、永続化なし |
 | 事後アンケート | 該当機能を確認できない | 未実装 |
 | ルート生成 | KAI-26で純粋なrouteGenerator、KAI-27でK群3項目・進捗・確認テストとDashboard上位3件表示を接続済み。KAI-28 / PR #34で認証後に保存済みK群を復元して同じ開始判定・ルート生成へ渡す実装をmainへ反映・再検証した | `generatedAt`、routeId、診断以外の保存は未実装。remote Supabaseでは未確認 |
-| Supabase永続化 | KAI-28 / PR #34の`public.user_diagnoses`とKAI-32 / PR #42の`public.profiles`をmainへ反映し、本人限定RLS・最小GRANTを合成データ専用local環境と独立CIで検証済み。KAI-33 / Draft PR #45ではKV helperとlegacy保存経路をrepository/local候補から撤去済み | 指定remoteはKAI-34未実施のため、KV tableと旧Edge Function version 4が残る。研究者用取得・削除・export、診断履歴、進捗、試行、課題、エラー、振り返り、ルート、同意、評価ログは対象外・未実装 |
+| Supabase永続化 | KAI-28 / PR #34の`public.user_diagnoses`、KAI-32 / PR #42の`public.profiles`、KAI-33 / PR #45のKV helper・legacy保存経路撤去をmainへ反映し、本人限定RLS・最小GRANT・KV非空停止を合成データ専用local環境と独立CIで検証済み | 指定remoteはKAI-34未実施のため、KV tableと旧Edge Function version 4が残る。研究者用取得・削除・export、診断履歴、進捗、試行、課題、エラー、振り返り、ルート、同意、評価ログは対象外・未実装 |
 
 ### 14.1 調査した主なコード箇所
 
@@ -479,7 +479,7 @@ routeGenerator保存接続は、routeGenerator自体の実装と混ぜず、純�
 
 ### 14.2 repository/local候補と指定remoteの現在差
 
-- repository/local候補: KAI-33 / Draft PR #45により、legacy `/profile`、frontendの`saveProfile` / `ProfileData`、KV helperを撤去済みである。表示名は型付き`public.profiles.display_name`、診断K群3項目は`public.user_diagnoses`を使用する。
+- repository/main: KAI-33 / PR #45のmerge commit `f7bf8c86ebae8e23c7c8ddb9aa9fbb43bf8b1246`により、legacy `/profile`、frontendの`saveProfile` / `ProfileData`、KV helperを撤去済みである。表示名は型付き`public.profiles.display_name`、診断K群3項目は`public.user_diagnoses`を使用する。
 - 指定remote: KAI-34未実施のため、`public.kv_store_f3d88633`と旧Edge Function version 4が残る。KAI-33ではremote migration、Function deploy、KV削除・更新、設定変更を行っていない。
 - 境界: `profile:{id}`の5項目を採用・移行していない。repository/local候補の撤去済み状態をremote適用済みと解釈せず、remote変更はKAI-34の独立ゲートに従う。
 
@@ -585,8 +585,8 @@ D-023により、`user_metadata.name`は通常の表示名読取元にせず、R
 ### 16.7 後続Issue
 
 1. **KAI-32 型付きprofilesと表示名save/loadをlocal実装する**: migration、型、validation、本人限定RLS、明示GRANT、signup/signin/read/update、Auth削除連携、KV name/email依存除去をlocalで実装する。remote適用は対象外。
-2. **KAI-33 KV廃止とremote schema差を解消する**: KAI-32のmain反映後にremote metadataとKVデータ有無を再確認し、差分、適用順、停止条件、rollbackを整理する。データがあれば自動処理せず停止する。
-3. **KAI-34 指定remoteへ監査済み変更を適用して統合検証する**: KAI-33完了後、明示許可された監査済み版だけを指定remoteへ適用し、合成利用者A/B、未認証、signup、表示名、D-022診断、Advisor、rollbackを検証する。
+2. **KAI-33 KV廃止とremote schema差を解消する**: PR #45の実装はmainへ反映・再検証済み。完了証跡PRのmerge、Linear完了コメント、Doneを確認して閉じる。remoteは変更しない。
+3. **KAI-34 指定remoteへ監査済み変更を適用して統合検証する**: KAI-33のLinear Done後、project ref、KV 0件、migration履歴、Function version/hash、適用対象commitを再確認し、独立して明示許可された監査済み版だけを指定remoteへ適用する。
 4. **KAI-35 Supabase Auth leaked-password protectionを有効化・検証する**: profiles実装と混在させず、planと設定可否、既知漏えいpassword拒否、既存利用者への影響、rollbackを検証する。
 
 進捗snapshot、クイズ試行、実践課題、振り返り、評価event log、同意、研究者exportはこの分割へ含めず、それぞれOQ-009の確定後に別Issueとする。

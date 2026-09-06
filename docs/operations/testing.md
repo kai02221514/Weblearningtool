@@ -166,7 +166,7 @@ npm run check
 - 文書merge commitを対象・checkoutしたmain `Check` run [34035137530](https://github.com/kai02221514/Weblearningtool/actions/runs/34035137530)は全step成功した。文書だけの変更であり、main手動Supabase Diagnosisはコードmerge commit `9b73e4010da4dc7d6e8c5305696a08fb9a015ff8`に対するrun `34034224612`を正本証跡とする
 - remote Supabaseへの接続・変更はなく、実在個人情報・研究参加者データを使用していない。KAI-32を完了とし、KAI-33を開始可能とする
 
-## KAI-33 Draft PR local検証
+## KAI-33 PR #45 local・CI検証
 
 - 実行日: 2026-09-06
 - 対象: branch `refactor/kai-33-remove-legacy-kv`、開始基準main `68f50a2784073a09c7733fc9171a94dc942da597`、実装commit `b4211f9`
@@ -179,4 +179,5 @@ npm run check
 - rollback: 最小互換KV table、RLS、service_role DML、単一prefix indexを再作成し、RLS true、index 2件（PK＋prefix）、service_role DML true、anon/authenticated SELECT falseを確認した。初回は改行引用ミスでSQL実行前に失敗し、1行SQLでの再実行が成功した。最後にfresh resetでrepository最終状態へ戻し、当該local projectだけを停止した
 - remote read-only: exact project ref、migration、table/column/constraint、RLS、policy、GRANT、index、routine、Function version/deploy状態、KV集計区分だけを確認した。個別key/valueは取得していない。最初は合計1件で停止し、研究者本人の削除完了後は合計0件を再確認した
 - remote変更: migration適用、Function deploy、KV削除・更新、設定変更、remote secret利用は未実施。実在個人情報・研究参加者データは不使用
-- 未確認事項: Draft PRのCI・監査・merge、KAI-34のremote dry-run・適用・deploy・Advisor・合成利用者統合検証
+- PR・main検証: final head `aaec41177e35cd30190b8b57ed65c4e4aafe9510`のPR段階では、merge-ref `f95437dc8c34b5e78db03a88cd1434968fa08a71`をcheckoutした`Check` run [34038608451](https://github.com/kai02221514/Weblearningtool/actions/runs/34038608451)が成功した。`Supabase Diagnosis` run [34038608454](https://github.com/kai02221514/Weblearningtool/actions/runs/34038608454)はattempt 1のlocal DB schema初期化時container exit 1を成功扱いせず、attempt 2で同merge-refの全stepが成功した。unresolved review threadは0、mergeabilityはcleanだった。PR #45をmerge commit方式で反映したmain `f7bf8c86ebae8e23c7c8ddb9aa9fbb43bf8b1246`では、対象・checkoutが同SHAの`Check` run [34040215920](https://github.com/kai02221514/Weblearningtool/actions/runs/34040215920)と手動`Supabase Diagnosis` run [34040249439](https://github.com/kai02221514/Weblearningtool/actions/runs/34040249439)が全step成功した
+- 未確認事項: KAI-33完了証跡PRのCI・監査・mergeとLinear Done、KAI-34のremote再確認・dry-run・適用・deploy・Advisor・合成利用者統合検証

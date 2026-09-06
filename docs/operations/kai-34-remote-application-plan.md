@@ -2,10 +2,12 @@
 
 ## 状態と境界
 
-- 状態: KAI-33で作成した監査候補。remote未適用
+- 状態: KAI-33 / PR #45でrepository mainへ反映・再検証済みの監査候補。remote未適用。KAI-33の完了証跡PR mergeとLinear Doneを確認するまでKAI-34を開始しない
 - 対象project ref: `znfwkrhquegvlcmugkoe`（`WebLearningTools`、合成データ専用非本番remote検証環境）
 - KAI-33開始基準main: `68f50a2784073a09c7733fc9171a94dc942da597`
-- Function変更候補commit: `b4211f9`（Draft PRのfinal headへ更新された場合はKAI-34開始時に再固定する）
+- KAI-33 final head: `aaec41177e35cd30190b8b57ed65c4e4aafe9510`
+- KAI-33 merge commit: `f7bf8c86ebae8e23c7c8ddb9aa9fbb43bf8b1246`
+- Function変更候補commit: KAI-34開始時の最新mainから、PR #45 final headを含む監査対象commitへ再固定する
 - remote rollback先: Edge Function `make-server-f3d88633` version 4、bundle SHA-256 `9494c89b52f9e9994e7c7098bad6462dc835a2f7ce16965d52ee5ffb490a6c58`
 - 禁止: KAI-33でのremote migration、deploy、削除、更新、設定変更。実在個人情報・研究参加者データの利用
 
@@ -28,7 +30,7 @@
 
 ## 適用候補と順序
 
-KAI-34では、PR監査、両CI成功、対象project ref・変更内容・final headに対する研究者本人の明示許可後だけ実行する。
+KAI-34では、KAI-33のLinear Done、開始時のread-only再確認、PR監査、両CI成功、対象project ref・変更内容・適用対象commitに対する研究者本人の明示許可後だけ実行する。KAI-33に対するmerge許可はKAI-34のremote変更許可へ流用しない。
 
 1. project ref、migration履歴、Function version/hashを再取得し、KVを値なしの4区分集計で再確認する。合計が0以外なら停止する。
 2. `supabase db push --dry-run`で次のpending migrationだけが表示されることを確認する。
