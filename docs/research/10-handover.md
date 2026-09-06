@@ -9,7 +9,7 @@
 - KAI-11/OQ-006仕様案作業開始時点（2026-07-03）の`main`: `31ed4e247d44bfbf877716783a16e7f2323d3962`
 - 反映PR: `#1`（`docs/phase3-route-spec-proposal` -> `main`、2026-07-03T08:11:37Z merged）
 - KAI-26アプリケーション実装の検証基準`main`: `c47c807214803e2cf4f117bccf7b4e6ac245f3d7`
-- 参照日: 2026-09-06（KAI-31 / D-023の研究者判断反映時）
+- 参照日: 2026-09-06（KAI-31 / D-023のmain反映・完了証跡登録時）
 - KAI-29: Linear `KAI-29`はDone。PR #36の最終head `8aa559b8f07a4f201cdef6b8a7ace8498cc1dd18`をmerge commit `db6f4dc017ca062db050469e07332a9977c06a4a`として`main`へ反映した。作業開始baseは`356ddfd3290327a269218b0e8efaa57cd7540995`
 - 正式RQ・中間発表時点の主張範囲反映日: 2026-09-03
 - PR #28によるKAI-26完了証跡反映時の`main`: `3ca325b2c2738db0869d6b8e391ed09e91a13eeb`
@@ -38,7 +38,7 @@
 - 状態: Phase 2およびPhase 2.5正式完了。KAI-12はIn Reviewを維持し、D-022を含むPR #19はmerge commit `006a89ff1fea60e2d1b62ab4033ea726d4568709`として`main`へ反映済みである。D-022だけを実装するKAI-28はPR #34の最終head `bfa3e239df6a7b9c00135dde773a0b74f20ad31b`をmerge commit `38782ebb55b0e37f98592d110b26d2afce20dd1d`として`main`へ反映し、K群3項目の本人単位保存・復元、保存成功ゲート、失敗時回答保持・再試行、版互換性、本人限定RLS、認証後UI統合テスト、独立workflow `Supabase Diagnosis`をmain上で再検証済みである。完了証跡はPR #35で同期し、Linear KAI-28はDoneとして完了コメントを登録済みである。remote deployは未実施である。KAI-14/KAI-20〜KAI-27の既存完了状態は維持する。同意、保持・撤回・削除、研究者用取得・削除・export、評価ログ、診断以外の永続化、参加者評価は未接続・対象外である
 - KAI-29完了状態: PR #36をmerge commit `db6f4dc017ca062db050469e07332a9977c06a4a`として`main`へ反映し、ログイン・K群3項目の必須診断・推薦・教材→確認テスト→実践課題→振り返り→単元完了・再ログイン後の診断だけの復元と学習状態初期化を確認した。同一main上の`npm run verify`は全19 files / 213 tests、typecheck、lint、build 1725 modules transformedに成功し、main `Check` run [34021470395](https://github.com/kai02221514/Weblearningtool/actions/runs/34021470395)とmain向け`Supabase Diagnosis` run [34021577529](https://github.com/kai02221514/Weblearningtool/actions/runs/34021577529)も同一merge commitを対象に成功した。空DBのKV再現性問題は独立した調査・研究判断ゲートの[KAI-30](https://linear.app/kai02221514/issue/KAI-30/)としてBacklogを維持し、KAI-12はIn Review、OQ-009は未解決である。`clientWidth`直接値、Tab移動、実ブラウザでの教材の左矢印キー操作はLowの将来確認として残す。診断以外の永続化、認証session自動復元、同意・評価ログ・研究データ出力は対象外で、remote Supabase、実在個人情報、参加者データ、service-role keyは使用していない。新しい研究判断はなく、Decision Logは更新していない
 - KAI-30完了状態: PR #38の監査済みhead `0f9ac201c4cc5b33f96c80b273a1f445d6633328`が不変で、同一headの`Check`と`Supabase Diagnosis`、mergeability、review threadを再確認した後、merge commit `9c90855010a8a430bd5713fcb398f47714244bd3`として`main`へ反映した。main pushの`Check` run [34024031887](https://github.com/kai02221514/Weblearningtool/actions/runs/34024031887)は同一merge commitを対象に成功した。KAI-30完了時点では、Linear KAI-30をmerge証跡付きコメントとともにDoneへ更新し、表示名の正本と指定remote用途を決める後続Decision Issue [KAI-31](https://linear.app/kai02221514/issue/KAI-31/)をBacklogで作成していた。当時は表示名方式、project ref `znfwkrhquegvlcmugkoe`の用途、migration・Function deploy許可が未決定で、コード・DB・remote Supabaseへ未適用だった
-- KAI-31判断状態: 2026-09-06の研究者本人の明示判断をD-023として反映した。表示名は研究分析に使わない通常運用データ、唯一の正本は型付き`public.profiles.display_name`、emailの正本はSupabase Authとし、型・更新・削除・signup完了境界、KV廃止方針を確定した。project ref `znfwkrhquegvlcmugkoe`は合成データ専用の非本番remote検証環境とし、Git管理、local/CI、Draft PR監査、明示許可を満たす変更だけmigration・Function deployを許可した。研究者本人はD-023とその確定契約に基づくKAI-32〜KAI-35の着手判断を指導教員から委任されており、この範囲で追加の指導教員承認を開始条件としない。これは指導教員によるD-023の技術内容の個別確認・承認やremote変更の包括許可を意味せず、変更ごとの研究者本人の明示許可は必須である。実在参加者データ、研究データ収集、予備試行、同意、保持、撤回・削除、本人対応表、研究者access/export、評価ログ、学内手続、KAI-12/OQ-009の残余、KAI-16へ一般化しない。後続KAI-32〜KAI-35を作成し、文書Draft PR [#40](https://github.com/kai02221514/Weblearningtool/pull/40)を作成した。KAI-31はPR監査中のIn Reviewとし、マージ・完了証跡登録前にDoneへ戻さない。コード・DB・remote Supabaseは未変更である
+- KAI-31完了状態: 2026-09-06の研究者本人の明示判断をD-023として反映した。表示名は研究分析に使わない通常運用データ、唯一の正本は型付き`public.profiles.display_name`、emailの正本はSupabase Authとし、型・更新・削除・signup完了境界、KV廃止方針を確定した。project ref `znfwkrhquegvlcmugkoe`は合成データ専用の非本番remote検証環境とし、Git管理、local/CI、Draft PR監査、明示許可を満たす変更だけmigration・Function deployを許可した。研究者本人はD-023とその確定契約に基づくKAI-32〜KAI-35の着手判断を指導教員から委任されており、この範囲で追加の指導教員承認を開始条件としない。これは指導教員によるD-023の技術内容の個別確認・承認やremote変更の包括許可を意味せず、変更ごとの研究者本人の明示許可は必須である。実在参加者データ、研究データ収集、予備試行、同意、保持、撤回・削除、本人対応表、研究者access/export、評価ログ、学内手続、KAI-12/OQ-009の残余、KAI-16へ一般化しない。文書PR [#40](https://github.com/kai02221514/Weblearningtool/pull/40)のfinal head `6b36d3c03174145c42ccdec6c443db7209186a0d`をmerge commit `83dc8d4e08d29b67a249022d678e98c8b3719b58`としてmainへ反映した。PR headの`Check`と`Supabase Diagnosis`、mainの`Check` run [34026973738](https://github.com/kai02221514/Weblearningtool/actions/runs/34026973738)は成功し、main向け`Supabase Diagnosis`は未起動である。Linear KAI-31へ完了証跡を登録してDoneとした。コード・DB・remote Supabaseは未変更である
 - 次Phase: Phase 3残仕様確定とPhase 5予備試行用実装準備
 - Phase 2独立再監査: 完了。記録は`docs/archive/audit-2026-07-02/phase2-independent-review.md`。
 - Linear移管: 完了。保存先はLinear `Kai02221514` / `WebLearningTool`。
@@ -55,7 +55,7 @@
   9. `KAI-28`: Done。D-022対象のTask AをPR #34としてmainへ反映・再検証し、PR #35で完了証跡を同期してLinearへ完了コメントを登録済みである。remote deployは未実施。
   10. `KAI-29`: Done。PR #36をmainへ反映し、ローカル検証、main Check、main向けSupabase Diagnosis、完了証跡同期を完了した。KV再現性はKAI-30へ分離済みである。
   11. `KAI-30`: Done。KV依存調査をPR #38でmainへ反映し、完了証跡をLinearへ登録済みである。後続判断はKAI-31へ分離した。
-  12. `KAI-31`: In Review。D-023をDraft PR #40へ反映し、監査・マージ・完了証跡待ちである。監査完了前にDoneへ戻さない。
+  12. `KAI-31`: Done。D-023をPR #40でmainへ反映し、PR head CI、main Check、Linear完了証跡を確認済みである。profiles、KV廃止、remote適用は未実装・未適用である。
   13. `KAI-32`: Backlog。型付きprofilesと表示名save/loadをlocal実装する。remote適用は対象外。
   14. `KAI-33`: Backlog。KAI-32 main反映後、KV廃止とremote schema差、停止条件、rollbackを整理する。
   15. `KAI-34`: Backlog。KAI-33完了後、明示許可された監査済み変更だけを指定remoteへ適用して合成データ統合検証する。
@@ -68,8 +68,8 @@
 - GitHub/Linear同期状況（2026-09-06確認）: PR `#1`（`docs/phase3-route-spec-proposal` -> `main`）はmerged。merge commitは`1a6216b01e9d49315f9bee84e67c93b449b44432`。PR #24はmerge commit `bb8b172a3726a5a2612edaac2436fdc9518a1631`として`main`へ反映・再検証済みである。PR #27は最終head `3f1dc06628e25511f7ee31ece0a3f6d609c868a2`をmerge commit `c47c807214803e2cf4f117bccf7b4e6ac245f3d7`として`main`へ反映し、PR段階CIとmain push CIに成功した。PR #28は最終head `56ad79d82ff5cc4026dbe0c5519c8299cd041291`をmerge commit `3ca325b2c2738db0869d6b8e391ed09e91a13eeb`として`main`へ反映し、PR段階CIとmain push CIに成功した。PR #30は最終head `3e74f087f206fc35948e0756428554349171da68`をmerge commit `101ac22f3cb645aa0727c66a6447aeb97d98accf`として`main`へ反映し、PR段階CI run `33840997363`とmain push CI run `33843351139`に成功した。PR #34は最終head `bfa3e239df6a7b9c00135dde773a0b74f20ad31b`を2026-09-05T16:36:45Zにmerge commit `38782ebb55b0e37f98592d110b26d2afce20dd1d`として`main`へ反映し、main push `Check` run `33978411853`とmain手動`Supabase Diagnosis` run `33978478230`に成功した。PR #35で完了証跡をmainへ同期し、Linear KAI-28は完了コメント登録済みのDoneである。Linear `KAI-15`は`In Progress`、`KAI-27`は完了コメント記録済みの`Done`、`KAI-9`/`KAI-10`/`KAI-11`/`KAI-26`も`Done`である。
 - 未完了事項: MVP 12ノード全体の教材整備、予備試行、本実験用教材・問題の最終化、OQ-009残余、実践課題エラー履歴・振り返りのルート入力接続、同意・診断以外の永続化・評価ログ、研究データ出力、`generatedAt`、`routeId`、全63ノード対応、参加者評価、テスト基盤の継続整備、P-06/P-07/P-09の保留判断。
 - 次の最小作業:
-  1. KAI-31 / D-023の文書Draft PRを監査し、マージ・完了証跡登録後にだけKAI-31のDone可否を判断する。
-  2. KAI-32で型付きprofilesと表示名save/loadをlocal実装する。remote変更を混在させない。
+  1. KAI-32の型付きprofilesと表示名save/loadのlocal実装準備を行う。remote変更を混在させない。
+  2. KAI-32をlocal実装し、受入条件と検証結果を監査してmain反映可否を判断する。
   3. KAI-32 main反映後にKAI-33でremote metadataとKVデータ有無を確認する。データがあれば自動処理せず停止する。
   4. KAI-33完了後、KAI-34で指定remoteへ監査済み・明示許可済み変更だけを適用し、合成利用者A/Bで統合検証する。
   5. KAI-35のleaked-password protectionはprofiles実装と分離し、plan、影響、rollbackを確認して進める。
