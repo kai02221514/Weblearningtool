@@ -11,6 +11,10 @@ describe('display name contract', () => {
     ['one character', 'あ', 'あ'],
     ['fifty characters', '界'.repeat(DISPLAY_NAME_MAX_LENGTH), '界'.repeat(DISPLAY_NAME_MAX_LENGTH)],
     ['trimmed Japanese', '  合成 利用者  ', '合成 利用者'],
+    ['trimmed NBSP', '\u00a0合成利用者\u00a0', '合成利用者'],
+    ['trimmed IDEOGRAPHIC SPACE', '\u3000合成利用者\u3000', '合成利用者'],
+    ['trimmed BOM', '\ufeff合成利用者\ufeff', '合成利用者'],
+    ['internal whitespace', '合成\u00a0利用者', '合成\u00a0利用者'],
     ['Unicode emoji', '学習者😀', '学習者😀'],
   ])('accepts %s', (_label, input, expected) => {
     expect(validateDisplayName(input)).toEqual({ success: true, displayName: expected })
@@ -24,6 +28,7 @@ describe('display name contract', () => {
     ['newline', '合成\n利用者', 'control-character'],
     ['tab', '合成\t利用者', 'control-character'],
     ['delete control', `合成${String.fromCharCode(0x7f)}利用者`, 'control-character'],
+    ['C1 control', `合成${String.fromCharCode(0x85)}利用者`, 'control-character'],
   ])('rejects %s', (_label, input, reason) => {
     expect(validateDisplayName(input)).toEqual({ success: false, reason })
   })
@@ -50,5 +55,12 @@ describe('display name contract', () => {
       createdAt: '2026-09-06T00:00:00.000Z',
       updatedAt: '2026-09-06T00:01:00.000Z',
     })).toBeNull()
+    for (const whitespace of ['\u00a0', '\u3000', '\ufeff']) {
+      expect(validateStoredProfile({
+        displayName: `${whitespace}合成利用者${whitespace}`,
+        createdAt: '2026-09-06T00:00:00.000Z',
+        updatedAt: '2026-09-06T00:01:00.000Z',
+      })).toBeNull()
+    }
   })
 })

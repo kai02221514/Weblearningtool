@@ -28,6 +28,10 @@ select ok(not has_any_column_privilege('anon', 'public.profiles', 'SELECT'), 'an
 select ok(not has_any_column_privilege('anon', 'public.profiles', 'INSERT'), 'anon has no INSERT grant');
 select ok(not has_any_column_privilege('anon', 'public.profiles', 'UPDATE'), 'anon has no UPDATE grant');
 select ok(not has_table_privilege('anon', 'public.profiles', 'DELETE'), 'anon has no DELETE grant');
+select ok(not has_any_column_privilege('public', 'public.profiles', 'SELECT'), 'PUBLIC has no SELECT grant');
+select ok(not has_any_column_privilege('public', 'public.profiles', 'INSERT'), 'PUBLIC has no INSERT grant');
+select ok(not has_any_column_privilege('public', 'public.profiles', 'UPDATE'), 'PUBLIC has no UPDATE grant');
+select ok(not has_table_privilege('public', 'public.profiles', 'DELETE'), 'PUBLIC has no DELETE grant');
 select ok(has_column_privilege('authenticated', 'public.profiles', 'display_name', 'SELECT'), 'authenticated can select display_name');
 select ok(has_column_privilege('authenticated', 'public.profiles', 'id', 'INSERT'), 'authenticated can insert id');
 select ok(has_column_privilege('authenticated', 'public.profiles', 'display_name', 'INSERT'), 'authenticated can insert display_name');
@@ -36,10 +40,22 @@ select ok(not has_column_privilege('authenticated', 'public.profiles', 'id', 'UP
 select ok(not has_column_privilege('authenticated', 'public.profiles', 'created_at', 'UPDATE'), 'authenticated cannot update created_at');
 select ok(not has_column_privilege('authenticated', 'public.profiles', 'updated_at', 'UPDATE'), 'authenticated cannot update updated_at');
 select ok(not has_table_privilege('authenticated', 'public.profiles', 'DELETE'), 'authenticated cannot delete');
+select ok(has_table_privilege('service_role', 'public.profiles', 'SELECT'), 'service_role can select profiles');
+select ok(has_table_privilege('service_role', 'public.profiles', 'DELETE'), 'service_role can delete profiles');
+select ok(not has_table_privilege('service_role', 'public.profiles', 'INSERT'), 'service_role cannot insert profiles');
+select ok(not has_table_privilege('service_role', 'public.profiles', 'UPDATE'), 'service_role cannot update profiles');
 select ok(not has_function_privilege('public', 'public.handle_new_auth_user_profile()', 'EXECUTE'), 'PUBLIC cannot execute signup trigger function');
+select ok(not has_function_privilege('anon', 'public.handle_new_auth_user_profile()', 'EXECUTE'), 'anon cannot execute signup trigger function');
 select ok(not has_function_privilege('authenticated', 'public.handle_new_auth_user_profile()', 'EXECUTE'), 'authenticated cannot execute signup trigger function');
 select ok(not has_function_privilege('service_role', 'public.handle_new_auth_user_profile()', 'EXECUTE'), 'service_role cannot execute signup trigger function');
 select ok(not has_function_privilege('public', 'public.strip_profile_bootstrap_metadata()', 'EXECUTE'), 'PUBLIC cannot execute metadata cleanup trigger function');
+select ok(not has_function_privilege('anon', 'public.strip_profile_bootstrap_metadata()', 'EXECUTE'), 'anon cannot execute metadata cleanup trigger function');
+select ok(not has_function_privilege('authenticated', 'public.strip_profile_bootstrap_metadata()', 'EXECUTE'), 'authenticated cannot execute metadata cleanup trigger function');
+select ok(not has_function_privilege('service_role', 'public.strip_profile_bootstrap_metadata()', 'EXECUTE'), 'service_role cannot execute metadata cleanup trigger function');
+select ok(not has_function_privilege('public', 'public.set_profile_timestamps()', 'EXECUTE'), 'PUBLIC cannot execute timestamp trigger function');
+select ok(not has_function_privilege('anon', 'public.set_profile_timestamps()', 'EXECUTE'), 'anon cannot execute timestamp trigger function');
+select ok(not has_function_privilege('authenticated', 'public.set_profile_timestamps()', 'EXECUTE'), 'authenticated cannot execute timestamp trigger function');
+select ok(not has_function_privilege('service_role', 'public.set_profile_timestamps()', 'EXECUTE'), 'service_role cannot execute timestamp trigger function');
 
 insert into auth.users (id, email, raw_user_meta_data) values
   (
@@ -102,6 +118,29 @@ select throws_like(
   'database rejects an unnormalized display name'
 );
 select throws_like(
+  $$update public.profiles set display_name = chr(160) || 'NBSP' || chr(160)
+    where id = '11111111-1111-4111-8111-111111111111'$$,
+  '%violates check constraint%',
+  'database rejects unnormalized NBSP'
+);
+select throws_like(
+  $$update public.profiles set display_name = chr(12288) || 'IDEOGRAPHIC' || chr(12288)
+    where id = '11111111-1111-4111-8111-111111111111'$$,
+  '%violates check constraint%',
+  'database rejects unnormalized IDEOGRAPHIC SPACE'
+);
+select throws_like(
+  $$update public.profiles set display_name = chr(65279) || 'BOM' || chr(65279)
+    where id = '11111111-1111-4111-8111-111111111111'$$,
+  '%violates check constraint%',
+  'database rejects unnormalized BOM'
+);
+select lives_ok(
+  $$update public.profiles set display_name = '内部' || chr(160) || '空白'
+    where id = '11111111-1111-4111-8111-111111111111'$$,
+  'database accepts internal Unicode whitespace'
+);
+select throws_like(
   $$update public.profiles set display_name = repeat('界', 51) where id = '11111111-1111-4111-8111-111111111111'$$,
   '%violates check constraint%',
   'database rejects fifty-one characters'
@@ -115,6 +154,26 @@ select throws_like(
   $$update public.profiles set display_name = E'合成\x7f利用者' where id = '11111111-1111-4111-8111-111111111111'$$,
   '%violates check constraint%',
   'database rejects control characters'
+);
+select throws_like(
+  $$update public.profiles set display_name = '合成' || chr(133) || '利用者'
+    where id = '11111111-1111-4111-8111-111111111111'$$,
+  '%violates check constraint%',
+  'database rejects C1 control characters'
+);
+
+delete from public.profiles where id = '33333333-3333-4333-8333-333333333333';
+select throws_like(
+  $$insert into public.profiles (id, display_name) values (
+      '33333333-3333-4333-8333-333333333333', chr(160) || '未正規化insert' || chr(160)
+    )$$,
+  '%violates check constraint%',
+  'database rejects direct insert with unnormalized Unicode whitespace'
+);
+select results_eq(
+  $$select count(*) from public.profiles where id = '33333333-3333-4333-8333-333333333333'$$,
+  array[0::bigint],
+  'failed unnormalized insert leaves no profile'
 );
 
 create temporary table profile_before_update as
@@ -186,7 +245,6 @@ select ok(
   'updated_at advances on update'
 );
 
-delete from public.profiles where id = '33333333-3333-4333-8333-333333333333';
 set local role authenticated;
 set local "request.jwt.claims" = '{"sub":"33333333-3333-4333-8333-333333333333","role":"authenticated"}';
 select lives_ok(

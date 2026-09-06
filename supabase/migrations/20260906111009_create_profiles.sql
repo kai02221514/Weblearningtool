@@ -2,7 +2,20 @@ create table public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   display_name text not null
     constraint profiles_display_name_normalized_check
-      check (display_name = btrim(display_name))
+      check (
+        -- Match the ECMAScript WhiteSpace + LineTerminator set used by
+        -- String.prototype.trim(); PostgreSQL btrim defaults to U+0020 only.
+        display_name = btrim(
+          display_name,
+          chr(9) || chr(10) || chr(11) || chr(12) || chr(13) || chr(32)
+            || chr(160) || chr(5760)
+            || chr(8192) || chr(8193) || chr(8194) || chr(8195)
+            || chr(8196) || chr(8197) || chr(8198) || chr(8199)
+            || chr(8200) || chr(8201) || chr(8202)
+            || chr(8232) || chr(8233) || chr(8239) || chr(8287)
+            || chr(12288) || chr(65279)
+        )
+      )
     constraint profiles_display_name_length_check
       check (char_length(display_name) between 1 and 50)
     constraint profiles_display_name_control_check
@@ -33,7 +46,7 @@ end;
 $$;
 
 alter function public.set_profile_timestamps() owner to postgres;
-revoke all on function public.set_profile_timestamps() from public, anon, authenticated;
+revoke all on function public.set_profile_timestamps() from public, anon, authenticated, service_role;
 
 create trigger set_profile_timestamps
 before insert or update on public.profiles
@@ -108,7 +121,8 @@ to authenticated
 using ((select auth.uid()) = id)
 with check ((select auth.uid()) = id);
 
-revoke all on table public.profiles from public, anon, authenticated;
+revoke all on table public.profiles from public, anon, authenticated, service_role;
 grant select (id, display_name, created_at, updated_at) on public.profiles to authenticated;
 grant insert (id, display_name) on public.profiles to authenticated;
 grant update (display_name) on public.profiles to authenticated;
+grant select, delete on table public.profiles to service_role;

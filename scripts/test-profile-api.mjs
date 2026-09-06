@@ -146,7 +146,7 @@ assert.equal(result.body.profile.displayName, '更新済み利用者A')
 assert.equal(result.body.profile.createdAt, createdAt)
 assert.ok(Date.parse(result.body.profile.updatedAt) > Date.parse(firstUpdatedAt))
 
-for (const accepted of ['名', '名'.repeat(50), 'Unicode😀利用者']) {
+for (const accepted of ['名', '名'.repeat(50), 'Unicode😀利用者', '内部 空白', '内部\u00a0空白']) {
   result = await jsonRequest(`${functionBase}/display-name`, {
     method: 'PUT',
     headers: publicHeaders(tokenA),
@@ -156,13 +156,40 @@ for (const accepted of ['名', '名'.repeat(50), 'Unicode😀利用者']) {
   assert.equal(result.body.profile.displayName, accepted)
 }
 
-for (const rejected of ['   ', '名'.repeat(51), '合成\n利用者', `合成${String.fromCharCode(0x1f)}利用者`]) {
+for (const rejected of ['   ', '名'.repeat(51), '合成\n利用者', `合成${String.fromCharCode(0x1f)}利用者`, `合成${String.fromCharCode(0x85)}利用者`]) {
   result = await jsonRequest(`${functionBase}/display-name`, {
     method: 'PUT',
     headers: publicHeaders(tokenA),
     body: JSON.stringify({ displayName: rejected }),
   })
   assert.equal(result.response.status, 400, 'invalid update must be rejected by the API')
+}
+
+for (const [label, whitespace] of [
+  ['ASCII space', ' '],
+  ['NBSP', '\u00a0'],
+  ['IDEOGRAPHIC SPACE', '\u3000'],
+  ['BOM', '\ufeff'],
+]) {
+  const normalized = `${label} 正規化済み`
+  result = await jsonRequest(`${functionBase}/display-name`, {
+    method: 'PUT',
+    headers: publicHeaders(tokenA),
+    body: JSON.stringify({ displayName: `${whitespace}${normalized}${whitespace}` }),
+  })
+  assert.equal(result.response.status, 200, `${label} must be trimmed by the Edge API`)
+  assert.equal(result.body.profile.displayName, normalized)
+
+  result = await jsonRequest(`${local.REST_URL}/profiles?id=eq.${userA.id}`, {
+    method: 'PATCH',
+    headers: { ...publicHeaders(tokenA), Prefer: 'return=representation' },
+    body: JSON.stringify({ display_name: `${whitespace}直接更新${whitespace}` }),
+  })
+  assert.equal(result.response.status, 400, `${label} must be rejected by direct Data API PATCH`)
+
+  result = await signin(userA.email)
+  assert.equal(result.response.status, 200, `signin must survive rejected ${label} PATCH`)
+  assert.equal(result.body.displayName, normalized)
 }
 
 result = await jsonRequest(`${functionBase}/display-name`, {
