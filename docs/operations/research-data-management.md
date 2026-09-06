@@ -526,14 +526,14 @@ routeGenerator保存接続は、routeGenerator自体の実装と混ぜず、純�
 
 D-023により、`user_metadata.name`は通常の表示名読取元にせず、RLS、権限、本人所有判定にも使用しない。表示名は研究分析に使わない通常運用データ、型付き`public.profiles.display_name`を唯一の正本とする。emailはSupabase Authを正本とし、KVへ複製しない。
 
-### 16.4 fresh localと指定remote候補の差
+### 16.4 KAI-30調査時点のfresh localと指定remote候補の差
 
 | 対象 | migration・schemaの確認結果 | 通常entryへの影響 |
 |---|---|---|
 | fresh local | `supabase/migrations/`にあるのは`20260905104859_create_user_diagnoses.sql`だけであり、KV table作成migrationはない | Auth user作成までは成功するが、直後の`kv.set`がrelation不存在で失敗しHTTP 500になる。Auth userだけ残り得るため、同じemailで単純再試行すると既登録エラーになり得る |
 | 指定remote候補 `znfwkrhquegvlcmugkoe` | 現行タスクの2026-09-06事前読取証跡では、remote migration履歴に`20251204051132_create_kv_table_f3d88633`があり、`public.kv_store_f3d88633`が存在する一方、`user_diagnoses`は未適用 | 現行signupのKV前提は満たすが、リポジトリから再構築できない。逆にD-022の診断migrationはremoteへ反映されておらず、localとremoteが相互に異なるschemaを持つ |
 
-指定remoteの事前読取証跡では、KV tableはRLS有効・policyなし、`anon`と`authenticated`のSELECT GRANTが残りGraphQL schemaへ露出する警告、同一keyに対する重複index 3本の警告が記録されている。行数は0と記録されているが、空であることを将来の安全保証には使わない。これらは今回再検証していないため、後続remote作業前に対象project refと環境用途の承認を確認し、metadataだけを再取得する。
+[履歴] この節はKAI-30調査時点の差分である。その後KAI-34で指定remoteを再確認し、明示許可後に型付きschemaとFunctionを適用してKVを撤去した。現在状態は§14.2と`docs/operations/kai-34-remote-application-plan.md`を参照する。
 
 ### 16.5 選択肢比較
 
@@ -587,7 +587,7 @@ D-023により、`user_metadata.name`は通常の表示名読取元にせず、R
 
 1. **KAI-32 型付きprofilesと表示名save/loadをlocal実装する**: migration、型、validation、本人限定RLS、明示GRANT、signup/signin/read/update、Auth削除連携、KV name/email依存除去をlocalで実装する。remote適用は対象外。
 2. **KAI-33 KV廃止とremote schema差を解消する**: PR #45と完了証跡PR #46はmainへ反映・再検証済みで、Linear KAI-33はDoneである。KAI-33自体ではremoteを変更せず、後続KAI-34の独立許可で適用した。
-3. **KAI-34 指定remoteへ監査済み変更を適用して統合検証する**: 監査済み版の指定remote適用、合成A/B・未認証・失敗境界、cleanup、Advisor取得まで完了した。Draft PR監査前のためIn Progressを維持する。
+3. **KAI-34 指定remoteへ監査済み変更を適用して統合検証する**: 監査済み版の指定remote適用、合成A/B・未認証・失敗境界、cleanup、Advisor取得、PR #47のmain反映、main両検証、Linear完了証跡を完了しDoneとした。
 4. **KAI-35 Supabase Auth leaked-password protectionを有効化・検証する**: profiles実装と混在させず、planと設定可否、既知漏えいpassword拒否、既存利用者への影響、rollbackを検証する。
 
 進捗snapshot、クイズ試行、実践課題、振り返り、評価event log、同意、研究者exportはこの分割へ含めず、それぞれOQ-009の確定後に別Issueとする。
