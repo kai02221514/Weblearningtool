@@ -612,3 +612,65 @@
   - 予備試行で必須診断、復元、保存失敗時の再試行に重大な不適合が確認された場合。
   - S群・A群を保存対象へ追加する場合、または回答履歴を必要とする研究目的が確定した場合。
   - 学内規程、参加者同意、セキュリティレビュー、または指導教員の明示指示により変更が必要になった場合。
+
+## D-023
+
+- 日付: 2026-09-06
+- 決定者: 北代櫂（研究者本人）
+- 状態: 有効
+- タイトル: 表示名の型付き正本と合成データ専用remote運用の確定
+- 関連Issue: `KAI-31`、後続`KAI-32`、`KAI-33`、`KAI-34`、`KAI-35`
+- 関連PR: [#40](https://github.com/kai02221514/Weblearningtool/pull/40)（Draft、監査・マージ前）
+- 関連OQ: OQ-009
+- 判断内容:
+  1. 表示名は認証後の画面で継続利用する通常運用データとする。研究分析、評価指標、研究用exportには使用せず、研究用仮名IDまたは参加者識別子にも使用しない。実名を要求せず、ニックネームを許可する。
+  2. 表示名の唯一の正本を型付き`public.profiles.display_name`、emailの正本をSupabase Authとする。Auth `user_metadata.name`とKVを通常の表示名読取元にせず、`user_metadata`を認可、RLS、本人所有判定に使用しない。
+  3. `display_name`は必須とし、前後空白をtrimした後1文字以上50文字以下とする。空文字、改行、制御文字を拒否する。日本語を含むUnicodeを許可し、実名表記に限定する狭い文字種allowlistは設けない。認証済み本人による変更を許可する。
+  4. 欠損時の`「ユーザー」`はUIだけのfallbackとしDBへ保存しない。`profiles.id`は`auth.users(id)`の主キーを参照し、Auth user削除時に連動削除する。`created_at`と`updated_at`はDB側時刻を使用する。
+  5. signupはAuth userと必須profileが成立した場合だけ完了扱いとする。原子性確保の具体方式は`KAI-32`で設計し、失敗時に孤立Auth userまたは利用可能な不完全accountを残さないことを受入条件とする。
+  6. `user:{id}`のemail、name、createdAt重複を廃止する。`profile:{id}`のage、occupation、pace、level、levelScoreは自動移行せず、現行コードから採用済み仕様と推測しない。必要性が生じた場合は別Decisionで再設計する。
+  7. remoteからKVを削除する前に行数、利用箇所、rollback条件を再確認する。データが存在する場合は自動移行または削除を行わず停止し、研究者判断へ戻す。
+  8. project ref `znfwkrhquegvlcmugkoe`を合成データ専用の非本番remote検証環境として正式指定する。実在個人情報と研究参加者データの投入を禁止する。
+  9. 指定remoteでは、Git管理、local/CI検証、Draft PR監査、対象変更への明示許可をすべて満たす場合だけ、migration適用とEdge Function deployを許可する。deploy前にproject ref、migration履歴、table、RLS、GRANT、Function version、rollback方法を確認する。
+  10. deploy後は合成利用者A/Bで本人・他人・未認証境界、signup、表示名とD-022診断の保存・load、明示的再ログイン後復元を検証し、Security AdvisorとPerformance Advisorを記録する。service roleまたはsecret keyをfrontendへ公開しない。
+- 判断理由:
+  - 表示名を型付きの通常運用データへ限定し、Auth metadata・汎用KVとの重複、PII複製、正本不在を解消するため。
+  - Auth管理情報、表示名、診断、将来の研究データを別契約として管理し、現行コードから未承認項目を推測して移行しないため。
+  - local/remote差をGit管理された変更と段階的な監査で解消し、参加者データを使わず統合検証できる環境境界を確定するため。
+  - Supabase公式仕様が、API用profile tableで`auth.users`主キー参照と削除連動を推奨し、RLSとGRANTを別レイヤーとして扱い、signup trigger失敗がsignupを阻害し得ることを明示しているため。
+- 棄却案:
+  - KV継続案は、汎用JSONB、service role依存、email・表示名重複、所有者制約不在を正式化するため棄却する。
+  - Auth metadata限定案は、継続利用する表示名の型・制約・本人更新・削除連携をDB契約として管理しにくいため棄却する。
+  - local fixtureだけを追加する案は、remote固有のschema差と技術的負債を温存するため正式解決として棄却する。
+  - `profile:{id}`の5項目を自動移行する案は、採用済み研究仕様でない項目をコードから推測することになるため棄却する。
+- 影響範囲:
+  - 表示名のschema、validation、本人限定RLS、明示GRANT、signup/signin/read/update、Auth user削除連携
+  - KV依存除去、local/remote schema差分解消、remote deploy・統合検証手順
+  - OQ-009の認証・通常運用データ境界とKAI-31の解消
+  - 後続`KAI-32`、`KAI-33`、`KAI-34`、`KAI-35`
+- 対象外・未確定のまま残す事項:
+  - migration SQL、policy名、権限SQL、trigger/RPC/API方式、signup原子性の具体方式
+  - 表示名変更UIの配置・詳細デザインと表示名変更履歴
+  - 保持期間、同意、撤回・削除要求運用、本人対応表、バックアップ、研究者用取得・削除・export、評価ログ
+  - 学習進捗、確認テスト試行、実践課題、振り返り、ルート履歴の保存契約
+  - 実在参加者データの収集、予備試行開始、学内手続
+- 実装上の影響:
+  - このDecision自体は`src/`、`supabase/`、schema、migration、RLS、GRANT、Edge Function、frontend、remote Supabaseを変更しない。
+  - local実装、remote差分整理、remote適用、Auth security設定を`KAI-32`〜`KAI-35`へ分離する。
+- 承認境界:
+  - D-023の決定者は研究者本人である。研究者本人は、D-023の判断と、確定した契約に基づく後続`KAI-32`〜`KAI-35`の着手判断を指導教員から委任されていると明示しており、この範囲では追加の指導教員承認を開始条件としない。
+  - この委任は、指導教員がD-023の技術内容を個別に確認・承認済みであることを意味しない。
+  - 指定remoteへの変更は包括許可ではない。D-023で定めたGit管理、local/CI検証、Draft PR監査に加え、対象project ref、変更内容、適用版ごとの研究者本人の明示許可を引き続き必須とする。
+  - 本判断を実在参加者データ、研究データ収集、予備試行、同意、保持、撤回・削除、本人対応表、研究者access/export、評価ログ、学内手続の承認へ一般化しない。KAI-12/OQ-009の残余とKAI-16は未完了のまま維持する。
+- 根拠:
+  - 2026-09-06の研究者本人による「必要な研究者判断には推奨回答例をすべて採用する」との明示判断
+  - 2026-09-06の研究者本人による、D-023とその確定契約に基づく`KAI-32`〜`KAI-35`の判断権限を指導教員から委任されているとの明示説明
+  - D-019、D-022、Linear `KAI-30`、`KAI-31`、PR #38、PR #39
+  - `docs/operations/research-data-management.md` §16
+  - Supabase公式[User Management](https://supabase.com/docs/guides/auth/managing-user-data)、[Row Level Security](https://supabase.com/docs/guides/database/postgres/row-level-security)、[Securing your API](https://supabase.com/docs/guides/api/securing-your-api)、[API keys](https://supabase.com/docs/guides/getting-started/api-keys)
+- 再検討条件:
+  - 表示名を研究分析、評価指標、研究用export、参加者識別に利用する必要が生じた場合。
+  - 表示名の必須性、長さ、許容文字、更新、削除または履歴要件を変更する場合。
+  - KVに既存データが確認され、自動移行しない方針以外の処理が必要になった場合。
+  - 指定projectの用途、本番性、データ区分、権限、plan、学内要件が変わった場合。
+  - SupabaseのAuth、Data API、RLS、GRANT、keyまたはdeploy仕様変更により契約見直しが必要になった場合。
