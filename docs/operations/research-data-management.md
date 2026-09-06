@@ -3,7 +3,7 @@
 - 状態: **部分確定**。D-022の初回診断保存契約は確定、その他の研究データ管理案は未確定
 - 初回診断保存契約の決定日: 2026-09-05
 - 決定者: 北代櫂（研究者本人）
-- 関連Issue: Linear `KAI-12`
+- 関連Issue: Linear `KAI-12`、`KAI-30`
 - 関連OQ: `OQ-009`、`OQ-004`のDG-08、`OQ-005`の保存境界、`OQ-008`
 - 作成基準: `main` `f9a5c0dbff374eaf8aae9a90ca9b111ff3839499`（2026-07-13）
 - 重要: **§1.4の初回診断保存・復元契約だけはD-022に基づく確定仕様であり、この範囲の後続Task Aは追加の指導教員承認なしで開始できる。**
@@ -483,3 +483,97 @@ routeGenerator保存接続は、routeGenerator自体の実装と混ぜず、純�
 - 学内要件と正式提出資料との整合、参加者データ収集・予備試行の開始可否は未確認である。
 - OQ-001、OQ-002、OQ-003、OQ-007、OQ-008、評価質問文・尺度・分析方法は本作業で確定しない。
 - 本文同期ではDB、RLS、migration、Edge Function、API、同意UI、保存処理、評価ログ、CSV出力、アプリコードを変更しない。
+
+## 16. KAI-30 KV依存調査（2026-09-06）
+
+この節は、fresh local Supabaseで通常entryのsignupが失敗する原因と、後続判断の選択肢を整理する調査記録である。`[コード存在確認済み]`と`[確認済み事実]`は採用仕様を意味しない。比較中の推奨は`[提案]`であり、研究者判断、schema変更、remote変更を行っていない。
+
+### 16.1 調査範囲と根拠
+
+- 対象Issue: Linear `KAI-30`。目的、対象外、受入条件、検証方法が定義済みである。
+- 研究上の境界: D-019、D-022、OQ-009、Linear `KAI-12`。
+- 実装根拠: `src/components/Auth.tsx`、`src/utils/auth.ts`、`supabase/functions/make-server-f3d88633/index.ts`、`supabase/functions/make-server-f3d88633/kv_store.ts`、`supabase/migrations/`。
+- local再現根拠: §14と`docs/research/06-implementation-status.md`に記録されたKAI-29のfresh local検証。
+- remote差分根拠: 2026-09-06の現行タスクに添付された事前読取証跡。今回の調査ではremoteへ再接続せず、行取得、SQL実行、migration適用、Function deploy、project設定変更を行っていない。
+- Supabase公式参照: [User Management](https://supabase.com/docs/guides/auth/managing-user-data)、[Users](https://supabase.com/docs/guides/auth/users)、[Row Level Security](https://supabase.com/docs/guides/database/postgres/row-level-security)、[Securing your data](https://supabase.com/docs/guides/database/secure-data)。公式文書は、`auth` schemaがData APIへ公開されないこと、APIで扱うプロフィールは`auth.users`の主キーを参照する公開tableとRLS・最小GRANTで保護できること、`user_metadata`を認可判断に使えないこと、service roleがRLSを迂回することを確認するために参照した。
+
+### 16.2 現行の保存・取得経路
+
+| 経路 | 入力・保存項目 | 保存先・key | 呼出元と利用箇所 | エラー時挙動 | KV必要性 |
+|---|---|---|---|---|---|
+| `POST /signup` | `email`、`password`、`name`。Authにはemail/passwordと`user_metadata.name`、KVには`email`、`name`、`createdAt` | Supabase Authと`user:{auth user id}` | `Auth.handleSubmit` → `signup`。成功レスポンスの`name`は現在の登録画面では後続利用せず、登録後はログイン画面へ戻る | Auth user作成後の`kv.set`失敗を外側のcatchがHTTP 500へ変換する。Auth userを補償削除しないため、失敗後もAuth userだけ残り得る | **必須**。KV失敗でsignup全体を失敗扱いにする |
+| `POST /signin` | `email`、`password`。KVから表示名候補を取得 | `user:{auth user id}`をread | `Auth.handleSubmit` → `signin` → `App.handleSigninSuccess`。返却`name`は診断、Dashboard等の表示に使う | `kv.get`だけを内側のcatchで握り、`user_metadata.name`、さらに`"ユーザー"`へフォールバックする。認証成功自体は維持する | **任意**。KVなしでも成立する |
+| `POST /profile` | `age`、`occupation`、`pace`、`level`、`levelScore`、サーバー付与`updatedAt` | `profile:{auth user id}` | `saveProfile`は定義されるが`src/`に呼出箇所がない。読取APIもない | Bearer token欠損・不正は401。KV保存失敗はHTTP 500 | エンドポイント内では**必須**だが、現行フロント導線では未接続 |
+
+[コード存在確認済み] `kv_store.ts`は`key`と任意の`unknown`値をservice roleで操作する汎用helperであり、`set`、`get`以外の`del`、`mset`、`mget`、`mdel`、`getByPrefix`に現行呼出元はない。全操作がservice role clientを使うため、table側RLSがあっても所有者境界はhelperでは強制されない。現在のkeyにはauth user IDが文字列として埋め込まれるが、列としての外部キー、所有者制約、値の型制約、削除連携はない。
+
+### 16.3 重複と現行の正本不在
+
+| 項目 | Auth | KV | 現行の不整合 |
+|---|---|---|---|
+| email | Auth identityのemail | `user:{id}.email` | 同値を重複保存する。更新・削除同期規則がない |
+| 表示名 | `user_metadata.name` | `user:{id}.name` | signupで二重保存し、signinはKVを優先する。更新API、正規化、最大長、変更可否、削除規則がないため、どちらが正本か確定していない |
+| 作成日時 | Authの管理時刻 | `user:{id}.createdAt` | 用途が定義されず、Auth側時刻との関係も未定義 |
+| profile 5項目 | なし | `profile:{id}` | 型はフロントのTypeScript interfaceだけで、API入力validation、DB列制約、読取経路、現行UI接続がない |
+
+`user_metadata.name`は表示用途の候補にはできるが、利用者が編集可能な値であるため、RLSや権限判定には使用しない。表示名を通常運用データとして必要とするか、研究データとして扱うか、どの保存先を正本にするかはOQ-009の残余であり、本調査では確定しない。
+
+### 16.4 fresh localと指定remote候補の差
+
+| 対象 | migration・schemaの確認結果 | 通常entryへの影響 |
+|---|---|---|
+| fresh local | `supabase/migrations/`にあるのは`20260905104859_create_user_diagnoses.sql`だけであり、KV table作成migrationはない | Auth user作成までは成功するが、直後の`kv.set`がrelation不存在で失敗しHTTP 500になる。Auth userだけ残り得るため、同じemailで単純再試行すると既登録エラーになり得る |
+| 指定remote候補 `znfwkrhquegvlcmugkoe` | 現行タスクの2026-09-06事前読取証跡では、remote migration履歴に`20251204051132_create_kv_table_f3d88633`があり、`public.kv_store_f3d88633`が存在する一方、`user_diagnoses`は未適用 | 現行signupのKV前提は満たすが、リポジトリから再構築できない。逆にD-022の診断migrationはremoteへ反映されておらず、localとremoteが相互に異なるschemaを持つ |
+
+指定remoteの事前読取証跡では、KV tableはRLS有効・policyなし、`anon`と`authenticated`のSELECT GRANTが残りGraphQL schemaへ露出する警告、同一keyに対する重複index 3本の警告が記録されている。行数は0と記録されているが、空であることを将来の安全保証には使わない。これらは今回再検証していないため、後続remote作業前に対象project refと環境用途の承認を確認し、metadataだけを再取得する。
+
+### 16.5 選択肢比較
+
+| 観点 | A: KVをmigration管理して継続 | B: Auth metadataだけへ限定 | C: 型付き`public.profiles`へ置換 | D: local fixtureだけ追加 |
+|---|---|---|---|---|
+| 変更概要 | 現行KV table、必要なGRANT・RLS・indexを正式migrationへ取り込む | `user:{id}`のread/writeを削除し、表示名は`user_metadata.name`だけから取得する | `auth.users(id)`を参照する本人1行のtableへ、承認済みの表示名だけを型・制約付きで保存する | local検証時だけKV tableを作り、アプリ実装とremoteは維持する |
+| 型安全性 | `jsonb value`のままで低い。key prefix別validatorを別途実装しない限りDB契約にならない | metadataはJSONでありDB列制約は弱い。アプリvalidatorは必要 | 列型、NOT NULL/任意、CHECK、長さ、時刻、FKをmigrationで固定でき最も高い | 本番相当契約は改善しない |
+| RLS・認可 | key文字列から所有者を解釈するpolicyが複雑。現行service role helperはRLSを迂回する | Auth API経由。metadataを認可判断には使わない。プロフィール用Data API policyは不要 | `id = auth.uid()`の本人限定SELECT/INSERT/UPDATE、必要最小GRANTを検証できる。UPDATEにはSELECT、`USING`と`WITH CHECK`が必要 | fixtureをpolicyなしdefault denyにしても、service role経路の所有者境界は改善しない |
+| service role範囲 | signup、signin、profileのKV操作で継続 | signupのadmin user作成には残るが、表示名のKV操作からは除去できる | Auth admin作成以外を利用者JWT＋RLSへ移せる候補。作成trigger方式はsignup阻害リスクを別途検証する | 現行範囲のまま |
+| PII重複 | email・表示名のAuth/KV重複を維持 | email・表示名ともAuth内の1か所へ寄せられる | emailはAuthだけ、表示名はprofilesだけとすれば重複を解消できる。移行期間の二重書込は禁止候補 | 重複を維持 |
+| 削除・保持 | auth user削除とのFK連携がなく、prefix行の削除漏れ対策が必要 | Auth user削除へ集約できるが、JWT失効境界とAuthの運用規則は別途必要 | `auth.users(id) on delete cascade`候補で連携できる。保持・撤回規則自体は研究判断待ち | remoteの削除漏れ問題を解消しない |
+| local/remote再現性 | migration化すれば一致させやすいが、remote既存tableとの差分吸収migrationが必要 | schema依存が減り、fresh local signupを最小変更で再現しやすい | migrationとRLSテストで一致を機械検証できる。remote既存KVからの移行計画が必要 | local signupだけ通せるが、remote固有前提を隠し環境差を固定する |
+| rollback | Edge Functionを旧版へ戻し、必要データ退避後に追加migrationを逆向きmigrationで撤回。既存remote object衝突に注意 | 旧Functionへ戻すにはKV tableが必要。切替前にmetadata欠損を検査する | Functionを旧版へ戻し、必要データ退避後にprofilesを逆向きmigrationで撤回。移行中の正本を一意に保つ | fixture削除だけで戻せる |
+| D-022/OQ-009境界 | `user_diagnoses`とは分離できるが、KVを診断や進捗へ拡張しない | D-022の診断契約を変更しない。表示名の用途・規則は未確定 | D-022の本人限定RLSパターンを参考にできるが、表示名の項目契約は別判断。診断・進捗・研究ログをprofilesへ混在させない | D-022を変更しないが、OQ-009判断を先送りする |
+| 主な利点 | 現行コード変更が小さい | 最小のデータ重複とschema。signinの既存fallbackを正規経路にできる | 型、安全境界、削除連携、再現性、将来の本人編集を明示しやすい | 最小・一時的で、remoteへ触れない |
+| 主な欠点 | 汎用JSONB、service role、所有者不明key、PII重複を正式化する | 表示名の型・制約が弱く、Auth metadataの更新権限と正規化を別途管理する | 実装量と移行設計が増える。表示名の必要性・規則を先に決める必要がある | 技術的負債と環境差を残し、正式な再現方法にならない |
+| 研究者判断 | KVを通常運用の正式保存先にする判断が必要 | 表示名をAuth内の通常運用データとする判断が必要 | 表示名の目的、正本、型、更新・削除規則の判断が必要 | fixtureが合成local限定であることは決められるが、正式方針の代替にはできない |
+
+### 16.6 推奨案と判断ゲート
+
+- [提案] 表示名が認証後も必要な通常運用データであり、取得・変更・削除を型付き契約として管理するなら、**Cを第一候補**とする。emailはAuthだけ、表示名は`profiles`だけを正本候補とし、KVのPII複製と汎用service role操作を廃止できるためである。
+- [提案] 表示名がsignup直後の表示補助だけで、独立した検索・更新・型付きAPIを必要としないと研究者が判断するなら、**Bを縮小案**とする。metadataは表示にだけ使い、認可には使わない。
+- Aは既存remoteとの互換性は高いが、未定義の汎用KVとPII重複を正式化するため推奨しない。Dは一時検証の回避策であり、migration差を温存するため正式解決として推奨しない。
+- 本節はCまたはBの採用決定ではない。次の事項が正本へ反映されるまで、schema、migration、Edge Function、frontend、remoteを変更しない。
+
+研究者が決める事項:
+
+1. 表示名を保存する目的と必要性、通常運用データ／研究データの区分。
+2. 正本をAuth metadataまたは型付き`profiles`のどちらにするか。KV重複を廃止するか。
+3. 必須性、前後空白の正規化、許容文字、最大長、変更可否、欠損時表示、アカウント削除時挙動。
+4. `profile:{id}`の5項目を廃止するか、別の承認済みプロフィール契約として再設計するか。年齢・職業等を現行コードから採用しない。
+5. 指定project `znfwkrhquegvlcmugkoe`を合成データ専用の非本番remote検証環境として扱い、migrationとFunction deployを許可するか。
+
+保持、撤回、削除、参加者同意、研究者用アクセス・export、評価ログ、研究参加者データの投入はOQ-009/KAI-12の残余であり、上記の技術選択だけでは開始可能にならない。表示名が研究目的、研究方法、評価項目、研究上の主張へ影響する場合は、D-019に従い最新の指導教員合意・履修計画書・正式提出資料との整合も確認する。
+
+### 16.7 判断後の実装Issue分割案
+
+1. **表示名契約Decision**: §16.6の1〜4を決定し、Decision Log、確定事項、OQ-009へ反映する。コード・DBを変更しない。
+2. **認証プロフィール置換**: 採用したBまたはCだけを実装する。Cの場合はmigration、型、validator、本人限定RLS/GRANT、signup/signin/read/update、Auth削除連携、合成利用者A/B境界テストを含める。
+3. **KV廃止・remote差分解消**: 現行KV keyの利用終了を確認し、必要な合成データ移行、不要GRANT・index・tableの撤去を逆向きmigration付きで行う。remote対象projectと環境用途の明示承認を開始条件にする。
+4. **fresh local統合検証**: migrationだけから、signup→signin→表示名取得→D-022診断保存・復元までを合成データで再現する。Auth作成後の後段失敗時に孤立userを残す挙動も確認し、採用実装での失敗原子性または回復手順を受入条件にする。
+
+進捗snapshot、クイズ試行、実践課題、振り返り、評価event log、同意、研究者exportはこの分割へ含めず、それぞれOQ-009の確定後に別Issueとする。
+
+### 16.8 KAI-30完了時点の非変更・未確認事項
+
+- schema、migration、Edge Function、frontend、remote Supabaseを変更していない。
+- remoteの行データ、Auth user、Storage、ログ、secret/service-role keyを取得・使用していない。
+- fresh local再実行は行わず、KAI-29で記録済みの合成データ検証と現行migration・コードの静的突合を使用した。
+- 指定remoteの2026-09-06事前読取結果は今回再確認していない。後続remote作業前にproject ref、環境用途、migration履歴、table/RLS/GRANT/index、Edge Function versionとJWT検証方法を再確認する。
+- 文書のみの調査であり、アプリ挙動を変更していないため、アプリのtypecheck、lint、test、buildは実行対象外とする。文書差分には`git diff --check`を実行する。
