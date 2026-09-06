@@ -1,8 +1,8 @@
-# KAI-34 remote適用候補
+# KAI-34 remote適用・統合検証記録
 
 ## 状態と境界
 
-- 状態: KAI-33 / PR #45でrepository mainへ反映・再検証済みの監査候補。remote未適用。KAI-33の完了証跡PR mergeとLinear Doneを確認するまでKAI-34を開始しない
+- 状態: 2026-09-07に監査済み3 migrationとEdge Functionを指定remoteへ適用し、合成データ統合検証・cleanup・Advisor取得まで完了。Draft PR監査前であり、KAI-34はIn Progressを維持する
 - 対象project ref: `znfwkrhquegvlcmugkoe`（`WebLearningTools`、合成データ専用非本番remote検証環境）
 - KAI-33開始基準main: `68f50a2784073a09c7733fc9171a94dc942da597`
 - KAI-33 final head: `aaec41177e35cd30190b8b57ed65c4e4aafe9510`
@@ -10,6 +10,81 @@
 - Function変更候補commit: KAI-34開始時の最新mainから、PR #45 final headを含む監査対象commitへ再固定する
 - remote rollback先: Edge Function `make-server-f3d88633` version 4、bundle SHA-256 `9494c89b52f9e9994e7c7098bad6462dc835a2f7ce16965d52ee5ffb490a6c58`
 - 禁止: KAI-33でのremote migration、deploy、削除、更新、設定変更。実在個人情報・研究参加者データの利用
+
+## 2026-09-07 KAI-34実行結果
+
+### 適用元と許可
+
+- 実行基準main・適用元commit: `22ca66d662067b639c33912e41bab3a81ee78c2d`
+- forward migration:
+  - `20260905104859_create_user_diagnoses.sql` / Git blob `17adce8bed9cb7b917dd417e885347151afbfb33`
+  - `20260906111009_create_profiles.sql` / Git blob `4db19406bccd3580925622b6c8bf8ef7d586f72b`
+  - `20260906132827_drop_legacy_kv_store.sql` / Git blob `adc7312c0a8661e7c6668e76d3ec1d13ada11751`
+- remote履歴対応のみ: `20251204051132_create_kv_table_f3d88633.sql` / Git blob `ade8bc4306c1edc59d1b4d6ccaecd37670e0bcdd`。再適用・履歴repairは行っていない
+- Function: `supabase/functions/make-server-f3d88633/index.ts` / Git blob `6703f07499e17b64118a244095b917d57bef7de5`。`verify_jwt=false`を維持した
+- 許可確認時刻: 2026-09-06T15:26:49Z（2026-09-07T00:26:49+09:00）
+- 研究者本人の許可文: 「上記preflight結果を確認しました。列挙されたproject、適用版、3 migration、Function deploy、verify_jwt=falseの維持、合成データの作成・境界試験・削除、適用後metadata／Advisor取得、短い利用停止境界を含むKAI-34のremote変更を許可します。」
+
+### 適用直前preflight
+
+- project ref `znfwkrhquegvlcmugkoe`、名称`WebLearningTools`、region `ap-northeast-1`、status `ACTIVE_HEALTHY`、Postgres `17.6.1.127`を再確認した
+- remote migration履歴は`20251204051132_create_kv_table_f3d88633`だけだった
+- KVの値なし正確集計はtotal 0 / `user:` 0 / `profile:` 0 / その他0だった。key、value、個別行は取得していない
+- Edge Functionはversion 4、ACTIVE、`verify_jwt=false`、bundle SHA-256 `9494c89b52f9e9994e7c7098bad6462dc835a2f7ce16965d52ee5ffb490a6c58`で、監査値から変化していなかった
+- `supabase db push --dry-run --linked`が表示したpending migrationは上記3件だけだった。seed、role、履歴repair、resetは含めていない
+
+### Forward適用
+
+| 操作 | UTC | JST | 結果 |
+| --- | --- | --- | --- |
+| migration適用 | 2026-09-06T15:27:09Z〜15:27:10Z | 2026-09-07T00:27:09+09:00〜00:27:10+09:00 | 指定3件を履歴順に適用成功 |
+| Function deploy | 2026-09-06T15:27:24Z〜15:27:28Z | 2026-09-07T00:27:24+09:00〜00:27:28+09:00 | `make-server-f3d88633`だけをdeploy成功 |
+
+migration開始からFunction deploy完了まで外部検証要求を入れず、短い利用停止境界として扱った。CLIはFunction deploy時にdecorator設定をflagで指定しないよう求める警告を出したが、deployは成功し、`verify_jwt=false`はdeploy後metadataで再確認した。secret、project設定、Auth設定は変更していない。
+
+### Deploy後metadata
+
+- migration履歴は旧履歴対応1件とforward 3件の計4件で、予定外migrationはない
+- public tableは`profiles`と`user_diagnoses`だけで、旧KV tableと4 indexは不存在である
+- 両tableはRLS有効・force RLS無効で、`authenticated`本人に限定したSELECT / INSERT / UPDATE policyが各3件ある
+- `profiles`はauthenticatedに列限定SELECT、`id`・`display_name`のINSERT、`display_name`のUPDATEだけを許可し、service_roleにはtable SELECT / DELETEを許可する。anonとPUBLICのtable権限はない
+- `user_diagnoses`はauthenticatedにSELECT / INSERT / UPDATEだけを許可し、anonとPUBLICのtable権限はない。RLSとGRANTを別レイヤーで照合した
+- indexは各tableのPK index 1件ずつである。`profiles.id`は`auth.users(id) on delete cascade`を参照する
+- public routineは4件で、ownerはすべて`postgres`。`handle_new_auth_user_profile`だけSECURITY DEFINER、他3件はSECURITY INVOKERである。`handle_new_auth_user_profile`、`set_profile_timestamps`、`strip_profile_bootstrap_metadata`のEXECUTEは`postgres`だけ、`set_user_diagnosis_timestamps`は`postgres`と`service_role`だけである
+- Edge Functionはversion 5、ACTIVE、`verify_jwt=false`、deploy artifact SHA-256 `caec2a968e3899ce06fb482af6f43bd824ec93877afac574c5c2213395be7c77`である。deployされたindex、diagnosis shared、profile sharedの内容はGit版と完全一致した
+
+### 合成利用者統合検証
+
+実行時間は2026-09-06T15:31:11Z〜15:31:26Z（2026-09-07T00:31:11+09:00〜00:31:26+09:00）。`.invalid` email、ランダムな強いpassword、合成表示名だけを使用し、email全文、password、token、UUID全文、個人単位responseを証跡へ保存していない。
+
+| 境界 | status・結果 |
+| --- | --- |
+| 不正表示名のsignup前拒否 | 400、Auth user 0 |
+| A/B signup・signin | 200、profile成立、Auth metadataに表示名なし |
+| 表示名load・update | 200 |
+| D-022診断save・load・update | 200 |
+| 明示的再ログイン後の表示名・診断復元 | 200、復元一致 |
+| 未認証・無効token | display-name / diagnosisとも401 |
+| request指定owner ID | query / bodyとも400 |
+| BからAへのRLS read / update | 200＋空配列。権限エラーではなく行不可視境界として確認 |
+| BからAへの診断INSERT | 403 |
+| anon Data API read | profiles / diagnosesとも401 |
+| 保護列UPDATE、authenticated DELETE | 403 |
+| legacy `/profile` | 404 |
+| profile欠損account | signin 409で利用不可 |
+| profile trigger失敗 | 500、孤立Auth user 0、同email修正後再試行200 |
+| Auth user削除によるprofile連動削除 | profile 0行 |
+
+検証終了時に作成した合成Auth userをすべて削除し、対象ID集合に対するAuth user、profiles、diagnosesが0件であることを確認した。独立したtable全体件数確認でもprofiles 0 / diagnoses 0だった。他データは変更していない。
+
+### Advisorとrollback
+
+- Security Advisor新規警告: `pg_graphql_authenticated_table_exposed`がprofilesとuser_diagnosesに各1件。authenticated本人のData API readに必要な意図的SELECT GRANTによるschema可視性警告であり、他人readはRLSにより200＋空配列、anon readは401であることを実測した。schema可視性自体は警告どおりだが、KAI-34の本人アクセス契約に対する重大な未解消脆弱性とは分類しない
+- Security Advisor既存警告: `auth_leaked_password_protection` 1件。KAI-35の対象であり、本Issueでは設定変更していない
+- Performance Advisor: 0件
+- rollback: 不要と判断し、実施していない。旧Function version 4と既知hash、最小互換KV rollback候補は異常時の追加許可対象として維持する
+
+すべての確認は合成データ専用非本番環境の技術的統合検証に限定する。実在個人情報・研究参加者データは使用しておらず、参加者評価や研究上の有効性主張へ一般化しない。新しい研究判断はないためDecision Logは更新しない。
 
 ## 2026-09-06 read-only再確認
 

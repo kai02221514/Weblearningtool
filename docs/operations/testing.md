@@ -181,3 +181,22 @@ npm run check
 - remote変更: migration適用、Function deploy、KV削除・更新、設定変更、remote secret利用は未実施。実在個人情報・研究参加者データは不使用
 - PR・main検証: final head `aaec41177e35cd30190b8b57ed65c4e4aafe9510`のPR段階では、merge-ref `f95437dc8c34b5e78db03a88cd1434968fa08a71`をcheckoutした`Check` run [34038608451](https://github.com/kai02221514/Weblearningtool/actions/runs/34038608451)が成功した。`Supabase Diagnosis` run [34038608454](https://github.com/kai02221514/Weblearningtool/actions/runs/34038608454)はattempt 1のlocal DB schema初期化時container exit 1を成功扱いせず、attempt 2で同merge-refの全stepが成功した。unresolved review threadは0、mergeabilityはcleanだった。PR #45をmerge commit方式で反映したmain `f7bf8c86ebae8e23c7c8ddb9aa9fbb43bf8b1246`では、対象・checkoutが同SHAの`Check` run [34040215920](https://github.com/kai02221514/Weblearningtool/actions/runs/34040215920)と手動`Supabase Diagnosis` run [34040249439](https://github.com/kai02221514/Weblearningtool/actions/runs/34040249439)が全step成功した
 - 未確認事項: KAI-33完了証跡PRのCI・監査・mergeとLinear Done、KAI-34のremote再確認・dry-run・適用・deploy・Advisor・合成利用者統合検証
+
+## KAI-34 remote適用・統合検証
+
+- 実行日: 2026-09-07 JST
+- 対象: branch `chore/kai-34-remote-integration`、実行基準main `22ca66d662067b639c33912e41bab3a81ee78c2d`、project `znfwkrhquegvlcmugkoe`
+- local全体検証: `npm run verify`はtypecheck、lint、全20 files / 232 tests、build 1726 modules transformedに成功した。`git diff --check`も成功した
+- local Supabase失敗履歴: 最初の`supabase start`は既存の別projectがDB port 54322を使用中で失敗した。既存projectを停止せず、固定commitの隔離worktreeを別port・Storage無効の一時構成にして再実行した
+- local Supabase成功結果: fresh `supabase db reset --local --no-seed`、pgTAP 3 files / 95 tests、`supabase db lint --local --fail-on error`、診断API、profile APIが成功し、検証用projectだけを停止した。`npm ci`の既存engine/deprecated警告は成功結果と区別した
+- remote直前確認: projectはACTIVE_HEALTHY、KVの値なし正確集計はtotal 0 / `user:` 0 / `profile:` 0 / その他0、migration履歴は旧KV作成1件だけ、Functionはversion 4 / `verify_jwt=false` / 既知hashだった。dry-runのpendingは指定3 migrationだけだった
+- 明示許可: 2026-09-06T15:26:49Zに、project、固定版、3 migration、Function、`verify_jwt=false`、合成user・profile・diagnosisの作成・更新・削除、Advisor、利用停止境界を含む研究者本人の許可を確認した
+- remote適用: migrationは2026-09-06T15:27:09Z〜15:27:10Z、Function deployは15:27:24Z〜15:27:28Zに成功した。migrationからdeploy完了まで外部検証要求を入れなかった。seed、role、repair、reset、prune、secret・project/Auth設定変更は行っていない
+- deploy後schema: migration履歴4件、public tableはRLS有効なprofilesとuser_diagnoses、旧KVなし、本人限定policy、role・column別GRANT、PK/FK、4 routineのowner/security/EXECUTEを計画と照合した
+- Function: version 5、ACTIVE、`verify_jwt=false`、artifact SHA-256 `caec2a968e3899ce06fb482af6f43bd824ec93877afac574c5c2213395be7c77`。deployされたindexとshared 2ファイルはGit版と完全一致した
+- remote API統合: 合成A/Bでsignup・signin・表示名load/update・D-022診断save/load/update・明示的再ログイン復元は200、未認証・無効tokenは401、owner指定は400、BからAへのRLS read/updateは200＋空配列、他人診断insertと保護列・DELETEは403、legacy `/profile`は404だった
+- 失敗境界: 不正表示名はsignup前400・Auth user 0、profile trigger失敗は500・Auth user 0・同email再試行200、profile欠損accountはsignin 409、Auth user削除後profile 0行だった
+- cleanup: 作成した合成Auth user、profiles、diagnosesは対象ID集合0件。独立確認でもprofiles 0 / diagnoses 0だった。email全文、password、token、UUID全文、個人単位responseを証跡へ保存していない
+- Advisor: Performance 0件。Securityはauthenticated SELECTによるGraphQL schema可視性警告2件と、KAI-35対象の既知leaked-password protection警告1件。RLS・GRANT・Function認証境界の重大な未解消失敗はない
+- rollback: 不要のため未実施。旧Function version 4 / 既知hashと最小互換KV候補は追加許可が必要な復旧候補として維持する
+- 未実施: Draft PR CI、review thread・mergeability監査、merge、main再検証、Linear完了コメント送信、KAI-34 Done。実在個人情報・研究参加者データ、予備試行、研究上の有効性評価は対象外

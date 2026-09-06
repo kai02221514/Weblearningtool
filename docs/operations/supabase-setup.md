@@ -10,6 +10,15 @@
 - Supabase DashboardでPublishable keyを取得できること
 - Secret key、service_role key、JWT secretをフロントエンド環境変数へ置かないこと
 
+## 現在の指定remote状態（2026-09-07）
+
+- KAI-34で実行基準main `22ca66d662067b639c33912e41bab3a81ee78c2d`に固定した3 migrationを適用済みである
+- public tableはRLS有効な`profiles`と`user_diagnoses`で、旧`kv_store_f3d88633`は不存在である
+- Edge Function `make-server-f3d88633`はversion 5、ACTIVE、`verify_jwt=false`、artifact SHA-256 `caec2a968e3899ce06fb482af6f43bd824ec93877afac574c5c2213395be7c77`である
+- 合成A/B・未認証・無効token・signup失敗境界を検証し、作成したAuth user、profiles、diagnosesは0件へcleanup済みである
+- rollbackは実施していない。適用前version 4と既知hash、最小互換KV rollback候補を追加許可が必要な復旧候補として維持する
+- 詳細な適用版、時刻、metadata差分、HTTP status、Advisor分類は`docs/operations/kai-34-remote-application-plan.md`を正とする
+
 ## Remote変更の許可境界（D-023）
 
 このprojectへのmigration適用とEdge Function deployは、次の条件をすべて満たす変更だけに許可する。
@@ -81,7 +90,8 @@ npx supabase link --project-ref znfwkrhquegvlcmugkoe
 Edge Functionをデプロイする。
 
 ```sh
-npx supabase functions deploy make-server-f3d88633
+npx supabase functions deploy make-server-f3d88633 \
+  --project-ref znfwkrhquegvlcmugkoe
 ```
 
 実行環境で通常のデプロイが使えない場合のみ、Supabase CLIの案内に従って以下を検討する。
@@ -116,7 +126,7 @@ Supabase Dashboardでは対象の`main`が`PRODUCTION`と表示されている�
 
 - `signup`、`signin`、`health` を未認証で呼び出すための暫定設定である。
 - `display-name`と`diagnosis`はアプリ内で`Authorization: Bearer <access token>`を検証する。
-- D-023で不採用となった5項目用legacy `/profile`とKV helperはKAI-33 / PR #45のmerge commit `f7bf8c86ebae8e23c7c8ddb9aa9fbb43bf8b1246`でrepository mainから撤去済みである。指定remoteにはKAI-34適用前のKV tableと旧Edge Function version 4が残るため、KAI-33のLinear Done後も適用直前に現況を再確認し、適用順・停止条件・rollbackは`docs/operations/kai-34-remote-application-plan.md`を参照する。
+- D-023で不採用となった5項目用legacy `/profile`とKV helperはKAI-33 / PR #45でrepository mainから撤去し、KAI-34で指定remoteへ反映済みである。remoteではlegacy `/profile` 404、旧KV不存在、表示名・診断の本人境界を確認済みである。適用結果とrollback候補は`docs/operations/kai-34-remote-application-plan.md`を参照する。
 - 本番運用時にはレート制限、公開範囲、CORS制限を再検討する。
 
 ## Health確認
