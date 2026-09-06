@@ -658,10 +658,13 @@
   - このDecision自体は`src/`、`supabase/`、schema、migration、RLS、GRANT、Edge Function、frontend、remote Supabaseを変更しない。
   - local実装、remote差分整理、remote適用、Auth security設定を`KAI-32`〜`KAI-35`へ分離する。
 - 承認境界:
-  - 上記判断は2026-09-06の研究者本人による明示判断として採用する。指導教員確認済みとは記録しない。
-  - 本判断を実在参加者データ、研究データ収集、同意、保持、撤回、削除、研究者access/export、学内手続の承認へ一般化しない。KAI-12/OQ-009の残余とKAI-16は未完了のまま維持する。
+  - D-023の決定者は研究者本人である。研究者本人は、D-023の判断と、確定した契約に基づく後続`KAI-32`〜`KAI-35`の着手判断を指導教員から委任されていると明示しており、この範囲では追加の指導教員承認を開始条件としない。
+  - この委任は、指導教員がD-023の技術内容を個別に確認・承認済みであることを意味しない。
+  - 指定remoteへの変更は包括許可ではない。D-023で定めたGit管理、local/CI検証、Draft PR監査に加え、対象project ref、変更内容、適用版ごとの研究者本人の明示許可を引き続き必須とする。
+  - 本判断を実在参加者データ、研究データ収集、予備試行、同意、保持、撤回・削除、本人対応表、研究者access/export、評価ログ、学内手続の承認へ一般化しない。KAI-12/OQ-009の残余とKAI-16は未完了のまま維持する。
 - 根拠:
   - 2026-09-06の研究者本人による「必要な研究者判断には推奨回答例をすべて採用する」との明示判断
+  - 2026-09-06の研究者本人による、D-023とその確定契約に基づく`KAI-32`〜`KAI-35`の判断権限を指導教員から委任されているとの明示説明
   - D-019、D-022、Linear `KAI-30`、`KAI-31`、PR #38、PR #39
   - `docs/operations/research-data-management.md` §16
   - Supabase公式[User Management](https://supabase.com/docs/guides/auth/managing-user-data)、[Row Level Security](https://supabase.com/docs/guides/database/postgres/row-level-security)、[Securing your API](https://supabase.com/docs/guides/api/securing-your-api)、[API keys](https://supabase.com/docs/guides/getting-started/api-keys)

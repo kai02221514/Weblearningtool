@@ -97,6 +97,8 @@ Decision Logと本書が不一致の場合は、最新の有効Decisionを優先
 - [確定事項] `user:{id}`のemail、name、createdAt重複を廃止する。`profile:{id}`のage、occupation、pace、level、levelScoreは自動移行せず、必要性が生じた場合は別Decisionで再設計する。remote KVにデータがあれば自動処理せず停止する。
 - [確定事項] project ref `znfwkrhquegvlcmugkoe`は合成データ専用の非本番remote検証環境とする。実在個人情報・研究参加者データを禁止し、Git管理、local/CI検証、Draft PR監査、対象変更への明示許可を満たす変更だけmigration適用・Edge Function deployを許可する。
 - [確定事項] 指定remoteへのdeploy前後確認はD-023と`docs/operations/supabase-setup.md`に従う。RLSとGRANTを別々に検証し、service roleまたはsecret keyをfrontendへ公開しない。この環境判断を参加者データ収集、同意、保持、撤回、削除、研究者access/export、学内手続の承認へ一般化しない。
+- [確定事項] D-023の決定者は研究者本人であり、D-023とその確定契約に基づくKAI-32〜KAI-35の着手判断を指導教員から委任されているため、この範囲では追加の指導教員承認を開始条件としない。これは指導教員がD-023の技術内容を個別に確認・承認済みであることも、remote変更への包括許可も意味しない。指定remoteの変更には対象project ref・変更内容・適用版ごとの研究者本人の明示許可を引き続き必須とする。
+- [確定事項] D-023の委任範囲を実在参加者データ、研究データ収集、予備試行、同意、保持、撤回・削除、本人対応表、研究者access/export、評価ログ、学内手続、KAI-12/OQ-009の残余、KAI-16へ一般化しない。
 
 ## 評価
 
