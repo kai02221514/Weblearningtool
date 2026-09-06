@@ -10,6 +10,7 @@
 - 反映PR: `#1`（`docs/phase3-route-spec-proposal` -> `main`、2026-07-03T08:11:37Z merged）
 - KAI-26アプリケーション実装の検証基準`main`: `c47c807214803e2cf4f117bccf7b4e6ac245f3d7`
 - 参照日: 2026-09-06（KAI-28 / PR #35の完了証跡同期時）
+- KAI-29作業開始base: `356ddfd3290327a269218b0e8efaa57cd7540995`。Linear `KAI-29`はIn Progress、branchは`feat/kai-29-learning-flow-ui`
 - 正式RQ・中間発表時点の主張範囲反映日: 2026-09-03
 - PR #28によるKAI-26完了証跡反映時の`main`: `3ca325b2c2738db0869d6b8e391ed09e91a13eeb`
 - KAI-15教材接続作業開始時点の`main`: `7029c8d236b20d09c05fdc38ed7501cbb690d1d5`
@@ -35,6 +36,7 @@
 
 - 正式RQと主張範囲: D-021により、システムレベルで回答する正式な主RQと、予備試行または本評価で扱う将来評価の副次RQを確定した。中間発表時点の主張可能範囲・主張禁止範囲も確定したが、新しい評価結果または学習効果の主張は追加していない。OQ-001は解消済みである。
 - 状態: Phase 2およびPhase 2.5正式完了。KAI-12はIn Reviewを維持し、D-022を含むPR #19はmerge commit `006a89ff1fea60e2d1b62ab4033ea726d4568709`として`main`へ反映済みである。D-022だけを実装するKAI-28はPR #34の最終head `bfa3e239df6a7b9c00135dde773a0b74f20ad31b`をmerge commit `38782ebb55b0e37f98592d110b26d2afce20dd1d`として`main`へ反映し、K群3項目の本人単位保存・復元、保存成功ゲート、失敗時回答保持・再試行、版互換性、本人限定RLS、認証後UI統合テスト、独立workflow `Supabase Diagnosis`をmain上で再検証済みである。完了証跡はPR #35で同期し、Linear KAI-28はDoneとして完了コメントを登録済みである。remote deployは未実施である。KAI-14/KAI-20〜KAI-27の既存完了状態は維持する。同意、保持・撤回・削除、研究者用取得・削除・export、評価ログ、診断以外の永続化、参加者評価は未接続・対象外である
+- KAI-29現在地: 連続録画用の学習導線UI整理を作業ブランチで実装・ローカル検証済みである。K群3項目だけの必須診断、推薦を優先したDashboard、教材→確認テスト→実践課題→振り返りの共通4段階表示、振り返り確定後の単元完了、再ログイン時の診断復元とセッション進捗非復元の明示を含む。`manual/kai-29/index.html`はremoteへ接続しない合成データ専用ハーネスであり、本番entryから参照しない。学習状態の永続化、認証session自動復元、同意・評価ログ・研究データ出力は対象外で、ローカルSupabase未起動のため実APIブラウザE2Eは未実施である。新しい研究判断は追加していない
 - 次Phase: Phase 3残仕様確定とPhase 5予備試行用実装準備
 - Phase 2独立再監査: 完了。記録は`docs/archive/audit-2026-07-02/phase2-independent-review.md`。
 - Linear移管: 完了。保存先はLinear `Kai02221514` / `WebLearningTool`。

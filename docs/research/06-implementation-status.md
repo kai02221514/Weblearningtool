@@ -180,7 +180,7 @@
 
 ## 検証状態
 
-- コード状態の最新対象コミット: `38782ebb55b0e37f98592d110b26d2afce20dd1d`（KAI-28 / PR #34のmerge commit）
+- コード状態の最新対象コミット: `356ddfd3290327a269218b0e8efaa57cd7540995`（KAI-28完了証跡同期 / PR #35のmerge commit、KAI-29開始base）
 - KAI-26アプリケーション実装の検証済み`main`: `c47c807214803e2cf4f117bccf7b4e6ac245f3d7`
 - KAI-27限定的Dashboard接続の検証済み`main`: `101ac22f3cb645aa0727c66a6447aeb97d98accf`
 - `npm run build`: [確認済み] 2026-07-02、Supabase接続復旧後に成功（Vite CJS deprecation warningあり）
@@ -226,6 +226,9 @@
 - KAI-28 PR段階CI: [確認済み] 最終head `bfa3e239df6a7b9c00135dde773a0b74f20ad31b`に対し、Actions checkout merge-refは`dfa490f64b96a4e98e290a6271ec956dcc341913`だった。`pull_request`のworkflow `Check` / run `33977438869`と`Supabase Diagnosis` / run `33977438906`はいずれも`success`であり、PR headとmerge-refを区別して記録する
 - KAI-28 main反映後検証: [確認済み] merge commit `38782ebb55b0e37f98592d110b26d2afce20dd1d`と同一のローカル`main`上で、`npm ci`、UI統合1 file / 5 tests、`npm run verify`（typecheck、lint、全19 files / 210 tests、build 1724 modules transformed）、`git diff --check`に成功した。CLI 2.65.5と別ポートの合成データ専用local projectでは、フル構成の初回DB resetがmigration適用後の未使用Storage再起動待ちで502となったため、診断APIに不要なサービスを除外して再実行し、DB reset、pgTAP 1 file / 24 tests、DB lint schema error 0件、合成利用者A/Bの診断API統合テスト、stopに成功した。失敗した初回コマンドも成功扱いしない
 - KAI-28 main Actions: [確認済み] merge commit `38782ebb55b0e37f98592d110b26d2afce20dd1d`を対象とする`push` workflow `Check` / run `33978411853`と、同じmain refを対象に手動実行した`workflow_dispatch` workflow `Supabase Diagnosis` / run `33978478230`はいずれも`success`だった。後者はフル構成でDB reset、pgTAP、DB lint、合成利用者A/Bの診断API統合テスト、常時stopを含む全stepに成功した。remote project、GitHub Secrets、参加者データ、実在個人情報は使用していない
+- KAI-29学習導線UI整理: [作業ブランチで確認済み] `feat/kai-29-learning-flow-ui`で、ログイン・アカウント作成の状態表示、K群3項目だけの必須診断、推薦を主導線にしたDashboard、教材・確認テスト・実践課題・振り返りの共通4段階表示、振り返り確定後の明示的な単元完了、ログイン画面へ戻る導線と保存済み診断からの推薦再生成表示を接続した。固定の週次目標、連続日数、総学習時間、実践課題の固定Lesson表示、保存・最適化・学習効果を示唆する未接続文言は表示対象から除外した
+- KAI-29自動・ブラウザ検証: [作業ブランチで確認済み] 2026-09-06に`npm run verify`（typecheck、lint、全19 files / 213 tests、build 1725 modules transformed）、対象UI 2 files / 10 tests、routeGenerator・quiz・practice 9 files / 142 tests、`git diff --check`に成功した。非プロダクション合成ハーネス`manual/kai-29/index.html`で、アカウント作成後のログイン復帰、初回診断保存、DG-RULE-3による`html-010`開始、教材→3問全問正解→実践課題→振り返り→明示的完了→推薦更新、再ログイン後の診断復元・進捗非復元を連続確認した。390pxと1920pxで横スクロールなし、console warning/error 0件だった
+- KAI-29対象外・未検証: [未接続] 学習進捗、確認テスト、実践課題、振り返り、ルート履歴の永続化、ページ更新時の認証session復元、同意、保持・撤回・削除、評価ログ、研究データ出力、remote Supabase変更は対象外である。確認時にローカルSupabase stackは起動していなかったため、KAI-29差分を実Supabase認証・診断APIへ接続したブラウザE2Eは未実施であり、合成ハーネス結果と区別する
 - セッション復元: [未確認] リロード後の認証状態復元は確認していない
 - プロフィール保存: [未確認] 実際の保存成功は確認していない
 
