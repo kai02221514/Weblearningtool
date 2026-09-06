@@ -61,22 +61,27 @@ interface Progress {
   reflections: ReflectionData[]
 }
 
+type DashboardNotice = 'diagnosis-saved' | 'diagnosis-restored' | 'unit-completed' | null
+
+const createInitialProgress = (): Progress => ({
+  completedNodeIds: [],
+  totalNodes: MVP_NODE_IDS.length,
+  currentStreak: 0,
+  totalHours: 0,
+  quizScores: [],
+  currentNodeId: 'html-000',
+  currentNodeName: 'HTML入門（タグと要素）',
+  reflections: [],
+})
+
 export default function App() {
   const [phase, setPhase] = useState<Phase>('auth')
   const [userData, setUserData] = useState<UserData | null>(null)
   const [routeState, setRouteState] = useState(createInitialRouteRuntimeState)
   const [quizAttemptHistory, setQuizAttemptHistory] = useState<readonly QuizAttemptResult[]>([])
   const [diagnosisError, setDiagnosisError] = useState('')
-  const [progress, setProgress] = useState<Progress>({
-    completedNodeIds: [],
-    totalNodes: MVP_NODE_IDS.length,
-    currentStreak: 0,
-    totalHours: 0,
-    quizScores: [],
-    currentNodeId: 'html-000',
-    currentNodeName: 'HTML入門（タグと要素）',
-    reflections: [],
-  })
+  const [dashboardNotice, setDashboardNotice] = useState<DashboardNotice>(null)
+  const [progress, setProgress] = useState<Progress>(createInitialProgress)
 
   const resolveDiagnosis = async (accessToken: string) => {
     setDiagnosisError('')
@@ -86,6 +91,7 @@ export default function App() {
       const result = await getDiagnosis(accessToken)
       if (result.status === 'complete') {
         setRouteState(prev => applyDiagnosis(prev, result.diagnosis.answers))
+        setDashboardNotice('diagnosis-restored')
         setPhase('dashboard')
         return
       }
@@ -104,6 +110,7 @@ export default function App() {
 
   const handleSurveyComplete = (answers: DiagnosisAnswers) => {
     setRouteState(prev => applyDiagnosis(prev, pickRouteDiagnosisAnswers(answers)))
+    setDashboardNotice('diagnosis-saved')
     setPhase('dashboard')
   }
 
@@ -121,6 +128,7 @@ export default function App() {
       currentNodeName: node.title,
     }))
     setRouteState(prev => startRouteNode(prev, node.id))
+    setDashboardNotice(null)
     setPhase('learning')
   }
 
@@ -144,24 +152,30 @@ export default function App() {
   }
 
   const handlePracticeComplete = () => {
-    setProgress(prev => ({
-      ...prev,
-      completedNodeIds: prev.completedNodeIds.includes(prev.currentNodeId)
-        ? prev.completedNodeIds
-        : [...prev.completedNodeIds, prev.currentNodeId],
-      totalHours: prev.totalHours + 2,
-      currentStreak: prev.currentStreak + 1
-    }))
-    setRouteState(prev => completeRouteNode(prev, progress.currentNodeId))
     setPhase('reflection')
   }
 
   const handleReflectionComplete = (reflectionData: ReflectionData) => {
     setProgress(prev => ({
       ...prev,
+      completedNodeIds: prev.completedNodeIds.includes(prev.currentNodeId)
+        ? prev.completedNodeIds
+        : [...prev.completedNodeIds, prev.currentNodeId],
       reflections: [...prev.reflections, reflectionData]
     }))
+    setRouteState(prev => completeRouteNode(prev, progress.currentNodeId))
+    setDashboardNotice('unit-completed')
     setPhase('dashboard')
+  }
+
+  const handleReturnToLogin = () => {
+    setUserData(null)
+    setRouteState(createInitialRouteRuntimeState())
+    setQuizAttemptHistory([])
+    setDiagnosisError('')
+    setDashboardNotice(null)
+    setProgress(createInitialProgress())
+    setPhase('auth')
   }
 
   const handleViewCompletion = () => {
@@ -192,7 +206,10 @@ export default function App() {
     case 'diagnosis-loading':
       return (
         <div className="min-h-screen flex items-center justify-center p-4">
-          <p>診断状態を確認しています...</p>
+          <div className="space-y-2 text-center" role="status" aria-live="polite">
+            <p className="text-lg font-medium">保存済み診断を確認しています...</p>
+            <p className="text-sm text-muted-foreground">確認が終わるまでDashboardは表示されません。</p>
+          </div>
         </div>
       )
 
@@ -200,7 +217,7 @@ export default function App() {
       return (
         <div className="min-h-screen flex items-center justify-center p-4">
           <div className="max-w-md w-full space-y-4">
-            <Alert variant="destructive">
+            <Alert variant="destructive" role="alert" aria-live="assertive">
               <AlertDescription>{diagnosisError}</AlertDescription>
             </Alert>
             <Button
@@ -239,6 +256,7 @@ export default function App() {
           onViewCompletion={handleViewCompletion}
           onViewReflections={handleViewReflections}
           onTakeSurvey={handleTakeSurvey}
+          onReturnToLogin={handleReturnToLogin}
           userData={userData}
           progress={{
             ...progress,
@@ -247,6 +265,7 @@ export default function App() {
             inProgressNodeId: routeState.progress.inProgressNodeId,
           }}
           routeResult={routeState.result}
+          notice={dashboardNotice}
         />
       )
       

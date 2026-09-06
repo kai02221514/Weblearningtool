@@ -6,14 +6,13 @@ import { Avatar, AvatarFallback } from './ui/avatar'
 import { 
   BookOpen, 
   CheckCircle, 
-  Trophy, 
   TrendingUp, 
   Target,
   PlayCircle,
-  MessageCircle,
   AlertCircle,
   ArrowRight,
-  Lightbulb
+  Lightbulb,
+  LogOut,
 } from 'lucide-react'
 import { getMvpLearningNodes } from '../domain/mvpScope'
 import type { RouteGenerationResult } from '../domain/routeGeneration'
@@ -28,6 +27,7 @@ interface DashboardProps {
   onViewCompletion: () => void
   onViewReflections: () => void
   onTakeSurvey: () => void
+  onReturnToLogin: () => void
   userData: { name?: string } | null
   progress: {
     completedNodeIds: string[]
@@ -40,18 +40,19 @@ interface DashboardProps {
     inProgressNodeId: string | null
   }
   routeResult: RouteGenerationResult
+  notice: 'diagnosis-saved' | 'diagnosis-restored' | 'unit-completed' | null
 }
 
 const learningNodesArray = getMvpLearningNodes()
 
 export function Dashboard({
   onStartLearning,
-  onViewCompletion,
-  onViewReflections,
   onTakeSurvey,
+  onReturnToLogin,
   userData,
   progress,
   routeResult,
+  notice,
 }: DashboardProps) {
   const overallProgress = (progress.completedNodeIds.length / progress.totalNodes) * 100
   const averageQuizScore = progress.quizScores.length > 0 
@@ -102,7 +103,7 @@ export function Dashboard({
       {/* ヘッダー */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
+          <div className="dashboard-header-layout flex flex-col gap-4">
             <div className="flex items-center gap-4">
               <Avatar className="w-12 h-12">
                 <AvatarFallback className="text-lg">
@@ -114,18 +115,14 @@ export function Dashboard({
                 <p className="text-muted-foreground">今日も学習を続けましょう</p>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="dashboard-header-actions flex flex-wrap gap-2">
               <Button onClick={onTakeSurvey} variant="outline">
                 <Target className="w-4 h-4 mr-2" />
                 診断に回答・再回答
               </Button>
-              <Button onClick={onViewReflections} variant="outline">
-                <MessageCircle className="w-4 h-4 mr-2" />
-                学習の振り返り
-              </Button>
-              <Button onClick={onViewCompletion} variant="outline">
-                <Trophy className="w-4 h-4 mr-2" />
-                成果を見る
+              <Button onClick={onReturnToLogin} variant="ghost">
+                <LogOut className="w-4 h-4 mr-2" />
+                ログイン画面へ戻る
               </Button>
             </div>
           </div>
@@ -133,18 +130,30 @@ export function Dashboard({
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
+        {notice && (
+          <div
+            className="mb-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-900"
+            role="status"
+            aria-live="polite"
+            data-testid="dashboard-notice"
+          >
+            {notice === 'diagnosis-saved' && '診断を保存し、回答から推薦ルートを作成しました。'}
+            {notice === 'diagnosis-restored' && '保存済み診断を読み込み、その回答から推薦ルートを再生成しました。学習進捗はこのセッションから始まります。'}
+            {notice === 'unit-completed' && 'このセッションで単元を完了し、現在の進捗から推薦ルートを更新しました。'}
+          </div>
+        )}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* メインコンテンツ */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="dashboard-main-column lg:col-span-2 flex flex-col gap-6">
             {/* 全体進捗 */}
-            <Card>
+            <Card className="dashboard-session-progress">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="w-5 h-5" />
                   学習進捗
                 </CardTitle>
                 <CardDescription>
-                  あなたの学習の進み具合を確認できます
+                  ブラウザを閉じるまでの、このセッション内の進捗です
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -153,32 +162,28 @@ export function Dashboard({
                   <span className="text-sm">{Math.round(overallProgress)}%</span>
                 </div>
                 <Progress value={overallProgress} className="w-full" />
-                <div className="grid grid-cols-3 gap-4 pt-4">
+                <div className="grid grid-cols-2 gap-4 pt-4">
                   <div className="text-center">
                     <div className="text-2xl mb-1">{progress.completedNodeIds.length}</div>
                     <div className="text-sm text-muted-foreground">完了ノード</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl mb-1">{progress.currentStreak}</div>
-                    <div className="text-sm text-muted-foreground">連続学習日数</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl mb-1">{progress.totalHours}</div>
-                    <div className="text-sm text-muted-foreground">総学習時間</div>
+                    <div className="text-2xl mb-1">{progress.quizScores.length}</div>
+                    <div className="text-sm text-muted-foreground">このセッションのテスト回数</div>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* 学習モジュール */}
-            <Card>
+            <Card className="dashboard-recommendations">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BookOpen className="w-5 h-5" />
-                  学習モジュール
+                  次に学ぶ単元
                 </CardTitle>
                 <CardDescription>
-                  段階的にWebプログラミングをマスターしましょう
+                  診断とこのセッションの状態から生成した推薦です
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -235,20 +240,23 @@ export function Dashboard({
                                 {recommendation.reasons.map(reason => (
                                   <div key={`${reason.reasonCode}:${reason.evidenceKind}:${reason.evidenceRefId}`} className="text-sm">
                                     <p>{reason.message}</p>
-                                    <p className="text-xs text-muted-foreground">
-                                      {reason.reasonCode} / evidence: {reason.evidenceKind} / {reason.evidenceRefId}
-                                    </p>
+                                    <details className="mt-1 text-xs text-muted-foreground">
+                                      <summary className="cursor-pointer">推薦根拠の詳細</summary>
+                                      <p className="mt-1">
+                                        {reason.reasonCode} / evidence: {reason.evidenceKind} / {reason.evidenceRefId}
+                                      </p>
+                                    </details>
                                   </div>
                                 ))}
                               </div>
                             </div>
                             <Button
                               onClick={() => onStartLearning(recommendation.node.id)}
-                              size="sm"
+                              size={index === 0 ? 'lg' : 'sm'}
                               variant={index === 0 ? 'default' : 'outline'}
                             >
                               {index === 0 && <ArrowRight className="w-4 h-4 mr-1" />}
-                              開始
+                              {index === 0 ? 'この単元を始める' : '開始'}
                             </Button>
                           </div>
                         </div>
@@ -329,38 +337,12 @@ export function Dashboard({
 
           {/* サイドバー */}
           <div className="space-y-6">
-            {/* 今週の目標 */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="w-5 h-5" />
-                  今週の目標
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">CSSの基礎完了</span>
-                    <span className="text-sm text-blue-600">進行中</span>
-                  </div>
-                  <Progress value={65} className="w-full" />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">1日30分学習</span>
-                    <span className="text-sm text-green-600">達成</span>
-                  </div>
-                  <Progress value={100} className="w-full" />
-                </div>
-              </CardContent>
-            </Card>
-
             {/* 最近の成績 */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="w-5 h-5" />
-                  最近の成績
+                  このセッションの確認テスト
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -378,6 +360,9 @@ export function Dashboard({
                     <span className="text-lg">{progress.quizScores.length}回</span>
                   </div>
                 </div>
+                <p className="mt-4 text-xs text-muted-foreground">
+                  この結果は再ログイン後には復元されません。
+                </p>
               </CardContent>
             </Card>
 
