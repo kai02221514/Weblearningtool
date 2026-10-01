@@ -150,8 +150,7 @@ export function routeGenerator(input: RouteGenerationInput): RouteGenerationResu
         reason: errorReason(entry, nodeRef.priority),
         timestamp: timestampValue(entry.lastOccurredAt),
         repetition: entry.occurrenceCount,
-        eligible:
-          nodeRef.priority === 1 || !baseSatisfiedNodeIds.has(nodeRef.nodeId),
+        eligible: true,
       })
     }
   }
@@ -214,8 +213,11 @@ export function routeGenerator(input: RouteGenerationInput): RouteGenerationResu
     if (!signals.some(signal => signal.eligible)) continue
 
     const reasons = signals.map(signal => signal.reason)
-    const hasReviewCause =
-      primaryErrorNodeIds.has(nodeId) || failedNodeIds.has(nodeId)
+    // §9 includes auxiliary errors; §4.2 refutes assumptions only for primary errors or quiz failures.
+    const hasReviewCause = signals.some(signal =>
+      signal.reason.reasonCode === 'ERROR_REMEDIATION' ||
+      signal.reason.reasonCode === 'QUIZ_FAILED'
+    )
     if (baseSatisfiedNodeIds.has(nodeId) && hasReviewCause) {
       reasons.push({
         reasonCode: 'REVIEW',
