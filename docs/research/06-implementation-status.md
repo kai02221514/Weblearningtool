@@ -1,6 +1,6 @@
 # 実装状態
 
-- 最新確認日: 2026-09-07
+- 最新確認日: 2026-10-01（今回の更新対象はKAI-36 / PR #51・#52の統合状態）
 - 対象: `kai02221514/Weblearningtool`
 - GitHub取得時点（2026-07-02）の`main`: `1a8efb5aa28a9ef08042a9e275cc171dccf8b6a2`
 - PR #28によるKAI-26完了証跡反映時の`main`: `3ca325b2c2738db0869d6b8e391ed09e91a13eeb`
@@ -42,12 +42,41 @@
 
 [注意] `1a8efb5aa28a9ef08042a9e275cc171dccf8b6a2`および`0f09e5b9f7ba500eaa2a2a8e33252c03d59410d4`は2026-07-02監査時点の旧スナップショットである。以下は2026-07-03に最新`main`を再確認した結果を含む。
 
-## KAI-36 補助エラーによる復習欠落の修正（2026-10-01）
+## KAI-36・PR #51の統合状態（2026-10-01）
 
-- 状態: [作業ブランチで修正・限定検証済み／main未反映] `fix/kai-36-auxiliary-error-review`、基点 `37820b66f951b0887f21d3a4525b53ee8e9f2ef9`。未解消エラーの補助参照先も完了・習得仮定にかかわらず候補化し、`ERROR_REMEDIATION`と`REVIEW`の根拠を出力する。§4.2の習得仮定反証は主推薦エラー・確認テスト不合格に限定したまま維持する。
-- 限定検証: `npm run test -- src/domain/routeGeneration.test.ts src/domain/routeGenerator.test.ts`。実装修正前はKAI-36ケースA/Bの仕様適合テストが`html-040`欠落により2件失敗し、既存30件は成功した。修正後は全46件成功し、原因別解除・再発、別エラー／不合格の残存、P1〜P6、同点処理、前提関係、理由併合、重複排除、決定性、入力不変を確認した。ケースBは公開入力の合成境界例であり、診断の習得仮定対象を拡張しない。
-- 最終検証証跡: 統合検証`npm run verify`、`git diff --check`、最終headに対するPR CIの結果・固定SHA・URLは、対応Draft PRと[Linear KAI-36](https://linear.app/kai02221514/issue/KAI-36/)に記録する。ブランチの検証とmain反映後検証は区別する。
-- 境界: KAI-26の過去の完了記録を維持する。PR #51の未マージ差分は取り込まない。研究仕様・版・Decision Logの変更はなく、学習効果・教育的妥当性・固定ルートへの優位性の実証を意味しない。UI、保存・同意・評価ログ、参加者評価、外部サービス変更は対象外である。
+- 状態: [コードmain反映・統合検証済み／完了文書の監査・反映待ち] [PR #52](https://github.com/kai02221514/Weblearningtool/pull/52)で補助エラー復習欠落を修正し、続いて[PR #51](https://github.com/kai02221514/Weblearningtool/pull/51)の説明・書式・集合処理整理を統合した。検証基準mainは`908f7b76598414cf4236f44eaa52728823cae8ff`。本節を含む文書更新は別Draft PRで監査し、文書main反映後に[KAI-36](https://linear.app/kai02221514/issue/KAI-36/)のDone判定を行う。それまではIn Reviewを維持する。
+- 契約: §9に従い、未解消エラーの主・補助参照先を完了・習得仮定にかかわらず候補化し、`ERROR_REMEDIATION`と`REVIEW`の根拠を保持する。§4.2の習得仮定反証は主推薦エラー・確認テスト不合格だけに限定し、補助エラーだけでは前提充足を取り消さない。
+
+### マージ・競合解消の固定参照
+
+| 対象 | head | base | merge commit / mergedAt（UTC） |
+| --- | --- | --- | --- |
+| PR #52 | `1ca59a00cee1d555961d9278b1d91cb34ef2bbaf`（開始時から不変） | `37820b66f951b0887f21d3a4525b53ee8e9f2ef9` | `dbb8a3b2704764929eca8c4b87419150a6e74b1e` / 2026-10-01T06:12:24Z |
+| PR #51 | 旧`20653a4a7a3d22bbfe441ca076135c3fccd0ade7` → 更新`a7f809a5cc3b7a0d1fb408ea6ed89692c34cfaa2` | 旧`37820b66f951b0887f21d3a4525b53ee8e9f2ef9` → 更新`dbb8a3b2704764929eca8c4b87419150a6e74b1e` | `908f7b76598414cf4236f44eaa52728823cae8ff` / 2026-10-01T06:21:39Z |
+
+- 競合解消commit `a7f809a5cc3b7a0d1fb408ea6ed89692c34cfaa2`は旧PR #51 headを第1親、PR #52反映後mainを第2親に持つ通常merge commitである。`routeGenerator.ts`の候補採用とREVIEW原因判定、`routeGenerator.test.ts`のKAI-36群挿入とP1〜P6拡張を意味単位で統合した。旧説明2箇所を現挙動へ直し、他3ファイルとSet整理を保持した。テスト削除・skip・期待値弱化はない。
+- 最新baseに対するPR #51差分は従来と同じ`src/domain/`内5ファイル（781行追加・521行削除）。元baseから両PRを含むmainまでは7ファイル（1078行追加・554行削除）。4ファイルはコメント・書式・式の括弧を除く構文がPR #52反映後mainと一致し、`routeGenerator.ts`も監査した3つのSet構築・反証処理以外は一致する。
+
+### 検証結果とCIの対象
+
+- 更新PR #51 headと統合mainのそれぞれで、`npm run test -- src/domain/routeGeneration.test.ts src/domain/routeGenerator.test.ts`は2 files / 46 tests成功、`npm run verify`はtypecheck・lint・20 files / 248 tests・build（1726 modules）成功。各コマンド終了0。`git diff --check`、staged差分検査、統合mainと元baseの差分検査も終了0。Node v20.17.0 / npm 11.4.2、lockfile変更なし。
+- ケースA/B、解消・再発、別エラーの残存、エラー／不合格の独立解除、補助だけでは仮定を反証しない境界、P1〜P6のuncompleted／completed／assumed、同点処理、前提先行、理由併合、重複排除、決定性、入力不変、版情報のアサーションを保持した。ケースBは公開入力の合成境界例であり、通常診断の習得仮定対象html-000を拡張しない。テスト名と契約の対応はPR #52本文、統合差分はPR #51本文を参照する。
+
+| 段階 / workflow | run | event | head_sha | 実checkout SHA | 結果 |
+| --- | --- | --- | --- | --- | --- |
+| PR #52 / Check | [36821913598](https://github.com/kai02221514/Weblearningtool/actions/runs/36821913598) | pull_request | `1ca59a00cee1d555961d9278b1d91cb34ef2bbaf` | `d4d14942d69c6e298a55483b42e65710a64e8525` | success |
+| PR #52 / Supabase Diagnosis | [36821913553](https://github.com/kai02221514/Weblearningtool/actions/runs/36821913553) | pull_request | `1ca59a00cee1d555961d9278b1d91cb34ef2bbaf` | `d4d14942d69c6e298a55483b42e65710a64e8525` | success |
+| #52反映main / Check | [36823549916](https://github.com/kai02221514/Weblearningtool/actions/runs/36823549916) | push | `dbb8a3b2704764929eca8c4b87419150a6e74b1e` | `dbb8a3b2704764929eca8c4b87419150a6e74b1e` | success |
+| 更新PR #51 / Check | [36823944491](https://github.com/kai02221514/Weblearningtool/actions/runs/36823944491) | pull_request | `a7f809a5cc3b7a0d1fb408ea6ed89692c34cfaa2` | `2627c7d592259995244d6c35df343ff7605d092a` | success |
+| 更新PR #51 / Supabase Diagnosis | [36823944380](https://github.com/kai02221514/Weblearningtool/actions/runs/36823944380) | pull_request | `a7f809a5cc3b7a0d1fb408ea6ed89692c34cfaa2` | `2627c7d592259995244d6c35df343ff7605d092a` | success |
+| 統合main / Check | [36824363429](https://github.com/kai02221514/Weblearningtool/actions/runs/36824363429) | push | `908f7b76598414cf4236f44eaa52728823cae8ff` | `908f7b76598414cf4236f44eaa52728823cae8ff` | success |
+| 統合main / Supabase Diagnosis | [36824403211](https://github.com/kai02221514/Weblearningtool/actions/runs/36824403211) | workflow_dispatch | `908f7b76598414cf4236f44eaa52728823cae8ff` | `908f7b76598414cf4236f44eaa52728823cae8ff` | success |
+
+PR CIはmerge-refの検証であり、実mainと区別する。`Supabase Diagnosis`はmain pushを起動条件に持たないため、mainへ手動実行した。DB/APIはworkflow内のローカル環境と合成データだけを使用し、remoteへ接続・変更していない。統合mainのDBは3 files / 95 tests、DB lint、合成A/Bの診断・profile API、環境停止まで全step成功した。
+
+- 過去証跡: PR #52作成時は、base `37820b66f951b0887f21d3a4525b53ee8e9f2ef9`の実装にケースA/Bを追加して2件失敗・既存30件成功を確認し、修正後46件成功を確認した。今回の開始時にhead・base不変と両PR CIの証跡を照合したため、#52単独の同じローカル検証は再実行していない。PR #51旧headの30件／232件と旧CI成功は履歴であり、統合後の証拠へ流用しない。
+- 残作業・境界: 完了文書Draftの監査・main反映とKAI-36のDone判定。#52マージ直後に連携でDoneへ自動遷移したため、計画に従ってIn Reviewへ戻した。KAI-26等の既存完了状態は変更しない。元チェックアウトは追跡205・未追跡発表資料79の計284ファイルの一覧・SHA-256、branch・HEAD・statusが開始時と一致した。隔離cloneで作業した。新規研究判断がないためDecision Log・研究仕様・版番号は変更しない。UI、保存・同意・評価ログ、参加者評価、remote変更・deploy、依存更新・資料整理は対象外。学習効果・教育的妥当性・固定ルートへの優位性は実証していない。
+- ロールバック（未実施）: 別作業ブランチ・別PRで`git revert -m 1 908f7b76598414cf4236f44eaa52728823cae8ff`を行えば、PR #51だけを戻してKAI-36修正を残せる。#52も戻す場合は続けて`git revert -m 1 dbb8a3b2704764929eca8c4b87419150a6e74b1e`を行い、既知の補助復習欠落が再導入されることを明記して再検証する。mainへの直接変更、履歴書換え、資料削除は行わない。
 
 ## 技術構成の区分
 
