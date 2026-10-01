@@ -1,3 +1,4 @@
+// describeでテストを分類し、itで実行するケースを定義し、expectで期待結果を検証する。
 import { describe, expect, it } from 'vitest'
 
 import { MVP_NODE_IDS, type MvpNodeId } from './mvpScope'
@@ -9,29 +10,37 @@ import {
 } from './routeGeneration'
 import { ROUTE_DATA_VERSION, routeGenerator } from './routeGenerator'
 
+// 初学者はhtml-000から開始する診断結果を、各テストの共通条件として用意する。
 const beginnerDiagnosis = decideStartNode({ programming_experience: 'no' })
+// 一部経験者はhtml-000を習得仮定とし、html-010から開始する条件を用意する。
 const experiencedDiagnosis = decideStartNode({
   programming_experience: 'yes',
   rule_confidence: 'partial',
   knowledge_concept: 'structure_style',
 })
 
+// 入力の一部だけを指定できる型。progressは、その内部の項目も個別に省略できる。
 type InputOverrides = Partial<Omit<RouteGenerationInput, 'catalog' | 'progress'>> & {
   catalog?: RouteCatalog
   progress?: Partial<RouteGenerationInput['progress']>
 }
 
+// 各ケースで必要な条件だけを上書きし、省略された項目は共通の初期値で補う。
 function inputFor(overrides: InputOverrides = {}): RouteGenerationInput {
   return {
+    // ??はnullまたはundefinedのときに既定値を使う。カタログは通常のMVP定義を使う。
     catalog: overrides.catalog ?? getMvpRouteCatalog(),
+    // undefinedは初学者の診断で補い、明示的なnullは「診断なし」としてそのまま渡す。
     diagnosis: overrides.diagnosis === undefined
       ? beginnerDiagnosis
       : overrides.diagnosis,
+    // 完了済み・習得仮定・進行中を分ける。省略時は学習を始めていない状態とする。
     progress: {
       completedNodeIds: overrides.progress?.completedNodeIds ?? [],
       assumedNodeIds: overrides.progress?.assumedNodeIds ?? [],
       inProgressNodeId: overrides.progress?.inProgressNodeId ?? null,
     },
+    // 学習履歴は既定で空とし、表示する推薦件数は3件とする。
     quizResults: overrides.quizResults ?? [],
     errorHistory: overrides.errorHistory ?? [],
     reflections: overrides.reflections ?? [],
@@ -39,6 +48,8 @@ function inputFor(overrides: InputOverrides = {}): RouteGenerationInput {
   }
 }
 
+// 前提ノードの挿入による影響を除き、推薦の優先順位だけを調べるためのテスト用定義。
+// 元のカタログやノードを変更せず、コピーした各ノードの前提条件を空にする。
 function emptyPrerequisiteCatalog(): RouteCatalog {
   const catalog = getMvpRouteCatalog()
   return {
@@ -47,17 +58,23 @@ function emptyPrerequisiteCatalog(): RouteCatalog {
   }
 }
 
+// ノードの位置を0始まりで取得する。見つからない場合は-1が返る。
 function routeIndex(route: readonly { nodeId: MvpNodeId }[], nodeId: MvpNodeId): number {
   return route.findIndex(item => item.nodeId === nodeId)
 }
 
+// 仕様書docs/architecture/route-generation.mdの§13にある代表例を確認する。
 describe('routeGenerator representative scenarios', () => {
   it('§13.1 returns the full catalog route from html-000 for a complete beginner', () => {
+    // 上書きなしの共通入力で、初学者のルートを生成する。
     const result = routeGenerator(inputFor())
 
+    // 学習可能な状態となり、MVP全ノードが定義順に並ぶことを確認する。
     expect(result.status).toBe('active')
     expect(result.nextNodeId).toBe('html-000')
     expect(result.route.map(item => item.nodeId)).toEqual([...MVP_NODE_IDS])
+    // 先頭3件から比較したい情報を取り出し、推薦理由と根拠の参照先を確認する。
+    // ?.は理由が存在しない場合にundefinedを返すため、その欠落も期待値との差で検出できる。
     expect(result.route.slice(0, 3).map(item => ({
       nodeId: item.nodeId,
       reasonCode: item.reasons[0]?.reasonCode,
@@ -83,12 +100,15 @@ describe('routeGenerator representative scenarios', () => {
         evidenceRefId: 'html-020',
       },
     ])
+    // 全ルートを保持したうえで、表示対象の件数は既定の3件となる。
     expect(result.presentedCount).toBe(3)
   })
 
   it('§13.2 starts at html-010 and treats html-000 as assumed', () => {
+    // 診断だけを経験者の条件へ切り替える。
     const result = routeGenerator(inputFor({ diagnosis: experiencedDiagnosis }))
 
+    // 習得仮定のhtml-000を除外し、html-010からの順序と診断ルールの根拠を確認する。
     expect(result.route.map(item => item.nodeId)).toEqual(
       MVP_NODE_IDS.filter(nodeId => nodeId !== 'html-000')
     )
@@ -107,6 +127,7 @@ describe('routeGenerator representative scenarios', () => {
   })
 
   it('§13.3 orders remediation, failed quiz, auxiliary remediation, and all reasons', () => {
+    // 完了履歴に、不合格テスト・未解消エラー・振り返りのつまずきを組み合わせる。
     const result = routeGenerator(inputFor({
       progress: {
         completedNodeIds: [
@@ -138,12 +159,14 @@ describe('routeGenerator representative scenarios', () => {
       }],
     }))
 
+    // エラー主推薦、テスト不合格、エラー補助推薦、新規学習の順に並ぶことを確認する。
     expect(result.route.slice(0, 4).map(item => item.nodeId)).toEqual([
       'html-021',
       'html-031',
       'html-040',
       'css-000',
     ])
+    // html-021は完了済みでも復習対象になり、振り返りを含む複数の理由を保持する。
     expect(result.route[0]?.reasons.map(reason => reason.reasonCode)).toEqual([
       'ERROR_REMEDIATION',
       'REVIEW',
@@ -405,8 +428,10 @@ describe('KAI-36 auxiliary error review', () => {
   })
 })
 
+// 同一入力での再現性と、推薦候補の並べ方を確認する。
 describe('routeGenerator priority and deterministic ordering', () => {
   it('returns every field identically across repeated execution', () => {
+    // 同じ未解消エラーを含む入力を2回使用し、結果の全フィールドを比較する。
     const input = inputFor({
       errorHistory: [{
         errorId: 'E_HTML_INVALID_NESTING',
@@ -420,6 +445,7 @@ describe('routeGenerator priority and deterministic ordering', () => {
   })
 
   it('does not depend on input array or catalog array order', () => {
+    // 複数の学習履歴を用意し、配列の並びだけを変えた入力と比較する。
     const catalog = getMvpRouteCatalog()
     const progress = {
       completedNodeIds: ['html-000', 'html-010', 'html-020'],
@@ -470,6 +496,7 @@ describe('routeGenerator priority and deterministic ordering', () => {
         submittedAt: '2026-01-01T00:00:00.000Z',
       },
     ]
+    // 元の配列順で生成する入力。
     const forward = inputFor({
       catalog,
       progress,
@@ -477,6 +504,7 @@ describe('routeGenerator priority and deterministic ordering', () => {
       errorHistory,
       reflections,
     })
+    // コピーしてからreverseすることで元の配列を保ち、前提条件も含めて順序を反転する。
     const reversed = inputFor({
       catalog: {
         ...catalog,
@@ -494,12 +522,14 @@ describe('routeGenerator priority and deterministic ordering', () => {
       reflections: [...reflections].reverse(),
     })
 
+    // 入力の配列順ではなく、規則に基づいて同じ結果が生成されることを確認する。
     expect(routeGenerator(reversed)).toEqual(routeGenerator(forward))
   })
 
   it.each(['uncompleted', 'completed', 'assumed'] as const)(
     'applies P1 through P6 in their fixed relative order with %s auxiliary target',
     state => {
+      // 前提条件を取り除いたテスト用カタログで、補助先の状態ごとに6段階の優先順位を確認する。
       const result = routeGenerator(inputFor({
         catalog: emptyPrerequisiteCatalog(),
         progress: {
@@ -528,6 +558,7 @@ describe('routeGenerator priority and deterministic ordering', () => {
         }],
       }))
 
+      // P1進行中 → P2エラー主推薦 → P3不合格 → P4エラー補助推薦 → P5振り返り → P6新規学習。
       expect(result.route.slice(0, 6).map(item => item.nodeId)).toEqual([
         'css-060',
         'html-021',
@@ -540,6 +571,7 @@ describe('routeGenerator priority and deterministic ordering', () => {
   )
 
   it('breaks same-priority ties by recency, repetition, then MVP catalog order', () => {
+    // 同じ優先度のエラーに、発生日時と回数の異なる履歴を与える。
     const result = routeGenerator(inputFor({
       catalog: emptyPrerequisiteCatalog(),
       errorHistory: [
@@ -570,6 +602,7 @@ describe('routeGenerator priority and deterministic ordering', () => {
       ],
     }))
 
+    // 新しい証拠を優先し、同日時なら回数の多いもの、さらに同回数ならMVP定義順とする。
     expect(result.route.slice(0, 4).map(item => item.nodeId)).toEqual([
       'html-031',
       'css-011',
@@ -579,8 +612,10 @@ describe('routeGenerator priority and deterministic ordering', () => {
   })
 })
 
+// 前提関係、復習の扱い、ルート全体で守るべき条件を確認する。
 describe('routeGenerator prerequisites, review, and invariants', () => {
   it('recursively inserts unmet prerequisites before a candidate with prerequisiteFor', () => {
+    // css-020へ接続するエラーを与え、未学習の前提ノードが先に挿入されるか調べる。
     const result = routeGenerator(inputFor({
       errorHistory: [{
         errorId: 'E_CSS_SELECTOR_NO_MATCH',
@@ -589,6 +624,7 @@ describe('routeGenerator prerequisites, review, and invariants', () => {
         resolved: false,
       }],
     }))
+    // 直接の前提だけでなく、その前提へ到達するために必要なノードも列挙する。
     const targetIndex = routeIndex(result.route, 'css-020')
     const expectedPrerequisites: MvpNodeId[] = [
       'html-000',
@@ -600,6 +636,7 @@ describe('routeGenerator prerequisites, review, and invariants', () => {
       'css-011',
     ]
 
+    // 対象の存在を確認し、各前提が対象より前にあり、挿入先を示す理由を持つか検証する。
     expect(targetIndex).toBeGreaterThan(-1)
     for (const nodeId of expectedPrerequisites) {
       const prerequisiteIndex = routeIndex(result.route, nodeId)
@@ -614,6 +651,7 @@ describe('routeGenerator prerequisites, review, and invariants', () => {
   })
 
   it('deduplicates a node while retaining error, quiz, reflection, and review reasons', () => {
+    // 完了済みの同一ノードに、エラー・不合格・つまずきの複数原因を集中させる。
     const result = routeGenerator(inputFor({
       progress: { completedNodeIds: ['html-021'] },
       quizResults: [{
@@ -636,6 +674,7 @@ describe('routeGenerator prerequisites, review, and invariants', () => {
         submittedAt: '2026-03-01T00:00:00.000Z',
       }],
     }))
+    // ノード自体は1件にまとめ、推薦につながった理由はすべて残すことを確認する。
     const entries = result.route.filter(item => item.nodeId === 'html-021')
 
     expect(entries).toHaveLength(1)
@@ -648,7 +687,9 @@ describe('routeGenerator prerequisites, review, and invariants', () => {
   })
 
   it('refutes an assumed node without mutating the diagnosis input', () => {
+    // ルート生成前の診断内容を深くコピーし、生成処理による書き換えがないか比較できるようにする。
     const diagnosisBefore = structuredClone(experiencedDiagnosis)
+    // 習得仮定のhtml-000で不合格になった条件を与え、復習対象へ戻ることを確認する。
     const input = inputFor({
       diagnosis: experiencedDiagnosis,
       quizResults: [{
@@ -671,6 +712,7 @@ describe('routeGenerator prerequisites, review, and invariants', () => {
   })
 
   it('keeps review until each active cause is resolved independently', () => {
+    // 完了済みノードに、テスト不合格と未解消エラーという独立した復習原因を用意する。
     const progress = { completedNodeIds: ['html-021'] }
     const failedQuiz = {
       quizId: 'quiz-html-021',
@@ -686,22 +728,26 @@ describe('routeGenerator prerequisites, review, and invariants', () => {
       lastOccurredAt: '2026-03-02T00:00:00.000Z',
       resolved: false,
     }
+    // 両方の原因が残る状態。
     const bothActive = routeGenerator(inputFor({
       progress,
       quizResults: [failedQuiz],
       errorHistory: [activeError],
     }))
+    // エラーだけを解消しても、テスト不合格が残るため復習は継続する。
     const quizStillActive = routeGenerator(inputFor({
       progress,
       quizResults: [failedQuiz],
       errorHistory: [{ ...activeError, resolved: true }],
     }))
+    // テストも合格に変え、すべての原因が解消された状態。
     const bothResolved = routeGenerator(inputFor({
       progress,
       quizResults: [{ ...failedQuiz, passed: true }],
       errorHistory: [{ ...activeError, resolved: true }],
     }))
 
+    // 原因が残る間はルートに含まれ、両方を解消したときだけ除外されることを確認する。
     expect(bothActive.route.some(item => item.nodeId === 'html-021')).toBe(true)
     expect(quizStillActive.route.find(item => item.nodeId === 'html-021')?.reasons
       .map(reason => reason.reasonCode)).toEqual(['REVIEW', 'QUIZ_FAILED'])
@@ -709,6 +755,7 @@ describe('routeGenerator prerequisites, review, and invariants', () => {
   })
 
   it('includes every unmet prerequisite before its dependent route item', () => {
+    // 完了・習得仮定がない状態で、後半のノードに接続するエラーを与える。
     const input = inputFor({
       progress: {
         completedNodeIds: [],
@@ -723,14 +770,17 @@ describe('routeGenerator prerequisites, review, and invariants', () => {
     })
     const result = routeGenerator(input)
     const routeNodeIds = result.route.map(item => item.nodeId)
+    // SetでMVP内かを判定し、Mapで各ノードの前提条件をIDから参照する。
     const knownNodeIds = new Set<string>(MVP_NODE_IDS)
     const catalog = new Map(input.catalog.nodes.map(node => [node.nodeId, node]))
 
+    // MVP外のIDがないこと、重複がないこと、orderが1からの連番であることを確認する。
     expect(routeNodeIds.every(nodeId => knownNodeIds.has(nodeId))).toBe(true)
     expect(new Set(routeNodeIds).size).toBe(routeNodeIds.length)
     expect(result.route.map(item => item.order)).toEqual(
       result.route.map((_, index) => index + 1)
     )
+    // ルート内の全ノードについて、各前提ノードが存在し、必ず先に並んでいるか検証する。
     for (const item of result.route) {
       const dependentIndex = routeNodeIds.findIndex(
         nodeId => nodeId === item.nodeId
@@ -747,8 +797,10 @@ describe('routeGenerator prerequisites, review, and invariants', () => {
   })
 })
 
+// 不明なID、不正なカタログ、診断欠損、学習完了時の返り値を確認する。
 describe('routeGenerator missing input and error handling', () => {
   it('ignores unknown IDs and returns deterministic UNKNOWN_ID warnings', () => {
+    // 進捗・テスト・エラー・振り返りの各入力へ、存在しないIDを混ぜる。
     const result = routeGenerator(inputFor({
       progress: {
         completedNodeIds: ['html-999'],
@@ -774,6 +826,7 @@ describe('routeGenerator missing input and error handling', () => {
         submittedAt: '2026-04-01T00:00:00.000Z',
       }],
     }))
+    // 不明なIDごとの警告を文字列順に並べ、返却順も再現可能であることを確認する。
     const expectedWarnings = [
       'UNKNOWN_ID:html-999',
       'UNKNOWN_ID:css-999',
@@ -784,11 +837,13 @@ describe('routeGenerator missing input and error handling', () => {
       'UNKNOWN_ID:html-996',
     ].sort((left, right) => left.localeCompare(right))
 
+    // 不明なIDは推薦に使わず、通常の初学者ルートと警告を返す。
     expect(result.status).toBe('active')
     expect(result.route.map(item => item.nodeId)).toEqual([...MVP_NODE_IDS])
     expect(result.warnings).toEqual(expectedWarnings)
   })
 
+  // it.eachで、循環・参照切れ・MVP外の前提という3種類の不正カタログを同じ検証に通す。
   it.each([
     ['cycle', (catalog: RouteCatalog) => ({
       ...catalog,
@@ -807,10 +862,12 @@ describe('routeGenerator missing input and error handling', () => {
         : node),
     })],
   ])('returns no partial route for a catalog %s', (_label, mutateCatalog) => {
+    // 各行の関数でカタログを不正な状態にし、途中までのルートも返さないことを確認する。
     const result = routeGenerator(inputFor({
       catalog: mutateCatalog(getMvpRouteCatalog()),
     }))
 
+    // 不正なカタログでは生成を失敗とし、ルート・次ノード・表示件数を空にする。
     expect(result.status).toBe('error')
     expect(result.nextNodeId).toBeNull()
     expect(result.route).toEqual([])
@@ -819,6 +876,7 @@ describe('routeGenerator missing input and error handling', () => {
   })
 
   it('returns insufficient-input and the full html-000 route without diagnosis or progress', () => {
+    // 診断を明示的に欠損させる。進捗もないため入力不足として初学者ルートを返す。
     const result = routeGenerator(inputFor({ diagnosis: null }))
 
     expect(result.status).toBe('insufficient-input')
@@ -828,6 +886,7 @@ describe('routeGenerator missing input and error handling', () => {
   })
 
   it('generates normally with a warning when diagnosis is missing but progress exists', () => {
+    // 診断がなくても完了履歴があれば、警告を残しつつ次の未完了ノードから生成する。
     const result = routeGenerator(inputFor({
       diagnosis: null,
       progress: { completedNodeIds: ['html-000'] },
@@ -839,6 +898,7 @@ describe('routeGenerator missing input and error handling', () => {
   })
 
   it('returns completed with an empty route when all nodes are complete without review causes', () => {
+    // 全ノード完了かつ復習原因なしでは、学習完了となり次の推薦は存在しない。
     const result = routeGenerator(inputFor({
       progress: { completedNodeIds: [...MVP_NODE_IDS] },
     }))
@@ -850,14 +910,17 @@ describe('routeGenerator missing input and error handling', () => {
   })
 })
 
+// 利用側へ返す全ルート、表示件数、版情報、構造化理由の形式を確認する。
 describe('routeGenerator output contract', () => {
   it('keeps the full route while limiting presentedCount', () => {
+    // 表示件数の上限を2件にしても、返却する全ルートは12ノードを保持する。
     const result = routeGenerator(inputFor({ maxRecommendations: 2 }))
 
     expect(result.route).toHaveLength(MVP_NODE_IDS.length)
     expect(result.presentedCount).toBe(2)
   })
 
+  // 表示上限の境界値1件・12件を、同じ検証で確認する。as constで値を固定した型にする。
   it.each([
     [1, 1],
     [12, 12],
@@ -872,6 +935,7 @@ describe('routeGenerator output contract', () => {
   )
 
   it('returns deterministic specification, catalog, and reference-data versions', () => {
+    // 仕様・カタログ・参照データの版を確認し、時刻や実行IDが生成結果に含まれないことも調べる。
     const result = routeGenerator(inputFor())
 
     expect(result.specVersion).toBe('route-spec/1.0')
@@ -883,6 +947,7 @@ describe('routeGenerator output contract', () => {
   })
 
   it('gives every route item at least one structured, traceable reason', () => {
+    // エラー由来の推薦を含むルートで、全項目の理由と根拠の構造を検証する。
     const result = routeGenerator(inputFor({
       errorHistory: [{
         errorId: 'E_HTML_INVALID_NESTING',
@@ -892,6 +957,7 @@ describe('routeGenerator output contract', () => {
       }],
     }))
 
+    // 各項目には1つ以上の理由があり、理由コード・根拠の種類・参照IDが空でないことを確認する。
     for (const item of result.route) {
       expect(item.reasons.length).toBeGreaterThan(0)
       for (const reason of item.reasons) {
