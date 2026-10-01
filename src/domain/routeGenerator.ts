@@ -169,9 +169,8 @@ export function routeGenerator(
         reason: errorReason(entry, nodeRef.priority),
         timestamp: timestampValue(entry.lastOccurredAt),
         repetition: entry.occurrenceCount,
-        // 現実装では、主推薦は完了済みでも候補にし、補助推薦単独では完了・習得仮定を除外する。
-        eligible:
-          nodeRef.priority === 1 || !baseSatisfiedNodeIds.has(nodeRef.nodeId),
+        // §9では主・補助とも、完了・習得仮定にかかわらず復習候補として採用する。
+        eligible: true,
       });
     }
   }
@@ -244,9 +243,12 @@ export function routeGenerator(
 
     // 有効候補になったノードでは、説明可能性のため関連する理由をすべて保持する。
     const reasons = signals.map((signal) => signal.reason);
-    // 現実装では、完了済み・習得仮定に主エラーまたはテスト不合格がある場合に復習理由を付ける。
-    const hasReviewCause =
-      primaryErrorNodeIds.has(nodeId) || failedNodeIds.has(nodeId);
+    // §9の復習原因は主・補助エラーと不合格。§4.2の仮定反証（主エラー・不合格）とは分ける。
+    const hasReviewCause = signals.some(
+      (signal) =>
+        signal.reason.reasonCode === "ERROR_REMEDIATION" ||
+        signal.reason.reasonCode === "QUIZ_FAILED",
+    );
     if (baseSatisfiedNodeIds.has(nodeId) && hasReviewCause) {
       reasons.push({
         reasonCode: "REVIEW",

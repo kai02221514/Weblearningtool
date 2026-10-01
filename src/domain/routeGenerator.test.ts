@@ -181,6 +181,253 @@ describe('routeGenerator representative scenarios', () => {
   })
 })
 
+describe('KAI-36 auxiliary error review', () => {
+  const nestingError = {
+    errorId: 'E_HTML_INVALID_NESTING',
+    occurrenceCount: 1,
+    lastOccurredAt: '2026-09-01T00:00:00Z',
+    resolved: false,
+  }
+
+  function reviewProgress(state: 'completed' | 'assumed') {
+    return {
+      completedNodeIds: MVP_NODE_IDS.filter(nodeId =>
+        state === 'completed' || nodeId !== 'html-040'
+      ),
+      assumedNodeIds: state === 'assumed' ? ['html-040'] : [],
+    }
+  }
+
+  // Case B is a synthetic public-input boundary, not an expanded diagnosis rule.
+  it.each(['completed', 'assumed'] as const)(
+    'cases A/B: includes %s html-040 with auxiliary error and review evidence',
+    state => {
+      const result = routeGenerator(inputFor({
+        progress: reviewProgress(state),
+        errorHistory: [nestingError],
+      }))
+
+      expect(result.route.map(item => item.nodeId)).toEqual(['html-021', 'html-040'])
+      expect(result.status).toBe('active')
+      expect(result.nextNodeId).toBe('html-021')
+      expect(result.presentedCount).toBe(2)
+      for (const [index, nodeId, priority, reviewState] of [
+        [0, 'html-021', 1, 'completed'],
+        [1, 'html-040', 2, state],
+      ] as const) {
+        expect(result.route[index]?.reasons).toEqual([
+          {
+            reasonCode: 'ERROR_REMEDIATION',
+            evidence: {
+              kind: 'error',
+              refId: nestingError.errorId,
+              detail: JSON.stringify({
+                priority,
+                occurrenceCount: 1,
+                lastOccurredAt: nestingError.lastOccurredAt,
+              }),
+            },
+          },
+          {
+            reasonCode: 'REVIEW',
+            evidence: {
+              kind: 'progress',
+              refId: nodeId,
+              detail: JSON.stringify({ state: reviewState }),
+            },
+          },
+        ])
+      }
+    },
+  )
+  it.each(['completed', 'assumed'] as const)(
+    'removes resolved auxiliary review and restores it on recurrence for %s nodes',
+    state => {
+      const progress = reviewProgress(state)
+      const resolved = { ...nestingError, resolved: true }
+      const recurrence = {
+        ...nestingError,
+        occurrenceCount: 2,
+        lastOccurredAt: '2026-09-02T00:00:00Z',
+      }
+      expect(routeGenerator(inputFor({ progress, errorHistory: [resolved] })).route)
+        .toEqual([])
+      const result = routeGenerator(inputFor({
+        progress,
+        errorHistory: [resolved, recurrence],
+      }))
+      const reasons = result.route.find(item => item.nodeId === 'html-040')?.reasons
+      expect(reasons?.map(reason => reason.reasonCode))
+        .toEqual(['ERROR_REMEDIATION', 'REVIEW'])
+      expect(JSON.parse(reasons?.[0]?.evidence.detail ?? '{}')).toEqual({
+        priority: 2,
+        occurrenceCount: 2,
+        lastOccurredAt: recurrence.lastOccurredAt,
+      })
+    },
+  )
+
+  it('removes only the resolved error while another auxiliary error still causes review', () => {
+    const closingError = { ...nestingError, errorId: 'E_HTML_MISSING_CLOSING_TAG' }
+    const progress = { completedNodeIds: [...MVP_NODE_IDS] }
+    const before = routeGenerator(inputFor({
+      progress,
+      errorHistory: [nestingError, closingError],
+    })).route.find(item => item.nodeId === 'html-021')
+    expect(before?.reasons.map(reason => reason.evidence.refId)).toEqual([
+      nestingError.errorId, closingError.errorId, 'html-021',
+    ])
+    const after = routeGenerator(inputFor({
+      progress,
+      errorHistory: [{ ...nestingError, resolved: true }, closingError],
+    }))
+    const reasons = after.route.find(item => item.nodeId === 'html-021')?.reasons
+    expect(reasons?.map(reason => [reason.reasonCode, reason.evidence.refId])).toEqual([
+      ['ERROR_REMEDIATION', closingError.errorId],
+      ['REVIEW', 'html-021'],
+    ])
+    expect(after.route.some(item => item.nodeId === 'html-040')).toBe(false)
+  })
+
+  it.each(['completed', 'assumed'] as const)(
+    'releases error and quiz causes independently for %s auxiliary review',
+    state => {
+      const progress = reviewProgress(state)
+      const failedQuiz = {
+        quizId: 'quiz-html-040', nodeId: 'html-040', passed: false,
+        score: 0, attempt: 1, takenAt: '2026-09-01T00:00:00Z',
+      }
+      const reasonsFor = (resolved: boolean, passed: boolean) =>
+        routeGenerator(inputFor({
+          progress,
+          errorHistory: [{ ...nestingError, resolved }],
+          quizResults: [{ ...failedQuiz, passed, score: passed ? 3 : 0 }],
+        })).route.find(item => item.nodeId === 'html-040')?.reasons
+          .map(reason => [reason.reasonCode, reason.evidence.refId])
+
+      expect(reasonsFor(false, false)).toEqual([
+        ['ERROR_REMEDIATION', nestingError.errorId],
+        ['REVIEW', 'html-040'],
+        ['QUIZ_FAILED', 'quiz-html-040'],
+      ])
+      expect(reasonsFor(true, false)).toEqual([
+        ['REVIEW', 'html-040'], ['QUIZ_FAILED', 'quiz-html-040'],
+      ])
+      expect(reasonsFor(false, true)).toEqual([
+        ['ERROR_REMEDIATION', nestingError.errorId], ['REVIEW', 'html-040'],
+      ])
+      expect(reasonsFor(true, true)).toBeUndefined()
+    },
+  )
+
+  it.each(['auxiliary only', 'primary error', 'failed quiz'] as const)(
+    'keeps prerequisite satisfaction separate from review: %s',
+    cause => {
+      // html-022 is an actual prerequisite of css-020 and its auxiliary error target.
+      const result = routeGenerator(inputFor({
+        progress: {
+          completedNodeIds: MVP_NODE_IDS.filter(id => id !== 'html-022' && id !== 'css-020'),
+          assumedNodeIds: ['html-022'],
+          inProgressNodeId: 'css-020',
+        },
+        errorHistory: [
+          { ...nestingError, errorId: 'E_CSS_SELECTOR_NO_MATCH' },
+          ...(cause === 'primary error'
+            ? [{ ...nestingError, errorId: 'E_HTML_MISSING_REQUIRED_ATTR' }]
+            : []),
+        ],
+        quizResults: cause === 'failed quiz' ? [{
+          quizId: 'quiz-html-022', nodeId: 'html-022', passed: false,
+          score: 0, attempt: 1, takenAt: nestingError.lastOccurredAt,
+        }] : [],
+      }))
+      expect(result.route.map(item => item.nodeId)).toEqual(
+        cause === 'auxiliary only' ? ['css-020', 'html-022'] : ['html-022', 'css-020']
+      )
+      const reasons = result.route.find(item => item.nodeId === 'html-022')?.reasons
+      expect(reasons).toContainEqual({
+        reasonCode: 'REVIEW',
+        evidence: { kind: 'progress', refId: 'html-022', detail: '{"state":"assumed"}' },
+      })
+      expect(reasons?.filter(reason => reason.reasonCode === 'PREREQUISITE')).toEqual(
+        cause === 'auxiliary only' ? [] : [{
+          reasonCode: 'PREREQUISITE',
+          evidence: { kind: 'catalog', refId: 'html-022' },
+          prerequisiteFor: 'css-020',
+        }]
+      )
+    },
+  )
+
+  it.each([
+    ['recency', '2026-09-02T00:00:00Z', 1, ['html-040', 'html-022']],
+    ['repetition', nestingError.lastOccurredAt, 3, ['html-040', 'html-022']],
+    ['catalog order', nestingError.lastOccurredAt, 2, ['html-022', 'html-040']],
+  ] as const)('orders auxiliary review ties by %s', (_label, lastOccurredAt, occurrenceCount, expected) => {
+    const result = routeGenerator(inputFor({
+      progress: {
+        completedNodeIds: MVP_NODE_IDS.filter(id => id !== 'html-040'),
+        assumedNodeIds: ['html-040'],
+      },
+      errorHistory: [
+        { ...nestingError, lastOccurredAt, occurrenceCount },
+        { ...nestingError, errorId: 'E_CSS_SELECTOR_NO_MATCH', occurrenceCount: 2 },
+      ],
+    }))
+    expect(result.route.slice(2).map(item => item.nodeId)).toEqual(expected)
+    expect(new Set(result.route.slice(0, 2).map(item => item.nodeId)))
+      .toEqual(new Set(['html-021', 'css-020']))
+  })
+
+  it('preserves prerequisites, merged reasons, determinism, and input immutability with auxiliary review', () => {
+    const input = inputFor({
+      progress: { completedNodeIds: ['html-040'], assumedNodeIds: ['html-022'] },
+      errorHistory: [nestingError, { ...nestingError, errorId: 'E_CSS_SELECTOR_NO_MATCH' }],
+      quizResults: [{
+        quizId: 'quiz-html-040', nodeId: 'html-040', passed: false,
+        score: 0, attempt: 1, takenAt: nestingError.lastOccurredAt,
+      }, {
+        quizId: 'quiz-html-031', nodeId: 'html-031', passed: true,
+        score: 3, attempt: 1, takenAt: nestingError.lastOccurredAt,
+      }],
+      reflections: [{
+        nodeId: 'html-040', struggledNodeIds: ['html-040'], submittedAt: nestingError.lastOccurredAt,
+      }, {
+        nodeId: 'html-022', struggledNodeIds: ['html-022'], submittedAt: '2026-08-01T00:00:00Z',
+      }],
+    })
+    const snapshot = structuredClone(input)
+    const result = routeGenerator(input)
+    expect(result.status).toBe('active')
+    expect(routeGenerator(input)).toEqual(result)
+    expect(routeGenerator({
+      ...input,
+      errorHistory: [...input.errorHistory].reverse(),
+      quizResults: [...input.quizResults].reverse(),
+      reflections: [...input.reflections].reverse(),
+    })).toEqual(result)
+    expect(input).toEqual(snapshot)
+    const ids = result.route.map(item => item.nodeId)
+    expect(new Set(ids).size).toBe(ids.length)
+    expect(ids.every(id => MVP_NODE_IDS.includes(id))).toBe(true)
+    expect(result.route.map(item => item.order)).toEqual(ids.map((_, index) => index + 1))
+    expect(result.route.find(item => item.nodeId === 'html-040')?.reasons
+      .map(reason => reason.reasonCode))
+      .toEqual(['ERROR_REMEDIATION', 'REVIEW', 'QUIZ_FAILED', 'REFLECTION_FLAG'])
+    const satisfied = new Set(['html-040', 'html-022'])
+    for (const item of result.route) {
+      const node = input.catalog.nodes.find(node => node.nodeId === item.nodeId)
+      expect(node?.prerequisites.every(id => satisfied.has(id))).toBe(true)
+      satisfied.add(item.nodeId)
+    }
+    expect(result.route.find(item => item.nodeId === 'html-020')?.reasons).toContainEqual({
+      reasonCode: 'PREREQUISITE',
+      evidence: { kind: 'catalog', refId: 'html-020' },
+      prerequisiteFor: 'html-040',
+    })
+  })
+})
+
 // 同一入力での再現性と、推薦候補の並べ方を確認する。
 describe('routeGenerator priority and deterministic ordering', () => {
   it('returns every field identically across repeated execution', () => {
@@ -279,42 +526,49 @@ describe('routeGenerator priority and deterministic ordering', () => {
     expect(routeGenerator(reversed)).toEqual(routeGenerator(forward))
   })
 
-  it('applies P1 through P6 in their fixed relative order', () => {
-    // 前提条件を取り除いたテスト用カタログで、6段階の優先順位を同時に発生させる。
-    const result = routeGenerator(inputFor({
-      catalog: emptyPrerequisiteCatalog(),
-      progress: { inProgressNodeId: 'css-060' },
-      quizResults: [{
-        quizId: 'quiz-css-011',
-        nodeId: 'css-011',
-        passed: false,
-        score: 50,
-        attempt: 1,
-        takenAt: '2026-01-02T00:00:00.000Z',
-      }],
-      errorHistory: [{
-        errorId: 'E_HTML_INVALID_NESTING',
-        occurrenceCount: 1,
-        lastOccurredAt: '2026-01-03T00:00:00.000Z',
-        resolved: false,
-      }],
-      reflections: [{
-        nodeId: 'html-020',
-        struggledNodeIds: ['html-022'],
-        submittedAt: '2026-01-01T00:00:00.000Z',
-      }],
-    }))
+  it.each(['uncompleted', 'completed', 'assumed'] as const)(
+    'applies P1 through P6 in their fixed relative order with %s auxiliary target',
+    state => {
+      // 前提条件を取り除いたテスト用カタログで、補助先の状態ごとに6段階の優先順位を確認する。
+      const result = routeGenerator(inputFor({
+        catalog: emptyPrerequisiteCatalog(),
+        progress: {
+          inProgressNodeId: 'css-060',
+          completedNodeIds: state === 'completed' ? ['html-040'] : [],
+          assumedNodeIds: state === 'assumed' ? ['html-040'] : [],
+        },
+        quizResults: [{
+          quizId: 'quiz-css-011',
+          nodeId: 'css-011',
+          passed: false,
+          score: 50,
+          attempt: 1,
+          takenAt: '2026-01-02T00:00:00.000Z',
+        }],
+        errorHistory: [{
+          errorId: 'E_HTML_INVALID_NESTING',
+          occurrenceCount: 1,
+          lastOccurredAt: '2026-01-03T00:00:00.000Z',
+          resolved: false,
+        }],
+        reflections: [{
+          nodeId: 'html-020',
+          struggledNodeIds: ['html-022'],
+          submittedAt: '2026-01-01T00:00:00.000Z',
+        }],
+      }))
 
-    // P1進行中 → P2エラー主推薦 → P3不合格 → P4エラー補助推薦 → P5振り返り → P6新規学習。
-    expect(result.route.slice(0, 6).map(item => item.nodeId)).toEqual([
-      'css-060',
-      'html-021',
-      'css-011',
-      'html-040',
-      'html-022',
-      'html-000',
-    ])
-  })
+      // P1進行中 → P2エラー主推薦 → P3不合格 → P4エラー補助推薦 → P5振り返り → P6新規学習。
+      expect(result.route.slice(0, 6).map(item => item.nodeId)).toEqual([
+        'css-060',
+        'html-021',
+        'css-011',
+        'html-040',
+        'html-022',
+        'html-000',
+      ])
+    },
+  )
 
   it('breaks same-priority ties by recency, repetition, then MVP catalog order', () => {
     // 同じ優先度のエラーに、発生日時と回数の異なる履歴を与える。
