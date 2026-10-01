@@ -44,6 +44,8 @@
 
 ## KAI-36・PR #51の統合状態（2026-10-01）
 
+この節のKAI-36に関する「完了文書の監査・反映待ち」「In Review」および対応する次作業は、PR #53作成時点（2026-10-01）の記録です。文書のmain反映後のCI結果と最終完了状態は、[PR #53](https://github.com/kai02221514/Weblearningtool/pull/53)および[Linear KAI-36](https://linear.app/kai02221514/issue/KAI-36/)の最新完了記録を参照してください。
+
 - 状態: [コードmain反映・統合検証済み／完了文書の監査・反映待ち] [PR #52](https://github.com/kai02221514/Weblearningtool/pull/52)で補助エラー復習欠落を修正し、続いて[PR #51](https://github.com/kai02221514/Weblearningtool/pull/51)の説明・書式・集合処理整理を統合した。検証基準mainは`908f7b76598414cf4236f44eaa52728823cae8ff`。本節を含む文書更新は別Draft PRで監査し、文書main反映後に[KAI-36](https://linear.app/kai02221514/issue/KAI-36/)のDone判定を行う。それまではIn Reviewを維持する。
 - 契約: §9に従い、未解消エラーの主・補助参照先を完了・習得仮定にかかわらず候補化し、`ERROR_REMEDIATION`と`REVIEW`の根拠を保持する。§4.2の習得仮定反証は主推薦エラー・確認テスト不合格だけに限定し、補助エラーだけでは前提充足を取り消さない。
 

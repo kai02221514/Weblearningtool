@@ -34,6 +34,8 @@
 
 ## 現在地
 
+この節のKAI-36に関する「完了文書の監査・反映待ち」「In Review」および対応する次作業は、PR #53作成時点（2026-10-01）の記録です。文書のmain反映後のCI結果と最終完了状態は、[PR #53](https://github.com/kai02221514/Weblearningtool/pull/53)および[Linear KAI-36](https://linear.app/kai02221514/issue/KAI-36/)の最新完了記録を参照してください。
+
 - KAI-36・PR #51（2026-10-01）: [コードmain反映・統合検証済み／完了文書の監査・反映待ち] PR [#52](https://github.com/kai02221514/Weblearningtool/pull/52)を2026-10-01T06:12:24Zに`dbb8a3b2704764929eca8c4b87419150a6e74b1e`、PR [#51](https://github.com/kai02221514/Weblearningtool/pull/51)を06:21:39Zに`908f7b76598414cf4236f44eaa52728823cae8ff`として順にmergeした。#51の競合解消headは`a7f809a5cc3b7a0d1fb408ea6ed89692c34cfaa2`。§9の主・補助復習、§4.2の主エラー／不合格だけによる仮定反証、Set整理、全テストと説明を保持する。
 - 統合main検証: `908f7b76598414cf4236f44eaa52728823cae8ff`で限定46件、`npm run verify`（型検査・Lint・全248件・build）、差分検査が成功。[Check 36824363429](https://github.com/kai02221514/Weblearningtool/actions/runs/36824363429)と手動[Supabase Diagnosis 36824403211](https://github.com/kai02221514/Weblearningtool/actions/runs/36824403211)はいずれもsuccessで、head_shaと実checkoutが同main SHAに一致した。各head・base・merge日時・PR CIとmain CIのevent／実checkoutは`06-implementation-status.md`のKAI-36節に集約する。
 - [KAI-36](https://linear.app/kai02221514/issue/KAI-36/)はIn Reviewを維持する。#52マージ連携による自動Doneを確認したためIn Reviewへ戻した。コードのmain反映と、別Draft PRによる完了文書の監査・main反映待ちを区別する。Done判定は文書main反映後に行う。KAI-26はDoneのまま、研究仕様・Decision Log・仕様版・カタログ版・データ版は変更しない。
@@ -75,7 +77,7 @@
 - GitHub/Linear同期状況（2026-09-06確認）: PR `#1`（`docs/phase3-route-spec-proposal` -> `main`）はmerged。merge commitは`1a6216b01e9d49315f9bee84e67c93b449b44432`。PR #24はmerge commit `bb8b172a3726a5a2612edaac2436fdc9518a1631`として`main`へ反映・再検証済みである。PR #27は最終head `3f1dc06628e25511f7ee31ece0a3f6d609c868a2`をmerge commit `c47c807214803e2cf4f117bccf7b4e6ac245f3d7`として`main`へ反映し、PR段階CIとmain push CIに成功した。PR #28は最終head `56ad79d82ff5cc4026dbe0c5519c8299cd041291`をmerge commit `3ca325b2c2738db0869d6b8e391ed09e91a13eeb`として`main`へ反映し、PR段階CIとmain push CIに成功した。PR #30は最終head `3e74f087f206fc35948e0756428554349171da68`をmerge commit `101ac22f3cb645aa0727c66a6447aeb97d98accf`として`main`へ反映し、PR段階CI run `33840997363`とmain push CI run `33843351139`に成功した。PR #34は最終head `bfa3e239df6a7b9c00135dde773a0b74f20ad31b`を2026-09-05T16:36:45Zにmerge commit `38782ebb55b0e37f98592d110b26d2afce20dd1d`として`main`へ反映し、main push `Check` run `33978411853`とmain手動`Supabase Diagnosis` run `33978478230`に成功した。PR #35で完了証跡をmainへ同期し、Linear KAI-28は完了コメント登録済みのDoneである。Linear `KAI-15`は`In Progress`、`KAI-27`は完了コメント記録済みの`Done`、`KAI-9`/`KAI-10`/`KAI-11`/`KAI-26`も`Done`である。
 - 未完了事項: MVP 12ノード全体の教材整備、予備試行、本実験用教材・問題の最終化、OQ-009残余、実践課題エラー履歴・振り返りのルート入力接続、同意・表示名・診断以外の永続化・評価ログ、研究データ出力、`generatedAt`、`routeId`、全63ノード対応、参加者評価、テスト基盤の継続整備、P-06/P-07/P-09の保留判断。
 - 次の最小作業:
-  1. KAI-36 / PR #51・#52の完了文書Draftを監査し、main反映後にKAI-36のDone判定を行う。それまではIn Reviewを維持する。コード2本のマージと統合検証は本節の固定SHAを参照する。
+  1. KAI-36 / PR #51・#52の完了文書Draftを監査し、main反映後にKAI-36のDone判定を行う。それまではIn Reviewを維持する。コード2本のマージと統合検証は本節の固定SHAを参照する。 この項目はPR #53作成時点（2026-10-01）の記録であり、最新状態は[Linear KAI-36](https://linear.app/kai02221514/issue/KAI-36/)を参照する。
   2. Canceledで終了したKAI-35の警告と未達条件を既知の残存リスクとして維持する。実在参加者利用、予備試行、研究データ収集、本番化、plan・提供条件変更または代替策検討時は別Issue・別Decisionで認証セキュリティを再判断する。
   3. Linear上BacklogのKAI-13は独立候補だが、CI必須化タイミングを確認した範囲だけ進める。
   4. KAI-15は対象3ノード教材接続をmain反映済みだがIn Progressを維持し、MVP 12ノード全体の教材整備、本実験用教材・問題の最終化、予備試行は確定済みのゲートに従って別作業として進める。
