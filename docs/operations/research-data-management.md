@@ -6,7 +6,7 @@
 - 関連Issue: Linear `KAI-12`、`KAI-30`、`KAI-31`、後続`KAI-32`〜`KAI-35`
 - 関連OQ: `OQ-009`、`OQ-004`のDG-08、`OQ-005`の保存境界、`OQ-008`
 - 作成基準: `main` `f9a5c0dbff374eaf8aae9a90ca9b111ff3839499`（2026-07-13）
-- 重要: **§1.4の初回診断保存・復元契約だけはD-022に基づく確定仕様であり、この範囲の後続Task Aは追加の指導教員承認なしで開始できる。**
+- 重要: **§1.4の初回診断保存・復元契約はD-022に基づく確定仕様である。Task AはKAI-28で実装し、KAI-34までに指定非本番環境の合成検証を完了した。追加の指導教員承認不要という権限境界を、研究データ管理残余へ一般化しない。**
 - 重要: **§16.6の表示名・KV・指定remote境界はD-023に基づく確定仕様である。KAI-34で監査済みprofiles・診断・KV撤去・Functionを指定remoteへ適用し、合成データ境界とcleanupを確認済みである。これは参加者データ収集や研究データ管理残余の許可を意味しない。**
 - 重要: **D-024により当面はSupabase Freeプランを継続し、Freeに含まれないleaked-password protectionはKAI-35で有効化・検証しない。KAI-35は元受入条件未達とSecurity Advisor警告を維持して`Canceled`で終了した。実在参加者利用・予備試行・研究データ収集・本番化の前に認証セキュリティを再判断する。**
 - 重要: OQ-009全体とKAI-12は未完了である。同意UI、評価ログ、研究者用取得・削除・export、保持・撤回・削除、参加者データ収集、予備試行は開始可能になっていない。
@@ -14,6 +14,8 @@
 - 重要: §11のD-022対象外項目に残る研究者判断は2026-07-14時点の暫定案であり、確定仕様として扱わない。
 
 本文では、既存の正本文書から確認できる内容を`[確定事項]`、現行コードから確認した状態を`[コード存在確認済み]`、採用候補を`[提案]`、判断を要する内容を`[未確定]`として区別する。
+
+[2026-10-07現在状態補足／KAI-48] 本文のTask A開始条件は契約確定時の境界であり、未実装の意味ではない。KAI-12/KAI-16は2026-10-01のLinear追記を現況として読み、旧PR #19 Draft・旧プロフィール未実装の履歴は保持する。募集時データ管理を含む残余と開始条件は [10-handover.md](../research/10-handover.md)、今回の実コード照合は [06-implementation-status.md](../research/06-implementation-status.md) を参照する。remoteを再検査・変更したものではない。
 
 ## 1. 文書の位置づけ
 
@@ -461,17 +463,17 @@ routeGenerator保存接続は、routeGenerator自体の実装と混ぜず、純�
 | 認証・表示名 | signupはemail/password/display name、signinはemail/passwordをEdge Functionへ送り、認証済み本人は`GET /display-name`と`PUT /display-name`を使用する。KAI-33 / PR #45では5項目用legacy `/profile`とfrontend helper/typeをrepositoryから撤去しmainへ反映済み | 表示名の正本は型付き`public.profiles.display_name`。age、occupation、pace、level、levelScoreは採用・移行しておらず、必要性と保存先は未確定 |
 | 初期アンケート | 9項目、条件表示、旧重み付きscoreとlevel判定。KAI-28 / PR #34で未経験時もK群3項目を必須表示し、K群だけを保存する実装をmainへ反映した | S群・A群のUIと旧score表示は残るが診断APIへ送信・保存しない。KAI-34でK群保存・復元のremote合成検証済み |
 | 進捗 | KAI-27で空の`completedNodeIds`・`assumedNodeIds`と`inProgressNodeId: null`から開始し、学習開始・完了をメモリ内のルート入力へ接続済み | 永続化なし。表示用の`currentNodeId`・`currentNodeName`は初期値を持つが、ルート生成入力とは区別する |
-| クイズ | 詳細な`QuizAttemptResult`にID、番号、回答、版、得点、合否、誤答、時刻、model versionがある | Quizコンポーネントのメモリ内stateのみ。再表示で初期化、保存なし |
+| クイズ | 詳細な`QuizAttemptResult`にID、番号、回答、版、得点、合否、誤答、時刻、model versionがある | Appの`quizAttemptHistory`にメモリ保持し、Quizへ渡す。入力欄stateと確定済み試行履歴を区別する。再ログイン時は初期化、永続化なし |
 | 実践課題 | 入力コード、簡易SRK検出、正規errorIdから復習先を表示 | 完了callbackはデータを渡さず、提出コード・error・解消履歴を保存しない |
 | 振り返り | node、固定7概念、自由記述、日付、recommendationsをメモリ保持 | `quickTestResult=true`は仮値。概念が正規nodeIdでなく、永続化なし |
 | 事後アンケート | 該当機能を確認できない | 未実装 |
-| ルート生成 | KAI-26で純粋なrouteGenerator、KAI-27でK群3項目・進捗・確認テストとDashboard上位3件表示を接続済み。KAI-28 / PR #34で認証後に保存済みK群を復元して同じ開始判定・ルート生成へ渡す実装をmainへ反映・再検証した | `generatedAt`、routeId、診断以外の保存は未実装。remote Supabaseでは未確認 |
+| ルート生成 | KAI-26で純粋なrouteGenerator、KAI-27でK群3項目・進捗・確認テストとDashboard上位3件表示を接続済み。KAI-28 / PR #34で認証後に保存済みK群を復元して同じ開始判定・ルート生成へ渡す実装をmainへ反映・再検証した | `generatedAt`、routeId、診断以外の学習履歴保存は未実装。診断・通常運用表示名のremote API境界はKAI-34で合成検証済み。参加者の通常フロー全体は未評価 |
 | Supabase永続化 | KAI-28 / PR #34の`public.user_diagnoses`、KAI-32 / PR #42の`public.profiles`、KAI-33 / PR #45のKV helper・legacy保存経路撤去をmainへ反映し、KAI-34で指定remoteへ適用した。本人限定RLS・GRANT・API認証、失敗境界、cleanupを合成A/Bで検証済み | 研究者用取得・削除・export、診断履歴、進捗、試行、課題、エラー、振り返り、ルート、同意、評価ログは対象外・未実装。remote検証結果を参加者データ利用へ一般化しない |
 
 ### 14.1 調査した主なコード箇所
 
 - 認証・ユーザーID・表示名: `src/components/Auth.tsx`、`src/utils/auth.ts`、`supabase/functions/_shared/profile.ts`、`supabase/functions/make-server-f3d88633/index.ts`
-- 診断項目・旧スコア・未保存フロー: `src/data/questionConfig.ts`、`src/components/SignupSurvey.tsx`、`src/App.tsx`
+- 診断項目・旧スコア・K群保存成功ゲート: `src/data/questionConfig.ts`、`src/components/SignupSurvey.tsx`、`src/App.tsx`
 - 進捗・固定値・メモリ状態: `src/App.tsx`、`src/components/Dashboard.tsx`
 - クイズの版・採点・全試行モデル: `src/features/quiz/types.ts`、`src/features/quiz/grading.ts`、`src/features/quiz/attempts.ts`、`src/components/Quiz.tsx`
 - 実践課題コード・簡易エラー検出・SRK・復習先: `src/components/PracticeChallenge.tsx`、`src/data/errorMappings.ts`
