@@ -1,6 +1,6 @@
 # 実装状態
 
-- 最新確認日: 2026-10-01（今回の更新対象はKAI-36 / PR #51・#52の統合状態）
+- 最新確認日: 2026-10-07（KAI-48: 最終予稿・実コード・Linear・既存PR/CIの読み取り照合。アプリ検証のローカル再実行なし）
 - 対象: `kai02221514/Weblearningtool`
 - GitHub取得時点（2026-07-02）の`main`: `1a8efb5aa28a9ef08042a9e275cc171dccf8b6a2`
 - PR #28によるKAI-26完了証跡反映時の`main`: `3ca325b2c2738db0869d6b8e391ed09e91a13eeb`
@@ -41,6 +41,46 @@
 - KAI-25確認状態: Linear上Done。`html-010`、`html-021`、`css-011`のノード固有実践課題を型付き定義へ分離し、限定自動判定と表示確認を区別する実装はmain上で再検証済みである。OQ-007の自動判定範囲は確定していない。
 
 [注意] `1a8efb5aa28a9ef08042a9e275cc171dccf8b6a2`および`0f09e5b9f7ba500eaa2a2a8e33252c03d59410d4`は2026-07-02監査時点の旧スナップショットである。以下は2026-07-03に最新`main`を再確認した結果を含む。
+
+## 実施前状態と最終予稿の対照（2026-10-07、KAI-48）
+
+照合対象は最新main `d3f2bf56326bfa3cd5411b27bfbacf0efcba9d87`。計画時mainと一致し、追加差分はない。原稿の来歴・SHA256は [研究概要](00-research-overview.md) を参照する。以下は既存仕様と実装・過去検証・作業状態の同期であり、新たな研究判断、参加者評価、承認の記録ではない。
+
+| 最終予稿・比較対象 | 現行コード・実証跡との照合 | 正本の修正・残余Issue |
+| --- | --- | --- |
+| §2.1/2.2: MVP 12単元の技術検証 | D-016/D-017/D-021、`MVP_NODE_IDS`と純粋生成器が対象。教材完成数とは別 | 12ノードMVPを維持。比較・対象者はOQ-002/003、KAI-38で判断 |
+| §4.1: 通常画面は診断・進捗・確認テストのみ接続 | [routeRuntime.ts](../../src/features/route/routeRuntime.ts)の`generate`は`errorHistory: []`、`reflections: []`を毎回渡す。生成器が5入力を処理できることと通常画面の接続は別 | 未接続表記を維持。KAI-26/27/36はDone。残余はKAI-41の判断後にKAI-43/44 |
+| §4.2: 3単元の教材→確認テスト→実践→振り返り→完了 | 下表の3カタログと [App.tsx](../../src/App.tsx)の遷移が対応。振り返り内容は`progress.reflections`に保持するが、ルートへはノード完了だけを反映 | KAI-15はIn Progress。画面接続と振り返り内容のルート入力を区別 |
+| §5: 残る9単元の教材・問題は未整備 | 下表の9ノードには対象教材・クイズ・実践課題カタログの定義がない。`html-000`の通常導線は未対応表示で止まる | KAI-42で前提・復習先まで整備。限定試行の採否はKAI-38、MVP 12ノード仕様は維持 |
+| §4.2: 診断3項目の保存・再ログイン復元 | [auth.ts](../../src/utils/auth.ts)の診断API、[SignupSurvey.tsx](../../src/components/SignupSurvey.tsx)の保存成功ゲート、Appの`resolveDiagnosis`。KAI-28/34はDone | 05のD-022「実装前」とTask A開始前表記を実装・合成検証済みへ同期。参加者データ収集は未許可 |
+| §5: 診断以外の学習情報の再ログイン復元は未完了 | Appの`handleReturnToLogin`は進捗・試行履歴・ルート状態を初期化。通常運用の表示名は別契約として保存済み | KAI-16はBacklog。研究用の保存・同意・ログ・exportはKAI-12残余確定後。表示名を学習履歴・研究用IDと混同しない |
+| §4.3: 24件の自動テスト | 原稿内の当時の限定検証。現在mainの既存Checkは20ファイル248件。対象・時点が異なる | 提出原稿は変更しない。下記CIを現在の実装集合の過去証跡として参照し、今回再実行とはしない |
+| §5: 参加者評価未実施・今後の条件整備 | D-021の主張境界、OQ-002/003/007/008/009、KAI-37〜47の未完了条件と一致 | 05と10へ開始条件・依存を同期。学習効果・納得感・固定ルートへの優位性は未実証 |
+| Linearの旧PR #19 Draft・プロフィール未実装 | KAI-12/16の2026-10-01追記が現況。PR #19はmerged、型付き表示名はKAI-32〜34完了。旧5項目は撤去・非移行 | 過去記録は保持し、10とデータ管理文書の現在状態を同期。KAI-12はIn Review、KAI-16はBacklog |
+| KAI-13の旧「基盤不足」 | packageの検証scripts、2 workflowと実CIが存在 | 基盤の存在とIssue全体の充足を区別し、充足監査・Done判定をKAI-13へ残す |
+
+### カタログ対応範囲と保存境界
+
+| 対象ノード | 教材 | クイズ | 実践課題 | 状態・制約 |
+| --- | --- | --- | --- | --- |
+| `html-010`、`html-021`、`css-011` | 3ノード分あり | 各3問、計9問、各`quiz-{nodeId}/v0.2` | 3ノード固有の定義あり | 予備試行前。限定自動判定と表示確認を併用。本評価版の最終化・参加者による内容評価は未完了 |
+| `html-000`、`html-020`、`html-022`、`html-031`、`html-040`、`css-000`、`css-010`、`css-020`、`css-060` | 対象定義なし | 対象定義なし | 対象定義なし | ノードメタデータ・前提関係の存在は教材完成を意味しない |
+
+根拠: [MVP集合](../../src/domain/mvpScope.ts)、[教材カタログ](../../src/features/material/pilotMaterials.ts)、[クイズカタログ](../../src/features/quiz/quizCatalog.ts)、[実践課題カタログ](../../src/features/practice/pilotPracticeChallenges.ts)。D-018の3問・2/3合格とD-020の既存3問題の許容解を維持し、新問題への採否を行っていない。
+
+- **保存済みの範囲**: D-022の診断K群3項目・版・完了/更新日時は`public.user_diagnoses`、D-023の通常運用表示名は`public.profiles`、認証情報はAuthが扱う。[通常API](../../supabase/functions/make-server-f3d88633/index.ts)とKAI-28/32〜34の検証証跡が根拠であり、KAI-48でremoteの現在設定を再検査したものではない。
+- **メモリ内の範囲**: Appが進捗、`quizAttemptHistory`、振り返りを保持する。Quizへの再表示ではAppから試行履歴を渡すが、再ログイン後に学習履歴を復元する保存経路はない。実践課題の完了callbackはエラー履歴を渡さず、振り返りの選択・自由記述もルート入力へ接続されていない。
+- **未確定・未実装の範囲**: 上記以外の学習情報、同意・評価ログ・研究者用取得/削除/export、保持・撤回等はKAI-12/KAI-16の残余。リロード時の認証session自動復元と、明示的再ログイン時の診断復元を区別する。
+
+### PR・CI・Issueの現在状態
+
+2026-10-07にGitHubとLinearを再取得した。PR [#52](https://github.com/kai02221514/Weblearningtool/pull/52)、[#51](https://github.com/kai02221514/Weblearningtool/pull/51)、[#53](https://github.com/kai02221514/Weblearningtool/pull/53)はすべてmerged、KAI-36はDoneである。#51/#52の固定head・mergeと検証履歴は次節に保全する。
+
+- PR #53: final head `11860cb10ad04f29255419156abfcee65054089b`、base `main`、2026-10-01T06:57:21Zにmerge `d3f2bf56326bfa3cd5411b27bfbacf0efcba9d87`。PR段階の[Check 36827107667](https://github.com/kai02221514/Weblearningtool/actions/runs/36827107667)・[Supabase Diagnosis 36827107727](https://github.com/kai02221514/Weblearningtool/actions/runs/36827107727)はsuccess。PR段階を実mainの検証と同一視しない。
+- 同mergeのmain [Check 36827572360](https://github.com/kai02221514/Weblearningtool/actions/runs/36827572360)は2026-10-01のpush、success。ログのcheckout SHAと20ファイル248テスト成功を再確認した。このSHAのSupabase Diagnosis runは今回の一覧取得では確認されず、先行する統合main `908f7b7`の手動runとは分ける。
+- KAI-26/27/28/34/36はDone、KAI-35はCanceled。KAI-35の終了は元受入条件達成・警告解消を意味せず、D-024の再判断ゲートはKAI-45へ接続する。
+- [package.json](../../package.json)には`typecheck`、`lint`、`test`、`build`、`check`、`verify`、診断/profile API検証がある。`verify`→`check`→型検査・lint・test・buildの構成を確認した。[Check](../../.github/workflows/check.yml)はPR/main push/手動、[Supabase Diagnosis](../../.github/workflows/supabase-diagnosis.yml)はPR/手動でlocal DB/APIを検証する。KAI-13はBacklogのままで、受入条件全体の充足監査、CI必須化の判断、Done化は今回行わない。
+- 今回は文書だけの変更のため、専用Skill §8とGit/Codex運用文書に従い、ローカルの`npm run verify`、DB/API・ブラウザ検証は省略する。Markdown専用の検証scriptはpackageにない。差分検査、リンク・Issue ID・時点表記、原本保全を確認し、PRへ証跡を残す。
 
 ## KAI-36・PR #51の統合状態（2026-10-01）
 
