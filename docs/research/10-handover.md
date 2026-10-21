@@ -60,10 +60,10 @@
 | Issue | 状態 | 直接の前提 | 作業・再開条件 |
 | --- | --- | --- | --- |
 | [KAI-37](https://linear.app/kai02221514/issue/KAI-37/) | Backlog | KAI-46、KAI-48 | 募集・予備試行・本評価の判定を統括。段階別条件は上表 |
-| [KAI-38](https://linear.app/kai02221514/issue/KAI-38/) | 判断反映・レビュー対象 | なし | D-025で12ノード全体、単群、学生3〜5名、選定・除外、中止・介入境界を確定。募集経路と所要時間・休憩は後続ゲート |
+| [KAI-38](https://linear.app/kai02221514/issue/KAI-38/) | In Progress（実Issueを正とする） | なし | D-025で12ノード全体、単群、学生3〜5名、選定・除外、中止・介入境界を反映済み。募集経路と所要時間・休憩は後続ゲートとし、受入条件の充足および完了状態は実Linear Issueで判定する |
 | [KAI-39](https://linear.app/kai02221514/issue/KAI-39/) | Backlog | KAI-38 | 副次RQ→評価票→必要データ→分析→主張限界を研究者が確定。KAI-12のデータ辞書へ渡す |
 | [KAI-40](https://linear.app/kai02221514/issue/KAI-40/) | Backlog | KAI-38、KAI-39、KAI-12 | 学内手続、募集文、説明・同意・撤回案内を整備。必要手続完了または不要の実根拠が必要 |
-| [KAI-41](https://linear.app/kai02221514/issue/KAI-41/) | 判断反映・レビュー対象 | なし | D-027で自動検出可能な承認済みエラーと選択式振り返りだけをルート入力へ採用。自由記述はKAI-12承認まで送信・保存しない |
+| [KAI-41](https://linear.app/kai02221514/issue/KAI-41/) | In Progress（実Issueを正とする） | なし | D-027でルート入力の境界は反映済み。具体的なerrorId、主・補助nodeId、記録契機、解消・再発、振り返り項目、正規ID、未回答・重複・再回答・解除の詳細契約は未完了。自由記述はKAI-12承認まで送信・保存しない |
 | [KAI-42](https://linear.app/kai02221514/issue/KAI-42/) | Backlog | KAI-38 | KAI-15の教材整備。12ノードの棚卸しは分離可能、採用範囲の作成・内容確認は判断後。前提・復習先と`html-000`の欠落を隠さない |
 | [KAI-43](https://linear.app/kai02221514/issue/KAI-43/) | Backlog | KAI-41 | 承認済みエラー履歴を通常フローへ接続。KAI-36の補助復習・主エラー/不合格だけの仮定反証を維持。保存はKAI-16と分離 |
 | [KAI-44](https://linear.app/kai02221514/issue/KAI-44/) | Backlog | KAI-41 | 承認済み選択式振り返りを正規ノードで接続。自由記述の解析・送信・保存を独自に加えない |
