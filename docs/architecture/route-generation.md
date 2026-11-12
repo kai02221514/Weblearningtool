@@ -225,9 +225,18 @@ interface RouteGenerationResult {
 }
 
 interface StoredRouteGeneration {
-  eventId: string           // 保存event側が付与するUUID
-  generatedAt: string        // 保存・評価ログ記録層が付与する生成記録時刻
-  result: RouteGenerationResult
+  eventId: string            // 保存event側が付与するUUID
+  generatedAt: string        // 保存層がDB側UTCで付与する生成記録時刻
+  status: RouteGenerationResult['status']
+  startNodeId: string | null // 診断結果から導出された開始node
+  specVersion: string
+  catalogVersion: string
+  dataVersion: string
+  presentedRoute: {
+    nodeId: string
+    order: number
+    reasons: RecommendationReason[]
+  }[]
 }
 ```
 
@@ -236,12 +245,13 @@ interface StoredRouteGeneration {
 - 初版でも明示的な版文字列を使用する。既存データファイルの`version: "1.0.0"`を参照する場合、最小例は`dataVersion: "1.0.0"`とする。
 - `generatedAt`は`RouteGenerationResult`には含めない。純粋なルート生成関数は現在時刻を読まず、同一入力に対して同一の`RouteGenerationResult`を返す。
 - `generatedAt`は保存・評価ログ記録層がDB側UTCで付与するメタ情報である。保存先、保持期間および具体的なevent/schema名はOQ-009（KAI-12）の実装契約で確定する。
-- D-031により、純粋な`RouteGenerationResult`へ`routeId`を追加しない。保存event側へUUIDの`eventId`を付与し、実際に提示した順序、構造化理由、`specVersion`、`catalogVersion`および`dataVersion`を保存する。未提示候補ルートは保存しない。
+- D-031により、純粋な`RouteGenerationResult`へ`routeId`を追加しない。保存event側へUUIDの`eventId`を付与し、状態、開始node、実際に提示した順序、構造化理由、`specVersion`、`catalogVersion`および`dataVersion`だけを保存する。未提示候補ルート、`warnings`および入力スナップショットをこの保存eventへ追加しない。
 - 不変条件:
   1. `route`内の全`nodeId`はMVP 12ノード集合に属する。違反時は`status: 'error'`とし、部分結果を返さない。
   2. `route`内の各ノードの前提は、`completedNodeIds ∪ assumedNodeIds`または同ルート内でより小さい`order`のノードに含まれる（前提未完了ノードの直接推薦の構造的禁止）。
   3. 同一`nodeId`は`route`内に高々1回。
   4. 同一入力に対して同一の`RouteGenerationResult`。
+  5. 保存時の`presentedRoute`は、表示処理で使用した`result.route.slice(0, result.presentedCount)`とフィールド単位で一致する。全`result.route`またはslice外の未提示候補を保存してはならず、`StoredRouteGeneration`は`RouteGenerationResult`全体を保持しない。
 - 決定性の定義: 入力スナップショットが等しければ、`RouteGenerationResult`の全フィールドがフィールド単位で等しい。
 
 ## 7. 優先順位（競合時）
